@@ -750,7 +750,7 @@ class UpdateManager(
     companion object {
         private const val TAG = "UpdateManager"
         private const val VERSION_URL =
-            "https://raw.githubusercontent.com/horsemail/yourtv/main/version.json"
+            "https://raw.githubusercontent.com/peterwangze/yourtv/main/version.json"
     }
 }
 
