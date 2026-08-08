@@ -143,10 +143,23 @@ class YourTVApplication : Application() {
     }
 
     fun toast(message: CharSequence = "", duration: Int = Toast.LENGTH_SHORT) {
+        // 全局 Toast 节流：同一文案 8 秒内最多弹一次，
+        // 避免多源后台导入/自动换线时"解析源/下载失败"等提示反复刷屏
+        val key = message.toString()
+        val now = System.currentTimeMillis()
+        val last = toastThrottle[key]
+        if (last != null && now - last < TOAST_THROTTLE_MS) {
+            Log.d(TAG, "toast throttled: $key")
+            return
+        }
+        toastThrottle[key] = now
         Handler(Looper.getMainLooper()).post {
             Toast.makeText(applicationContext, message, duration).show()
         }
     }
+
+    private val toastThrottle = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    private val TOAST_THROTTLE_MS = 8_000L
 
     fun shouldWidthPx(): Int {
         return shouldWidth

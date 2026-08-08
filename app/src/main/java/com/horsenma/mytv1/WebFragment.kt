@@ -56,6 +56,9 @@ class WebFragment : Fragment(), WebFragmentCallback {
     private var playbackStartTime = 0L
     private var lastErrorTime = 0L
     private val errorSuppressionWindow = 2_000L // 2秒窗口
+    private var timeoutCount = 0
+    // 起播超时检测任务：自续投递（30s 一次），第一次未起播只重载，第二次仍未起播才回调换线
+    private var playbackTimeoutRunnable: Runnable? = null
 
     // 设置回调
     fun setCallback(callback: WebFragmentCallback) {
@@ -327,7 +330,7 @@ class WebFragment : Fragment(), WebFragmentCallback {
                 left: 0 !important;
                 width: 100vw !important;
                 height: 100vh !important;
-                object-fit: fill !important;
+                object-fit: contain !important;
                 background-color: transparent !important;
                 z-index: 9999 !important;
             }
@@ -366,11 +369,8 @@ class WebFragment : Fragment(), WebFragmentCallback {
                             var s = requireContext().resources.openRawResource(script)
                                 .bufferedReader()
                                 .use { it.readText() }
-                            // 替换 object-fit 和 body.style.left
+                            // 保留解析脚本原有的 contain（不强制拉伸画面），只修正 body 定位
                             s = s.replace(
-                                "video.style.objectFit = 'contain';",
-                                "video.style.objectFit = 'fill';"
-                            ).replace(
                                 "body.style.left = '100vw';",
                                 "body.style.left = '0'; body.style.width = '100vw'; body.style.height = '100vh';"
                             )
@@ -572,17 +572,17 @@ class WebFragment : Fragment(), WebFragmentCallback {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            object-fit: fill !important;
-            background-color: transparent !important;
-            z-index: 9999 !important;
-        }
-        `;
-        document.head.appendChild(style);
-    })();
-""".trimIndent()
-                                (webView as AndroidWebView).evaluateJavascript(jsCode, null)
+                width: 100vw !important;
+                height: 100vh !important;
+            object-fit: contain !important;
+                background-color: transparent !important;
+                z-index: 9999 !important;
+            }
+            `;
+            document.head.appendChild(style);
+        })();
+    """.trimIndent()
+                            (webView as AndroidWebView).evaluateJavascript(jsCode, null)
                             }
 
                             @SuppressLint("UseKtx")
@@ -613,11 +613,8 @@ class WebFragment : Fragment(), WebFragmentCallback {
                                 var s = requireContext().resources.openRawResource(script)
                                     .bufferedReader()
                                     .use { it.readText() }
-                                // 替换 object-fit 和 body.style.left
+                                // 保留解析脚本原有的 contain（不强制拉伸画面），只修正 body 定位
                                 s = s.replace(
-                                    "video.style.objectFit = 'contain';",
-                                    "video.style.objectFit = 'fill';"
-                                ).replace(
                                     "body.style.left = '100vw';",
                                     "body.style.left = '0'; body.style.width = '100vw'; body.style.height = '100vh';"
                                 )
@@ -723,7 +720,12 @@ class WebFragment : Fragment(), WebFragmentCallback {
             stopPlayback()
         }
         this.tvModel = tvModel
-        val url = tvModel.videoUrl.value as String
+        val url = tvModel.videoUrl.value ?: run {
+            Log.e(TAG, "play: videoUrl is null for ${tvModel.tv.title}")
+            tvModel.setErrInfo("Play URL is null")
+            callback?.onPlaybackError("Play URL is null")
+            return
+        }
         Log.i(TAG, "play ${tvModel.tv.id} ${tvModel.tv.title} $url")
 
         if (webView == null) {
@@ -733,30 +735,42 @@ class WebFragment : Fragment(), WebFragmentCallback {
             return
         }
 
-        // 添加超时检测
-        handler.postDelayed({
-            if (!isPlaying && webView != null) {
-                Log.w(TAG, "Playback timeout for ${tvModel.tv.title}, attempting recovery")
-                when (webView) {
-                    is X5WebView -> {
-                        if ((webView as X5WebView).canGoBack()) {
-                            (webView as X5WebView).goBack()
-                        } else {
-                            (webView as X5WebView).reload()
+        // 添加超时检测：每 30 秒检查一次。第一次未起播只重载（网页源解析慢可达数十秒），
+        // 连续两次超时（约 60 秒）仍未起播才通知 PlayerFragment 换线/报错。
+        // 任务自续投递，直到起播、换台或销毁为止，避免死源时永远不换线。
+        timeoutCount = 0
+        playbackTimeoutRunnable?.let { handler.removeCallbacks(it) }
+        val timeoutTask = object : Runnable {
+            override fun run() {
+                if (!isPlaying && webView != null) {
+                    timeoutCount++
+                    Log.w(TAG, "Playback timeout #$timeoutCount for ${tvModel?.tv?.title}, attempting recovery")
+                    when (webView) {
+                        is X5WebView -> {
+                            if ((webView as X5WebView).canGoBack()) {
+                                (webView as X5WebView).goBack()
+                            } else {
+                                (webView as X5WebView).reload()
+                            }
+                        }
+                        is AndroidWebView -> {
+                            if ((webView as AndroidWebView).canGoBack()) {
+                                (webView as AndroidWebView).goBack()
+                            } else {
+                                (webView as AndroidWebView).reload()
+                            }
                         }
                     }
-                    is AndroidWebView -> {
-                        if ((webView as AndroidWebView).canGoBack()) {
-                            (webView as AndroidWebView).goBack()
-                        } else {
-                            (webView as AndroidWebView).reload()
-                        }
+                    if (timeoutCount >= 2) {
+                        callback?.onPlaybackError("Playback timeout")
+                    } else {
+                        handler.postDelayed(this, 30_000L)
                     }
                 }
-                // 通知 PlayerFragment 切换源
-                callback?.onPlaybackError("Playback timeout")
             }
-        }, 5_000L)
+        }
+        playbackTimeoutRunnable = timeoutTask
+        handler.postDelayed(timeoutTask, 30_000L)
 
         when (webView) {
             is X5WebView -> (webView as X5WebView).loadUrl(url)
@@ -820,6 +834,7 @@ class WebFragment : Fragment(), WebFragmentCallback {
     }
 
     fun stopPlayback() {
+        playbackTimeoutRunnable?.let { handler.removeCallbacks(it) }
         if (isPlaying || playbackStartTime > 0) {
             isPlaying = false
             playbackStartTime = 0L
@@ -921,6 +936,7 @@ class WebFragment : Fragment(), WebFragmentCallback {
     }
 
     override fun onPlaybackStarted() {
+        playbackTimeoutRunnable?.let { handler.removeCallbacks(it) }
         isPlaying = true
         playbackStartTime = System.currentTimeMillis()
         Log.d(TAG, "onPlaybackStarted for ${tvModel?.tv?.title}")

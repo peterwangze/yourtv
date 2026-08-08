@@ -144,7 +144,7 @@
                     android:textStyle="bold"
                     android:nextFocusRight="@id/verify_user"
                     android:nextFocusLeft="@id/appreciate"
-                    android:nextFocusDown="@+id/switchEnableWebviewType"
+                    android:nextFocusDown="@+id/update_epg"
                     android:nextFocusUp="@id/remote_settings"
                     android:focusable="true"
                     android:focusableInTouchMode="true" />
@@ -172,6 +172,40 @@
                     android:textStyle="bold"
                     android:nextFocusRight="@id/check_version"
                     android:nextFocusLeft="@id/verify_user"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:orientation="horizontal">
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/update_epg"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/blur"
+                    android:layout_marginEnd="5dp"
+                    android:textSize="14sp"
+                    android:text="@string/update_epg"
+                    android:textStyle="bold"
+                    android:nextFocusDown="@+id/switchEnableWebviewType"
+                    android:nextFocusUp="@+id/check_version"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/refresh_source"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/blur"
+                    android:layout_marginEnd="5dp"
+                    android:textSize="14sp"
+                    android:text="@string/refresh_source"
+                    android:textStyle="bold"
+                    android:nextFocusLeft="@+id/update_epg"
+                    android:nextFocusRight="@+id/update_epg"
+                    android:nextFocusUp="@+id/check_version"
+                    android:nextFocusDown="@+id/switchEnableWebviewType"
                     android:focusable="true"
                     android:focusableInTouchMode="true" />
             </LinearLayout>

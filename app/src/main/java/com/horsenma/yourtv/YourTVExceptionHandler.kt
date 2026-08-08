@@ -20,17 +20,33 @@ class YourTVExceptionHandler(val context: Context) : Thread.UncaughtExceptionHan
                     e
                 )
             }\n"
+        // 无论是否限流都打印原始异常，便于定位问题
+        Log.e(TAG, "Uncaught exception on thread ${t.name}: $crashInfo")
 
-        runBlocking {
-            launch {
-                saveCrashInfoToFile(crashInfo)
-
-                withContext(Dispatchers.Main) {
-                    android.os.Process.killProcess(android.os.Process.myPid())
-                    exitProcess(1)
+        // 崩溃后主线程 Looper 已死：如果进程继续存活，界面会黑屏、遥控无响应（假死）。
+        // 正确做法：在独立线程保存崩溃日志，然后结束进程，由系统/桌面重启应用。
+        val logger = Thread {
+            try {
+                runBlocking {
+                    launch {
+                        saveCrashInfoToFile(crashInfo)
+                    }
                 }
+            } catch (ignored: Exception) {
+                // 日志上传失败不影响退出
+            } finally {
+                android.os.Process.killProcess(android.os.Process.myPid())
+                exitProcess(2)
             }
         }
+        logger.start()
+        // 主线程最多等日志线程 3 秒，超时直接自杀兜底，避免假死
+        try {
+            logger.join(3000)
+        } catch (ignored: InterruptedException) {
+        }
+        android.os.Process.killProcess(android.os.Process.myPid())
+        exitProcess(2)
     }
 
     private suspend fun saveCrashInfoToFile(crashInfo: String) {

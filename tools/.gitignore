@@ -1,0 +1,4 @@
+*.png
+ui*.xml
+*.json
+__pycache__/

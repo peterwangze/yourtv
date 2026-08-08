@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Proxy
@@ -40,7 +41,9 @@ object DownGithubPrivate {
     )
 
     suspend fun download(context: Context, url: String, id: String = ""): Result<String> {
-        return withContext(Dispatchers.IO) {
+        // 总超时兜底：DNS/镜像逐个尝试可能远超单次 readTimeout，45 秒后强制放弃
+        return withTimeoutOrNull(45_000L) {
+            withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Download called with url=$url, id=$id, thread=${Thread.currentThread().name}")
                 if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -78,7 +81,9 @@ object DownGithubPrivate {
                     } else {
                         val githubUrl = "https://raw.githubusercontent.com/horsenmail/yourtv/main/$url"
                         Log.d(TAG, "Falling back to GitHub URL: $githubUrl")
-                        return@withContext downloadFile(context, listOf(githubUrl), useProxy = proxyInfo != null)
+                        // 国内网络优先走 GitHub 加速镜像，原地址最后兜底
+                        val candidates = (Utils.getUrls(githubUrl) + listOf(githubUrl)).distinct()
+                        return@withContext downloadFile(context, candidates, useProxy = proxyInfo != null)
                     }
                 }
                 val (repo, branch, filePath) = parseGitHubUrl(url)
@@ -94,13 +99,19 @@ object DownGithubPrivate {
                     } else {
                         return@withContext Result.failure(IOException("Failed to fetch download URL"))
                     }
-                } else {
-                    return@withContext downloadFile(context, listOf(url), useProxy = proxyInfo != null)
-                }
-            } catch (e: Exception) {
+                    } else {
+                        // 国内网络优先走 GitHub 加速镜像，原地址最后兜底
+                        val candidates = (Utils.getUrls(url) + listOf(url)).distinct()
+                        return@withContext downloadFile(context, candidates, useProxy = proxyInfo != null)
+                    }
+                } catch (e: Exception) {
                 Log.e(TAG, "Download failed for $url: ${e.javaClass.simpleName} - ${e.message}", e)
                 return@withContext Result.failure(e)
             }
+        }
+        } ?: run {
+            Log.w(TAG, "download: overall 45s timeout for $url");
+            Result.failure(IOException("All download attempts timed out"))
         }
     }
 
@@ -163,21 +174,27 @@ object DownGithubPrivate {
         context: Context,
         urls: List<String>,
         useProxy: Boolean,
-        maxRetries: Int = 3
+        maxRetries: Int = 2,
+        totalTimeoutMs: Long = 45_000
     ): Result<String> {
         Log.d(TAG, "Attempting download for URLs: $urls")
+        val startTime = System.currentTimeMillis()
         for (targetUrl in urls) {
+            if (System.currentTimeMillis() - startTime > totalTimeoutMs) {
+                Log.w(TAG, "Download timed out after ${totalTimeoutMs}ms, giving up")
+                break
+            }
             Log.d(TAG, "Trying URL: $targetUrl")
             repeat(maxRetries) { retry ->
                 try {
                     val content = withContext(Dispatchers.IO) {
-                        val connection = URL(targetUrl).openConnection() as HttpsURLConnection
+                        val connection = URL(targetUrl).openConnection() as HttpURLConnection
                         connection.requestMethod = "GET"
                         connection.setRequestProperty("User-Agent", "okhttp/3.15")
                         connection.setRequestProperty("Accept", "text/plain")
-                        connection.connectTimeout = 10000
-                        connection.readTimeout = 10000
-                        if (connection.responseCode == HttpsURLConnection.HTTP_OK) {
+                        connection.connectTimeout = 8000
+                        connection.readTimeout = 8000
+                        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                             val rawContent = connection.inputStream.bufferedReader().use { it.readText() }
                             // 判断是否为 HEX 文件
                             val isHex = rawContent.trim().matches(Regex("^[0-9a-fA-F]+$"))
@@ -235,7 +252,7 @@ object DownGithubPrivate {
                         }
                     })
                     val proxy = Proxy(Proxy.Type.SOCKS, InetSocketAddress(proxyInfo.host, proxyInfo.port))
-                    val connection = URL(url).openConnection(proxy) as HttpsURLConnection
+                    val connection = URL(url).openConnection(proxy) as HttpURLConnection
                     connection.requestMethod = "GET"
                     connection.setRequestProperty("User-Agent", "okhttp/3.15")
                     connection.setRequestProperty("Accept", "text/plain")

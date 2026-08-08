@@ -11,6 +11,7 @@ import androidx.core.view.marginStart
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.horsenma.yourtv.databinding.GroupItemBinding
+import com.horsenma.yourtv.models.NavEntry
 import com.horsenma.yourtv.models.TVGroupModel
 import com.horsenma.yourtv.models.TVListModel
 
@@ -65,7 +66,8 @@ class GroupAdapter(
     }
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-        val listTVModel = tvGroupModel.getTVListModel(position)!!
+        val entry: NavEntry = tvGroupModel.navEntryAt(position) ?: return
+        val listTVModel: TVListModel = tvGroupModel.getGroupAt(entry.flatIndex) ?: return
         val view = viewHolder.itemView
 
         if (!defaultFocused && position == defaultFocus) {
@@ -113,10 +115,10 @@ class GroupAdapter(
             false
         }
 
-        viewHolder.bindTitle(listTVModel.getName())
+        viewHolder.bindTitle(entry.name)
     }
 
-    override fun getItemCount() = tvGroupModel.size()
+    override fun getItemCount() = tvGroupModel.navEntries().size
 
     class ViewHolder(private val context: Context, private val binding: GroupItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -151,11 +153,9 @@ class GroupAdapter(
             }
 
             recyclerView.postDelayed({
-                val groupPosition =
-                    if (SP.showAllChannels || position == 0) position else position - 1
-                it.scrollToPositionWithOffset(groupPosition, 0)
+                it.scrollToPositionWithOffset(position, 0)
 
-                val viewHolder = recyclerView.findViewHolderForAdapterPosition(groupPosition)
+                val viewHolder = recyclerView.findViewHolderForAdapterPosition(position)
                 viewHolder?.itemView?.apply {
                     isSelected = true
                     requestFocus()

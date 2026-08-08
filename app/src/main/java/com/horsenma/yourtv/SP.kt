@@ -5,12 +5,14 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import com.horsenma.yourtv.data.Global
+import com.horsenma.yourtv.data.Source
 import com.horsenma.yourtv.data.StableSource
 import androidx.core.content.edit
 import androidx.lifecycle.MutableLiveData
 import android.content.pm.PackageManager
 import android.app.UiModeManager
 import android.content.res.Configuration
+import android.util.Log
 
 object SP {
     private const val TAG = "SP"
@@ -36,6 +38,8 @@ object SP {
     private const val KEY_SOURCES = "sources"
     private const val KEY_SOFT_DECODE = "soft_decode"
     private const val KEY_AUTO_SWITCH_SOURCE = "auto_switch_source"
+    private const val KEY_DEFAULTS_IMPORTED = "defaults_imported"
+    private const val KEY_DEFAULTS_LAST_ATTEMPT = "defaults_last_attempt"
     private const val PREF_NAME = "YourTV"
     private const val KEY_STABLE_SOURCES = "stable_sources"
     private const val KEY_SHOW_SOURCE_BUTTON = "show_source_button"
@@ -73,12 +77,52 @@ object SP {
     const val DEFAULT_POSITION_GROUP = 1
     const val DEFAULT_POSITION = 0
     const val DEFAULT_REPEAT_INFO = true
-    var DEFAULT_SOURCES = ""
+    // 预置公共直播源（首次启动自动导入第一个可用源，其余可在"源管理"中切换）
+    var DEFAULT_SOURCES = """
+        [{"uri":"https://live.zbds.top/tv/iptv4.txt"},
+         {"uri":"https://live.fanmingming.cn/tv/m3u/ipv6.m3u"},
+         {"uri":"https://live.fanmingming.com/tv/m3u/ipv6.m3u"},
+         {"uri":"https://live.fanmingming.cn/tv/m3u/ipv4.m3u"},
+         {"uri":"https://raw.githubusercontent.com/jk2024988/TV2024/main/%E5%92%AA%E5%92%952.m3u"},
+         {"uri":"https://raw.githubusercontent.com/hououinkami/AppleTV/main/Source/China_v4.m3u"},
+         {"uri":"https://raw.githubusercontent.com/zhmzjj310144/migu-sports/main/%E4%B8%89%E6%BA%90%E5%90%88%E5%B9%B6_%E5%A4%AE%E8%A7%86%E4%BD%93%E8%82%B2%E5%9C%B0%E6%96%B9%E7%BB%BC%E5%90%88%E6%BA%90.m3u"},
+         {"uri":"https://iptv-org.github.io/iptv/countries/cn.m3u"},
+         {"uri":"https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_all.m3u8"},
+         {"uri":"https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_province.m3u8"},
+         {"uri":"https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_cctv.m3u8"},
+         {"uri":"https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u"},
+         {"uri":"https://iptv-org.github.io/iptv/languages/zho.m3u"},
+         {"uri":"https://iptv-org.github.io/iptv/countries/hk.m3u"},
+         {"uri":"https://iptv-org.github.io/iptv/countries/tw.m3u"},
+         {"uri":"https://iptv-org.github.io/iptv/countries/mo.m3u"}]
+    """.trimIndent()
+
+    fun defaultSourceUrls(): List<String> {
+        return try {
+            val list: List<Source> = gson.fromJson(DEFAULT_SOURCES, typeSourceList)
+            list.map { it.uri }
+        } catch (e: Exception) {
+            Log.e("SP", "Failed to parse DEFAULT_SOURCES: ${e.message}")
+            emptyList()
+        }
+    }
 
     private lateinit var sp: SharedPreferences
     private val gson = Global.gson
     private val typeSourceList = Global.typeSourceList
     private val typeStableSourceList = Global.typeStableSourceList
+    // 收藏集内存缓存：避免 applyChannelList 等逐频道调用 getStringSet 全量复制
+    // （收藏集越大越接近 O(n²) 主线程开销）。所有写入都经过 setLike/deleteLike，
+    // 与磁盘保持一致；init 后首次访问懒加载。
+    @Volatile
+    private var likeCache: Set<String>? = null
+
+    private fun likeSet(): Set<String> {
+        likeCache?.let { return it }
+        val loaded = sp.getStringSet(KEY_LIKE, emptySet()) ?: emptySet()
+        likeCache = loaded
+        return loaded
+    }
 
     // 判断设备是否为触摸屏设备
     @SuppressLint("ServiceCast")
@@ -184,12 +228,11 @@ object SP {
         }
 
     fun getLike(id: Int): Boolean {
-        val stringSet = sp.getStringSet(KEY_LIKE, emptySet())
-        return stringSet?.contains(id.toString()) ?: false
+        return likeSet().contains(id.toString())
     }
 
     fun setLike(id: Int, liked: Boolean) {
-        val stringSet = sp.getStringSet(KEY_LIKE, emptySet())?.toMutableSet() ?: mutableSetOf()
+        val stringSet = likeSet().toMutableSet()
         if (liked) {
             stringSet.add(id.toString())
         } else {
@@ -197,10 +240,12 @@ object SP {
         }
 
         sp.edit() { putStringSet(KEY_LIKE, stringSet) }
+        likeCache = stringSet
     }
 
     fun deleteLike() {
         sp.edit() { remove(KEY_LIKE) }
+        likeCache = emptySet()
     }
 
     var proxy: String?
@@ -234,6 +279,14 @@ object SP {
     var stableSources: String?
         get() = sp.getString(KEY_STABLE_SOURCES, null)
         set(value) = sp.edit() { putString(KEY_STABLE_SOURCES, value) }
+
+    var defaultsImported: Boolean
+        get() = sp.getBoolean(KEY_DEFAULTS_IMPORTED, false)
+        set(value) = sp.edit() { putBoolean(KEY_DEFAULTS_IMPORTED, value) }
+
+    var defaultsLastAttempt: Long
+        get() = sp.getLong(KEY_DEFAULTS_LAST_ATTEMPT, 0L)
+        set(value) = sp.edit() { putLong(KEY_DEFAULTS_LAST_ATTEMPT, value) }
 
     var showSourceButton: Boolean
         get() = sp.getBoolean(KEY_SHOW_SOURCE_BUTTON, DEFAULT_SHOW_SOURCE_BUTTON)

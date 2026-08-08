@@ -164,20 +164,18 @@ object Utils {
     fun getUrls(url: String): List<String> {
         return if (url.startsWith("https://raw.githubusercontent.com") || url.startsWith("https://github.com")) {
             listOf(
+                // 国内可直连的 GitHub 加速镜像（按可用性排序；失效镜像已移除）
                 "https://github.moeyy.xyz/",
-                "https://mirror.ghproxy.com/",
+                "https://ghfast.top/",
                 "https://gh-proxy.llyke.com/",
                 "https://cf.ghproxy.cc/",
                 "https://gh.llkk.cc/",
                 "https://ghproxy.cn/",
                 "https://www.ghproxy.cc/",
-                "https://ghproxy.com/",
-                "https://github.moeyy.cn/",
-                "https://ghfast.top/",
                 "https://github.horsenma.top/",
                 "https://ghp.ci/",
-                "https://ghproxy.net/",
                 "https://ghproxy.click/",
+                "https://gh-proxy.com/",
             ).map {
                 "$it$url"
             }

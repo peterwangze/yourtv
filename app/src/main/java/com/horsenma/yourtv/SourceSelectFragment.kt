@@ -243,12 +243,16 @@ class SourceSelectFragment : Fragment() {
             val job = lifecycleScope.launch(limitedDispatcher) {
                 val resolution = try {
                     fetchResolution(url, index, tvModel)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e // 面板关闭/切台主动取消，属正常流程，不应记录为错误
                 } catch (e: Exception) {
                     Log.e("SourceSelectFragment", "fetchResolution: Failed for URL=$url, error=${e.message}")
                     getString(R.string.unknown)
                 }
                 val ping = try {
                     withContext(Dispatchers.IO) { fetchPing(url) }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e // 同上：主动取消不记录错误
                 } catch (e: Exception) {
                     Log.e("SourceSelectFragment", "fetchPing: Failed for URL=$url, error=${e.message}")
                     -1
@@ -296,6 +300,8 @@ class SourceSelectFragment : Fragment() {
                         }
                         return formattedResolution
                     }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e // 切台时获取分辨率被取消，属正常流程
                 } catch (e: Exception) {
                     Log.e("SourceSelectFragment", "fetchResolution: Failed to get resolution from PlayerFragment for URL=$url, error=${e.message}")
                     return getString(R.string.unknown)
@@ -374,12 +380,16 @@ class SourceSelectFragment : Fragment() {
                         //Log.d("SourceSelectFragment", "fetchPing: Segment URL=$segmentUrl, duration=$segmentDuration ms")
                         return@withContext maxOf(avgPing, segmentDuration.toInt())
                     }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     //Log.w("SourceSelectFragment", "fetchPing: Failed to fetch M3U8 segment for URL=$url, error=${e.message}")
                 }
             }
 
             avgPing
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: java.net.UnknownHostException) {
             //Log.e("SourceSelectFragment", "fetchPing: DNS resolution failed for URL=$url, error=${e.message}")
             -1

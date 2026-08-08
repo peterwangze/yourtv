@@ -20,6 +20,7 @@ import com.horsenma.yourtv.data.EPG
 import com.horsenma.yourtv.data.SourceType
 import com.horsenma.yourtv.data.TV
 import com.horsenma.yourtv.requests.HttpClient
+import com.horsenma.yourtv.LineHealth
 import kotlin.math.max
 import kotlin.math.min
 import android.util.Log
@@ -38,7 +39,7 @@ class TVModel(var tv: TV) : ViewModel() {
     }
 
     fun setVideoIndex(index: Int) {
-        _videoIndex.value = max(0, min(tv.uris.size - 1, index))
+        _videoIndex.setValueSafe(max(0, min(tv.uris.size - 1, index)))
     }
 
     fun setSourceType(type: SourceType) {
@@ -60,6 +61,10 @@ class TVModel(var tv: TV) : ViewModel() {
 
     var listIndex = 0
 
+    // watch() 缓存：同一频道的节流观察只创建一次，避免重复注册观察者
+    var errInfoThrottled: LiveData<String>? = null
+    var readyThrottled: LiveData<Boolean>? = null
+
     private var sourceTypeList: List<SourceType> =
         listOf(
             SourceType.UNKNOWN,
@@ -71,7 +76,7 @@ class TVModel(var tv: TV) : ViewModel() {
         get() = _errInfo
 
     fun setErrInfo(info: String) {
-        _errInfo.value = info
+        _errInfo.setValueSafe(info)
     }
 
     private var _epg = MutableLiveData<List<EPG>>()
@@ -81,7 +86,7 @@ class TVModel(var tv: TV) : ViewModel() {
         get() = _epg.value ?: emptyList()
 
     fun setEpg(epg: List<EPG>) {
-        _epg.value = epg
+        _epg.setValueSafe(epg)
     }
 
     private val _videoIndex = MutableLiveData<Int>()
@@ -103,7 +108,7 @@ class TVModel(var tv: TV) : ViewModel() {
         get() = _like
 
     fun setLike(liked: Boolean) {
-        _like.value = liked
+        _like.setValueSafe(liked)
     }
 
     private val _ready = MutableLiveData<Boolean>()
@@ -115,11 +120,11 @@ class TVModel(var tv: TV) : ViewModel() {
             setErrInfo("")
             retryTimes = 0
 
-            _videoIndex.value = max(0, min(tv.uris.size - 1, tv.videoIndex))
+            _videoIndex.setValueSafe(max(0, min(tv.uris.size - 1, tv.videoIndex)))
             sourceTypeIndex =
                 max(0, min(sourceTypeList.size - 1, sourceTypeList.indexOf(tv.sourceType)))
         }
-        _ready.value = true
+        _ready.setValueSafe(true)
     }
 
     private var userAgent = ""
@@ -239,7 +244,14 @@ class TVModel(var tv: TV) : ViewModel() {
             return false
         }
 
-        _videoIndex.value = (videoIndexValue + 1) % tv.uris.size
+        var next = (videoIndexValue + 1) % tv.uris.size
+        val start = next
+        // 跳过已探测失败的线路，直到找到健康线路或绕回起点
+        while (LineHealth.isDead(tv.uris[next])) {
+            next = (next + 1) % tv.uris.size
+            if (next == start) break
+        }
+        _videoIndex.setValueSafe(next)
         sourceTypeList = listOf(
             SourceType.UNKNOWN,
         )
@@ -252,8 +264,8 @@ class TVModel(var tv: TV) : ViewModel() {
     }
 
     init {
-        _videoIndex.value = max(0, min(tv.uris.size - 1, tv.videoIndex))
-        _like.value = SP.getLike(tv.id)
+        _videoIndex.setValueSafe(max(0, min(tv.uris.size - 1, tv.videoIndex)))
+        _like.setValueSafe(SP.getLike(tv.id))
     }
 
     companion object {

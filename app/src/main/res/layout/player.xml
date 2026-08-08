@@ -24,6 +24,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- 备用播放器视图：后台预准备下一频道，切台时无缝接管（INVISIBLE 保持 surface 存活） -->
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/standby_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        android:layout_gravity="center"
+        android:background="#000000"
+        android:keepScreenOn="true"
+        app:shutter_background_color="#000000"
+        app:resize_mode="fit"
+        app:use_controller="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <FrameLayout
         android:id="@+id/web_view"
         android:layout_width="match_parent"

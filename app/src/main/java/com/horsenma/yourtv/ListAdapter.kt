@@ -30,7 +30,14 @@ class TVListAdapter(
     private var isVisible = false // 改名為 isVisible 避免衝突
     private var focused: View? = null
     private var focusRunnable: Runnable? = null
+    private var focusRetryCount = 0
     private val application = context.applicationContext as YourTVApplication
+
+    companion object {
+        private const val TAG = "TVListAdapter"
+        private const val MAX_FOCUS_RETRIES = 5
+        private const val FOCUS_RETRY_DELAY_MS = 50L
+    }
 
     interface ItemListener {
         fun onItemFocusChange(tvModel: TVModel, hasFocus: Boolean)
@@ -214,10 +221,12 @@ class TVListAdapter(
 
     fun toPosition(position: Int) {
         focusRunnable?.let { recyclerView.removeCallbacks(it) }
+        focusRetryCount = 0
         focusRunnable = Runnable {
             (recyclerView.layoutManager as? LinearLayoutManager)?.scrollToPosition(position)
             val viewHolder = recyclerView.findViewHolderForAdapterPosition(position)
             if (viewHolder != null) {
+                focusRetryCount = 0
                 viewHolder.itemView.requestFocus()
                 (viewHolder as ViewHolder).focus(true)
                 // 确保其他项取消高亮
@@ -229,9 +238,22 @@ class TVListAdapter(
                     }
                 }
                 Log.d(TAG, "ListAdapter: Focused on position $position")
+            } else if (focusRetryCount < MAX_FOCUS_RETRIES &&
+                recyclerView.isAttachedToWindow &&
+                itemCount > 0
+            ) {
+                focusRetryCount++
+                Log.w(
+                    TAG,
+                    "ListAdapter: ViewHolder not found for position $position, retrying ($focusRetryCount/$MAX_FOCUS_RETRIES)"
+                )
+                recyclerView.postDelayed(focusRunnable, FOCUS_RETRY_DELAY_MS)
             } else {
-                Log.w(TAG, "ListAdapter: ViewHolder not found for position $position, retrying")
-                recyclerView.postDelayed({ toPosition(position) }, 50)
+                focusRetryCount = 0
+                Log.w(
+                    TAG,
+                    "ListAdapter: Give up focusing position $position (attached=${recyclerView.isAttachedToWindow}, itemCount=$itemCount)"
+                )
             }
         }
         recyclerView.post(focusRunnable!!)
@@ -257,9 +279,6 @@ class TVListAdapter(
         isVisible = visible
     }
 
-    companion object {
-        private const val TAG = "ListAdapter"
-    }
 }
 
 class TVModelDiffCallback : DiffUtil.ItemCallback<TVModel>() {

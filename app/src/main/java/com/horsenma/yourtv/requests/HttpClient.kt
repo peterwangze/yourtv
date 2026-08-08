@@ -83,9 +83,9 @@ object HttpClient {
         sslContext.init(null, arrayOf(trustManager), java.security.SecureRandom())
 
         return OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS) // 添加 30 秒超时
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(8, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
             .sslSocketFactory(sslContext.socketFactory, trustManager)
             .hostnameVerifier { _, _ -> true }
             .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT))

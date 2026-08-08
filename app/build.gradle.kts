@@ -3,6 +3,17 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
+import java.io.FileInputStream
+import java.util.Properties
+
+// 读取签名配置（keystore.properties 不入库；缺失时回退 debug 签名以便开发）
+val keystoreProps = Properties().apply {
+    val propsFile = rootProject.file("keystore.properties")
+    if (propsFile.exists()) {
+        FileInputStream(propsFile).use { load(it) }
+    }
+}
+
 android {
     namespace = "com.horsenma.yourtv"
     compileSdk = 35
@@ -13,6 +24,17 @@ android {
         targetSdk = 35
         versionCode = getVersionCode()
         versionName = getVersionName()
+    }
+
+    signingConfigs {
+        create("release") {
+            if (keystoreProps.isNotEmpty()) {
+                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildFeatures {
@@ -28,6 +50,11 @@ android {
                 "proguard-rules.pro"
             )
             buildConfigField("boolean", "ENABLE_LOG", "false")
+            signingConfig = if (keystoreProps.isNotEmpty()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
         debug {
             isMinifyEnabled = false
@@ -62,8 +89,8 @@ android {
     applicationVariants.all {
         outputs.all {
             if (this is com.android.build.gradle.internal.api.BaseVariantOutputImpl) {
-                val appName = "yourtv"
-                val newName = "${appName}_v1.8.5.apk"
+                val appName = "juyuan_tv"
+                val newName = "${appName}_v${getVersionName()}.apk"
                 outputFileName = newName
             }
         }
@@ -71,7 +98,8 @@ android {
 }
 
 fun getVersionName(): String {
-    return "1.8.5"
+    // 本地分支版本：高于上游 2.4.3，避免被上游更新检查误判为可升级
+    return "2.7.0"
 }
 
 fun getVersionCode(): Int {
@@ -84,6 +112,8 @@ fun getVersionCode(): Int {
 
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
+
+    testImplementation("junit:junit:4.13.2")
 
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)

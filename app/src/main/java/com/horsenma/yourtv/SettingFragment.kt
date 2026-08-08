@@ -311,6 +311,18 @@ class SettingFragment : Fragment() {
             mainActivity.settingActive()
         }
 
+        // 手动刷新节目单（跳过自动冷却，给出成功/失败反馈）
+        binding.updateEpg.setOnClickListener {
+            viewModel.updateEPG(force = true)
+            mainActivity.settingActive()
+        }
+
+        // 强制刷新当前直播源（跳过 24h 缓存重新下载）
+        binding.refreshSource.setOnClickListener {
+            viewModel.refreshActiveSource()
+            mainActivity.settingActive()
+        }
+
         binding.setting.setOnClickListener {
             hideSelf()
             (activity as? MainActivity)?.settingActive() // 新增

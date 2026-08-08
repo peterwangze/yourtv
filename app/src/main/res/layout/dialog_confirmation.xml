@@ -45,7 +45,7 @@
             android:id="@+id/ok_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="確定"
+            android:text="确定"
             android:textSize="18sp"
             android:focusable="true"
             android:focusableInTouchMode="true"

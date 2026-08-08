@@ -1,6 +1,7 @@
 {
-  "version_code": 226,
-  "version_name": "2.2.6",
-  "apk_url": "https://github.com/horsemail/yourtv/releases/download/v2.2.6/yourtv_v2.2.6.apk",
-  "apk_name": "yourtv_v2.2.6.apk"
+  "version_code": 270,
+  "version_name": "2.7.0",
+  "apk_url": "https://github.com/horsemail/yourtv/releases/download/v2.7.0/juyuan_tv_v2.7.0.apk",
+  "apk_name": "juyuan_tv_v2.7.0.apk",
+  "description": "三级分级频道列表（央视/卫视两级，地方/海外/其他三级）、咪咕/百视通等高质量源集成、高质源排序优化"
 }

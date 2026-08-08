@@ -102,7 +102,7 @@
     <string name="install_failed">安裝失敗，請手動安裝</string>
     <string name="no_browser_found">無法打開瀏覽器，請檢查設備設置</string>
     <string name="no_available_sources">沒有可用直播源！</string>
-    <string name="loading_message1">歡迎使用：你的電視</string>
+    <string name="loading_message1">歡迎使用：聚源TV</string>
     <string name="loading_message2">此APP僅限於測試，嚴禁傳播。</string>
     <string name="loading_message3">請務必遵守所在國家地區法律法規！</string>
     <string name="download_success">下載在線直播源成功</string>
@@ -115,10 +115,15 @@
     <string name="first_channel">已是第一個頻道</string>
     <string name="last_channel">已是最後一個頻道</string>
     <string name="no_multiple_sources">此頻道隻有一個直播源</string>
-    <string name="app_name">你的電視</string>
+    <string name="app_name">聚源TV</string>
     <string name="title_channel_reversal">換颱反轉</string>
     <string name="title_channel_num">換颱時顯示頻道號</string>
     <string name="check_version">更新應用</string>
+    <string name="update_epg">更新節目單</string>
+    <string name="epg_update_success">節目單更新成功</string>
+    <string name="epg_update_failed">節目單更新失敗</string>
+    <string name="refresh_source">刷新直播源</string>
+    <string name="source_refresh_no_source">暫無可用直播源</string>
     <string name="title_boot_startup">開機自啟</string>
     <string name="appreciate">加入群組</string>
     <string name="channels">換視頻源</string>

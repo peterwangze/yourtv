@@ -16,6 +16,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.horsenma.yourtv.databinding.MenuBinding
+import com.horsenma.yourtv.models.ChannelClassifier
+import com.horsenma.yourtv.models.NavEntry
 import com.horsenma.yourtv.models.TVListModel
 import com.horsenma.yourtv.models.TVModel
 import java.io.File
@@ -51,6 +53,12 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
     private var listenersBound: Boolean = false
     private var clickCount: Int = 0
     private var lastClickTime: Long = System.currentTimeMillis() // 初始化为当前时间
+    private var onVisibleRetryCount = 0
+    private val MAX_ON_VISIBLE_RETRIES = 10
+    // 同一 BACK 事件可能被 Activity.onKey 与 OnBackPressedDispatcher 各分发一次：
+    // 第一次退出下钻，第二次（1s 内）只消费不再关闭菜单，避免“退出即关闭”
+    private var drillExitPending = false
+    private var drillExitTime = 0L
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -208,6 +216,7 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
     fun update() {
         view?.post {
             groupAdapter.changed()
+            updateNavPath()
             getList()?.let { listModel ->
                 listAdapter.update(listModel)
                 //Log.d(TAG, "MenuFragment: Updated list with ${listModel.tvList.value?.size} items")
@@ -234,8 +243,11 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
         if (!this::viewModel.isInitialized) {
             return
         }
+        viewModel.groupModel.restoreNav(position)
         viewModel.groupModel.setPosition(position)
         SP.positionGroup = position
+        groupAdapter.changed()
+        updateNavPath()
         viewModel.groupModel.getCurrentList()?.let {
             listAdapter.update(it)
             listAdapter.toPosition(it.positionPlayingValue)
@@ -261,6 +273,8 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
     override fun onItemFocusChange(listTVModel: TVListModel, hasFocus: Boolean) {
         if (hasFocus) {
             listAdapter.update(listTVModel)
+            // 焦点回调先于 groupModel.setPosition 执行，需显式传入分组索引
+            updateNavPath(listTVModel.getGroupIndex())
             (activity as? MainActivity)?.menuActive()
         }
     }
@@ -272,11 +286,23 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
     // GroupAdapter.ItemListener
     override fun onItemClicked(position: Int) {
         if (!this::viewModel.isInitialized) return
-        updateList(position)
+        val entry = viewModel.groupModel.navEntryAt(position)
+        if (entry != null && !viewModel.groupModel.isDrilled() &&
+            ChannelClassifier.isThreeLevelCategory(entry.category)
+        ) {
+            // 一级分类（地方/海外/其他）：下钻到地区/分类列表
+            drillInto(entry.category)
+            return
+        }
+        updateList(viewModel.groupModel.navFlatIndexAt(position))
         groupAdapter.focusable(true)
         listAdapter.focusable(false)
         binding.group.requestFocus()
-        groupAdapter.scrollToPositionAndSelect(position)
+        groupAdapter.scrollToPositionAndSelect(
+            viewModel.groupModel.navEntries().indexOfFirst {
+                it.flatIndex == viewModel.groupModel.positionValue
+            }.coerceAtLeast(0)
+        )
         (activity as? MainActivity)?.menuActive() // 重置计时器
         //Log.d(TAG, "MenuFragment: Group item clicked, focusing on position $position")
     }
@@ -309,6 +335,13 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
                 return false
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                val entry = focusedNavEntry()
+                if (!viewModel.groupModel.isDrilled() && entry != null &&
+                    ChannelClassifier.isThreeLevelCategory(entry.category)
+                ) {
+                    drillInto(entry.category)
+                    return true
+                }
                 if (listAdapter.itemCount == 0) return true
                 listAdapter.focusable(true)
                 groupAdapter.focusable(false)
@@ -345,10 +378,14 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
                 return true
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
+                if (viewModel.groupModel.isDrilled()) {
+                    exitDrill()
+                    return true
+                }
                 groupAdapter.focusable(true)
                 listAdapter.focusable(false)
                 binding.group.requestFocus()
-                groupAdapter.scrollToPositionAndSelect(viewModel.groupModel.positionValue)
+                groupAdapter.scrollToPositionAndSelect(navPositionOf(viewModel.groupModel.positionValue))
                 return true
             }
             KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_CENTER -> {
@@ -367,7 +404,7 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
                 groupAdapter.focusable(true)
                 listAdapter.focusable(false)
                 binding.group.requestFocus()
-                groupAdapter.scrollToPositionAndSelect(viewModel.groupModel.positionValue)
+                groupAdapter.scrollToPositionAndSelect(navPositionOf(viewModel.groupModel.positionValue))
                 (activity as? MainActivity)?.menuActive()
                 return true
             }
@@ -383,8 +420,12 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
         //Log.d(TAG, "MenuFragment onVisible, calling setupSourceSwitcher")
         setupSourceSwitcher()
         val position = viewModel.groupModel.positionPlayingValue
+        viewModel.groupModel.restoreNav(position)
         if (position != viewModel.groupModel.positionValue) {
             updateList(position)
+        } else {
+            groupAdapter.changed()
+            updateNavPath()
         }
         viewModel.groupModel.getCurrentList()?.let {
             listAdapter.update(it)
@@ -397,10 +438,112 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
                 }
             }, 300) // 100ms 延迟
         } ?: run {
-            //Log.w(TAG, "MenuFragment: Current list is null, retrying")
-            view?.postDelayed({ if (isAdded) onVisible() }, 1000)
+            if (onVisibleRetryCount < MAX_ON_VISIBLE_RETRIES) {
+                onVisibleRetryCount++
+                Log.d(TAG, "MenuFragment: Current list is null, retrying (" + onVisibleRetryCount + "/" + MAX_ON_VISIBLE_RETRIES + ")")
+                view?.postDelayed({ if (isAdded) onVisible() }, 1000)
+            } else {
+                Log.w(TAG, "MenuFragment: Give up retrying onVisible, current list is null")
+                onVisibleRetryCount = 0
+            }
         }
         (activity as MainActivity).menuActive()
+    }
+
+    /** 下钻：顶级分类 → 地区/分类列表（地方/海外/其他） */
+    private fun drillInto(category: String) {
+        viewModel.groupModel.enterCategory(category)
+        groupAdapter.changed()
+        updateNavPath()
+        viewModel.groupModel.getCurrentList()?.let { listAdapter.update(it) }
+        val entries = viewModel.groupModel.navEntries()
+        val flat = viewModel.groupModel.positionValue
+        groupAdapter.scrollToPositionAndSelect(
+            entries.indexOfFirst { it.flatIndex == flat }.coerceAtLeast(0)
+        )
+        groupAdapter.focusable(true)
+        listAdapter.focusable(false)
+        binding.group.requestFocus()
+        (activity as? MainActivity)?.menuActive()
+    }
+
+    /** 返回顶级分类视图 */
+    private fun exitDrill() {
+        val cat = viewModel.groupModel.navCategory
+        viewModel.groupModel.exitCategory()
+        if (cat != null) {
+            val top = viewModel.groupModel.topEntries().firstOrNull { it.category == cat }
+            top?.let { viewModel.groupModel.setPosition(it.flatIndex) }
+        }
+        groupAdapter.changed()
+        updateNavPath()
+        viewModel.groupModel.getCurrentList()?.let { listAdapter.update(it) }
+        val entries = viewModel.groupModel.navEntries()
+        val flat = viewModel.groupModel.positionValue
+        groupAdapter.scrollToPositionAndSelect(
+            entries.indexOfFirst { it.flatIndex == flat }.coerceAtLeast(0)
+        )
+        groupAdapter.focusable(true)
+        listAdapter.focusable(false)
+        binding.group.requestFocus()
+        (activity as? MainActivity)?.menuActive()
+    }
+
+    /** 返回键处理：下钻时先返回顶级分类；未下钻返回 false 交由外部关闭菜单 */
+    fun onBackPressed(): Boolean {
+        if (this::viewModel.isInitialized && viewModel.groupModel.isDrilled()) {
+            drillExitPending = true
+            drillExitTime = System.currentTimeMillis()
+            Log.d(TAG, "onBackPressed: exiting drill nav=${viewModel.groupModel.navCategory}")
+            exitDrill()
+            return true
+        }
+        if (drillExitPending && System.currentTimeMillis() - drillExitTime < 1000) {
+            drillExitPending = false
+            Log.d(TAG, "onBackPressed: same BACK second dispatch, keep menu")
+            return true
+        }
+        drillExitPending = false
+        Log.d(TAG, "onBackPressed: not drilled, close menu")
+        return false
+    }
+
+    private fun focusedNavEntry(): NavEntry? {
+        val entries = viewModel.groupModel.navEntries()
+        val flat = viewModel.groupModel.positionValue
+        return entries.firstOrNull { it.flatIndex == flat } ?: entries.firstOrNull()
+    }
+
+    /** 扁平分组索引 → 当前导航列表位置 */
+    private fun navPositionOf(flatIndex: Int): Int {
+        return viewModel.groupModel.navEntries()
+            .indexOfFirst { it.flatIndex == flatIndex }
+            .coerceAtLeast(0)
+    }
+
+    /** 顶部路径提示：顶级分类名 / “地方 › 北京” 式层级路径 */
+    private fun updateNavPath(flatIndex: Int = -1) {
+        val pathView = binding.navPath
+        if (!this::viewModel.isInitialized) {
+            pathView.text = ""
+            return
+        }
+        val groupModel = viewModel.groupModel
+        val cat = groupModel.navCategory
+        val entries = groupModel.navEntries()
+        val entry = if (flatIndex >= 0) {
+            entries.firstOrNull { it.flatIndex == flatIndex } ?: entries.firstOrNull()
+        } else {
+            focusedNavEntry()
+        }
+        pathView.text = when {
+            cat != null && entry != null -> "$cat › ${entry.name}"
+            cat != null -> cat
+            entry != null && ChannelClassifier.isThreeLevelCategory(entry.category) ->
+                "${entry.category} › 按确认进入${if (entry.category == ChannelClassifier.CAT_OTHER) "分类" else "地区"}"
+            entry != null -> entry.name
+            else -> ""
+        }
     }
 
     private fun requestFocus() {
@@ -428,7 +571,7 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
             groupAdapter.focusable(true)
             listAdapter.focusable(false)
             binding.group.requestFocus()
-            val groupPosition = viewModel.groupModel.positionValue
+            val groupPosition = navPositionOf(viewModel.groupModel.positionValue)
             groupAdapter.scrollToPositionAndSelect(groupPosition)
             //Log.d(TAG, "Focus requested on group at position $groupPosition")
         }
@@ -458,32 +601,35 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
         cachedSources["default_channels.txt"] = context.getString(R.string.default_iptv_channel)
         cachedSources["webchannelsiniptv.txt"] = context.getString(R.string.default_web_channel)
         Log.d(TAG, "Added to cachedSources: webchannelsiniptv.txt, default_channels.txt")
-        // 添加其他缓存源
-        prefs.all.keys.filter { it.startsWith("cache_") && !it.startsWith("cache_time_") }
-            .forEach { key ->
-                val filename = key.removePrefix("cache_")
-                val cachedContent = prefs.getString(key, null)
-                val cacheFile = File(context.filesDir, "cache_$filename")
-                if (cachedContent != null && cacheFile.exists() && cacheFile.readText() == cachedContent) {
-                    val sourceName = prefs.getString("url_$filename", null)?.substringAfterLast("/")?.substringBeforeLast(".")?.takeIf { it.isNotBlank() }
-                        ?: filename.substringBeforeLast(".").takeIf { it.isNotBlank() }
-                        ?: "未知源"
-                    cachedSources[filename] = sourceName
-                    Log.d(TAG, "Added to cachedSources: $filename -> $sourceName")
-                }
+        // 添加其他缓存源（基于文件枚举，SharedPreferences 只存元数据）
+        context.filesDir.listFiles { f ->
+            f.isFile && f.name.startsWith("cache_") &&
+                    f.name != "cache_${com.horsenma.yourtv.MainViewModel.Companion.CACHE_FILE_NAME}" &&
+                    f.name != "cache_${com.horsenma.yourtv.MainViewModel.Companion.CACHE_EPG}"
+        }?.sortedBy { it.lastModified() }?.forEach { cacheFile ->
+            val filename = cacheFile.name.removePrefix("cache_")
+            if (cacheFile.exists() && cacheFile.length() > 0) {
+                val sourceName = prefs.getString("url_$filename", null)
+                    ?.substringAfterLast("/")?.substringBeforeLast(".")
+                    ?.takeIf { it.isNotBlank() }
+                    ?: filename.substringBeforeLast(".").takeIf { it.isNotBlank() }
+                    ?: "未知源"
+                cachedSources[filename] = sourceName
+                Log.d(TAG, "Added to cachedSources: $filename -> $sourceName")
             }
+        }
         // 初始化索引
         val activeFilename = prefs.getString("active_source", "default_channels.txt") ?: "default_channels.txt"
         currentTestCodeIndex = cachedSources.keys.indexOfFirst { it == activeFilename }.coerceAtLeast(0)
         displaySourceIndex = currentTestCodeIndex
         if (!cachedSources.containsKey(activeFilename)) {
-            Log.w(TAG, "Active source $activeFilename not found in cachedSources, switching to default")
-            // 切换到默认源
+            Log.w(TAG, "Active source $activeFilename not found in cachedSources, falling back to default display (list kept)")
+            // 激活源缓存文件不存在（下载失败/缓存被清理）时，只把切换器指回默认源；
+            // 不触发 switchSource(0) 整体替换列表，避免多源聚合后的频道列表被内置源覆盖
             with(prefs.edit()) {
                 putString("active_source", "default_channels.txt")
                 apply()
             }
-            switchSource(0) // 触发源切换
         } else {
             Log.d(TAG, "Set displaySourceIndex to $displaySourceIndex for active source: $activeFilename")
         }
@@ -684,7 +830,7 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
         if (selectedFilename == activeFilename) {
             Log.d(TAG, "Selected source is already active: $selectedFilename, skipping switch")
             context?.let {
-                Toast.makeText(it, it.getString(R.string.load_failed, selectedSourceName), Toast.LENGTH_SHORT).show()
+                Toast.makeText(it, it.getString(R.string.aready_current_source, selectedSourceName), Toast.LENGTH_SHORT).show()
             }
             return
         }
@@ -725,12 +871,15 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
 
     override fun onAttach(context: Context) { // 注意：使用 Context（适配新版 Fragment）
         super.onAttach(context)
-        // 添加 OnBackPressedCallback，处理返回键（可选）
+        // 同一 BACK 事件会被 Activity.onKey 与 Dispatcher 各分发一次，
+        // 回调保持启用以阻止 Dispatcher 默认行为（finish Activity），
+        // 幂等性由 onBackPressed() 内的一次性标志保证。
         requireActivity().onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // 可选：自定义返回键逻辑，例如隐藏 MenuFragment
                 if (isVisible && isAdded) {
-                    hideSelf()
+                    if (!onBackPressed()) {
+                        hideSelf()
+                    }
                 }
             }
         })

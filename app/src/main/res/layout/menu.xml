@@ -60,6 +60,20 @@
             android:scaleType="centerInside"
             android:nextFocusLeft="@id/source_switcher_text" />
     </LinearLayout>
+    <TextView
+        android:id="@+id/nav_path"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:gravity="center_vertical"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:background="#66000000"
+        android:text=""
+        android:focusable="false" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

@@ -60,6 +60,14 @@
 -keep class okhttp3.OkHttpClient { *; }
 -keep class okhttp3.Request { *; }
 -keep class okhttp3.Response { *; }
+-keep class okhttp3.internal.** { *; }
+-keep class okhttp3.internal.platform.** { *; }
+-keep class okio.** { *; }
+-dontwarn okhttp3.internal.platform.**
+-keep class org.bouncycastle.** { *; }
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
 -keep class androidx.media3.** { *; }
 -keep class com.bumptech.glide.** { *; }
 -keep class com.google.zxing.** { *; }

@@ -50,16 +50,17 @@ import androidx.annotation.RequiresApi
 import com.horsenma.yourtv.Utils.ViewModelUtils
 import androidx.core.content.edit
 import androidx.recyclerview.widget.RecyclerView
+import java.io.File
 
 
 @Suppress("UNUSED_EXPRESSION", "DEPRECATION")
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
-    private var ok = 0
     internal var playerFragment = com.horsenma.yourtv.PlayerFragment()
-    internal val errorFragment = com.horsenma.yourtv.ErrorFragment()
-    internal val loadingFragment = com.horsenma.yourtv.LoadingFragment()
+    private var initializedReady = false
+    internal var errorFragment = com.horsenma.yourtv.ErrorFragment()
+    internal var loadingFragment = com.horsenma.yourtv.LoadingFragment()
     internal var infoFragment = com.horsenma.yourtv.InfoFragment()
     internal var channelFragment = com.horsenma.yourtv.ChannelFragment()
     internal var timeFragment = com.horsenma.yourtv.TimeFragment()
@@ -67,6 +68,32 @@ class MainActivity : AppCompatActivity() {
     internal var settingFragment = com.horsenma.yourtv.SettingFragment()
     internal var programFragment = com.horsenma.yourtv.ProgramFragment()
     internal var sourceSelectFragment = com.horsenma.yourtv.SourceSelectFragment()
+
+    /**
+     * Fragment 统一使用类名作为 tag：初始 add、懒加载 add 与进程重建后的
+     * findFragmentByTag 全部一致，避免字段实例与 FragmentManager 恢复实例脱节
+     * 导致黑屏/操作静默失效。
+     */
+    private fun fragmentTag(fragment: Fragment): String = fragment.javaClass.simpleName
+
+    /** 进程重建（savedInstanceState != null）后，把字段重新绑定到 FragmentManager 恢复的实例 */
+    private fun rebindRestoredFragments() {
+        fun <T : Fragment> rebind(tag: String, fallback: T): T {
+            @Suppress("UNCHECKED_CAST")
+            return supportFragmentManager.findFragmentByTag(tag) as? T ?: fallback
+        }
+        playerFragment = rebind(fragmentTag(playerFragment), playerFragment)
+        errorFragment = rebind(fragmentTag(errorFragment), errorFragment)
+        loadingFragment = rebind(fragmentTag(loadingFragment), loadingFragment)
+        infoFragment = rebind(fragmentTag(infoFragment), infoFragment)
+        channelFragment = rebind(fragmentTag(channelFragment), channelFragment)
+        timeFragment = rebind(fragmentTag(timeFragment), timeFragment)
+        menuFragment = rebind(fragmentTag(menuFragment), menuFragment)
+        settingFragment = rebind(fragmentTag(settingFragment), settingFragment)
+        programFragment = rebind(fragmentTag(programFragment), programFragment)
+        sourceSelectFragment = rebind(fragmentTag(sourceSelectFragment), sourceSelectFragment)
+        Log.d(TAG, "Rebound restored fragments: player=" + playerFragment.isAdded + ", loading=" + loadingFragment.isAdded + ", menu=" + menuFragment.isAdded)
+    }
 
     private val handler = Handler(Looper.myLooper()!!)
     private val delayHideMenu = 10 * 1000L
@@ -85,6 +112,7 @@ class MainActivity : AppCompatActivity() {
     private val DEBOUNCE_INTERVAL = 2000L
     private var lastBackPressTime = 0L
     private val BACK_PRESS_INTERVAL = 2000L
+    private val watchedLikes = java.util.Collections.newSetFromMap(java.util.WeakHashMap<TVModel, Boolean>())
 
     private val handleRightRunnable = Runnable {
         if (menuPressCount == 1) { // 仅单次按右键触发 sourceUp
@@ -139,12 +167,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 必须在 super.onCreate 之前初始化 viewModel：
+        // super.onCreate 会恢复上一进程遗留的 Fragment（如 SourceSelectFragment.onCreate
+        // 会直接访问 activity.viewModel），此时未初始化会触发
+        // UninitializedPropertyAccessException —— 这正是进程重建后重进闪退/黑屏的根因之一。
+        // MainViewModel 无 SavedStateHandle 构造参数，此处提前创建是安全的。
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         super.onCreate(savedInstanceState)
         updateFullScreenMode(SP.fullScreenMode)
         setContentView(R.layout.activity_main)
 
         UserInfoManager.initialize(applicationContext)
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         userVerificationHandler = UserVerificationHandler(this, UserInfoManager, viewModel)
 
         val versionCode = packageManager.getPackageInfo(packageName, 0).versionCode.toLong()
@@ -172,13 +205,13 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             try {
                 supportFragmentManager.beginTransaction()
-                    .add(R.id.main_browse_fragment, loadingFragment)
-                    .add(R.id.main_browse_fragment, playerFragment)
-                    .add(R.id.main_browse_fragment, infoFragment)
-                    .add(R.id.main_browse_fragment, channelFragment)
-                    .add(R.id.main_browse_fragment, menuFragment)
-                    .add(R.id.main_browse_fragment, settingFragment)
-                    .add(R.id.main_browse_fragment, sourceSelectFragment)
+                    .add(R.id.main_browse_fragment, loadingFragment, fragmentTag(loadingFragment))
+                    .add(R.id.main_browse_fragment, playerFragment, fragmentTag(playerFragment))
+                    .add(R.id.main_browse_fragment, infoFragment, fragmentTag(infoFragment))
+                    .add(R.id.main_browse_fragment, channelFragment, fragmentTag(channelFragment))
+                    .add(R.id.main_browse_fragment, menuFragment, fragmentTag(menuFragment))
+                    .add(R.id.main_browse_fragment, settingFragment, fragmentTag(settingFragment))
+                    .add(R.id.main_browse_fragment, sourceSelectFragment, fragmentTag(sourceSelectFragment))
                     .hide(infoFragment)
                     .hide(channelFragment)
                     .hide(menuFragment)
@@ -188,13 +221,13 @@ class MainActivity : AppCompatActivity() {
             } catch (e: IllegalStateException) {
                 Log.e(TAG, "Failed to add fragments: ${e.message}")
                 supportFragmentManager.beginTransaction()
-                    .add(R.id.main_browse_fragment, loadingFragment)
-                    .add(R.id.main_browse_fragment, playerFragment)
-                    .add(R.id.main_browse_fragment, infoFragment)
-                    .add(R.id.main_browse_fragment, channelFragment)
-                    .add(R.id.main_browse_fragment, menuFragment)
-                    .add(R.id.main_browse_fragment, settingFragment)
-                    .add(R.id.main_browse_fragment, sourceSelectFragment)
+                    .add(R.id.main_browse_fragment, loadingFragment, fragmentTag(loadingFragment))
+                    .add(R.id.main_browse_fragment, playerFragment, fragmentTag(playerFragment))
+                    .add(R.id.main_browse_fragment, infoFragment, fragmentTag(infoFragment))
+                    .add(R.id.main_browse_fragment, channelFragment, fragmentTag(channelFragment))
+                    .add(R.id.main_browse_fragment, menuFragment, fragmentTag(menuFragment))
+                    .add(R.id.main_browse_fragment, settingFragment, fragmentTag(settingFragment))
+                    .add(R.id.main_browse_fragment, sourceSelectFragment, fragmentTag(sourceSelectFragment))
                     .hide(infoFragment)
                     .hide(channelFragment)
                     .hide(menuFragment)
@@ -202,7 +235,14 @@ class MainActivity : AppCompatActivity() {
                     .hide(sourceSelectFragment)
                     .commit()
             }
+        } else {
+            // 进程重建：FragmentManager 已恢复旧实例，字段必须重新绑定，否则所有
+            // show/hide/play 都作用在游离实例上（重进黑屏根因）。
+            rebindRestoredFragments()
         }
+
+        // 注入 ViewModel（备用播放器预加载等需要访问频道列表）
+        playerFragment.setViewModel(viewModel)
 
         // 设置全屏模式监听器
         YourTVApplication.getInstance().setFullScreenModeListener {
@@ -223,7 +263,7 @@ class MainActivity : AppCompatActivity() {
                     if (!playerFragment.isAdded) {
                         try {
                             supportFragmentManager.beginTransaction()
-                                .add(R.id.main_browse_fragment, playerFragment)
+                                .add(R.id.main_browse_fragment, playerFragment, fragmentTag(playerFragment))
                                 .commitNowAllowingStateLoss()
                         } catch (e: Exception) {
                             Log.e(TAG, "Failed to add PlayerFragment: ${e.message}", e)
@@ -278,41 +318,50 @@ class MainActivity : AppCompatActivity() {
                     menuFragment.update()
                     menuFragment.updateList(viewModel.groupModel.positionValue)
                     Log.d(TAG, "Stable source already playing: ${currentTvModel.tv.title}...")
+                    hideFragment(loadingFragment)
                     return@launch
                 }
 
-                viewModel.channelsOk.asFlow().takeWhile { !it }.collect()
+                // 兜底超时：channelsOk 30 秒内没就绪就进入菜单，避免无限黑屏
+                val channelsLoaded = withTimeoutOrNull(30_000) {
+                    viewModel.channelsOk.asFlow().takeWhile { !it }.collect()
+                    viewModel.channelsOk.value == true
+                } ?: false
+                if (!channelsLoaded) {
+                    Log.w(TAG, "Channels not loaded within 30s, showing menu")
+                    hideFragment(loadingFragment)
+                    showFragment(menuFragment)
+                    menuActive()
+                    return@launch
+                }
                 Log.d(TAG, "Channels loaded, channelsOk: ${viewModel.channelsOk.value}")
+                hideFragment(loadingFragment)
 
-                // Check groupModel.current.value directly to preserve stable source
-                if (viewModel.groupModel.current.value != null) {
-                    menuFragment.update()
-                    menuFragment.updateList(viewModel.groupModel.positionValue)
-                    Log.d(TAG, "Stable source playing after channelsOk: ${viewModel.groupModel.current.value?.tv?.title}...")
-                } else {
-                    var tvModel = viewModel.groupModel.getCurrent()
-                    if (viewModel.listModel.isNotEmpty() && tvModel == null) {
-                        tvModel = viewModel.listModel[0]
-                        viewModel.groupModel.setCurrent(tvModel)
+                menuFragment.update()
+                menuFragment.updateList(viewModel.groupModel.positionValue)
+
+                // 起播兜底：
+                // - init Step1 已通过 playTrigger 触发播放（稳定源或内置稳定频道），这里不打断；
+                // - 没有任何频道被触发播放时，主动起播当前/首个频道，避免黑屏。
+                if (playerFragment.tvModel == null) {
+                    val target = viewModel.groupModel.current.value ?: viewModel.listModel.firstOrNull()
+                    if (target != null) {
+                        viewModel.groupModel.setCurrent(target)
                         viewModel.groupModel.setPositionPlaying()
                         viewModel.groupModel.getCurrentList()?.let {
                             it.setPosition(0)
                             it.setPositionPlaying()
                             it.getCurrent()?.setReady()
                         }
-                        Log.d(TAG, "No stable source, selected default tvModel: ${tvModel.tv.title}...")
-                        viewModel.triggerPlay(tvModel)
-                        Log.d(TAG, "Triggered play for tvModel: ${tvModel.tv.title}...")
-                    } else if (tvModel != null) {
-                        menuFragment.update()
-                        menuFragment.updateList(viewModel.groupModel.positionValue)
-                        Log.d(TAG, "Stable source playing after channelsOk: ${tvModel.tv.title}...")
+                        Log.d(TAG, "Init: no active playback, auto-playing ${target.tv.title}...")
+                        viewModel.triggerPlay(target)
                     } else {
                         showFragment(menuFragment)
                         menuActive()
                         Log.w(TAG, "No tvModel available, showing MenuFragment")
-                        // R.string.channel_read_error.showToast()
                     }
+                } else {
+                    Log.d(TAG, "Channels loaded, playback already triggered: ${playerFragment.tvModel?.tv?.title}...")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Initialization failed: ${e.message}", e)
@@ -402,8 +451,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun ready() {
-        ok++
-        if (ok == 2) {
+        // 幂等单次初始化：不再依赖 LoadingFragment + WebFragment 恰好各触发一次的
+        // ok==2 巧合计数（首装首频道为 IPTV 时永远到不了 2，导致观察者/服务不启动）。
+        if (initializedReady) return
+        initializedReady = true
+        Log.d(TAG, "ready(): running one-time initialization")
+        try {
             gestureDetector = GestureDetector(this, GestureListener(this))
             // 确保 Fragment 状态正确
             supportFragmentManager.beginTransaction()
@@ -415,6 +468,22 @@ class MainActivity : AppCompatActivity() {
                 if (viewModel.groupModel.tvGroup.value != null) {
                     watch()
                     menuFragment.update()
+                }
+            }
+
+            // 切台预热：提前建立下一频道/下一条线路的连接，切台秒开
+            viewModel.groupModel.current.observe(this) { tvModel ->
+                if (tvModel != null) {
+                    // 电视等弱机不做连接预热（省带宽/省电），只保留触屏设备秒切体验
+                    if (isTouchScreenDevice()) {
+                        viewModel.groupModel.getNext()?.let { next ->
+                            playerFragment.prewarm(next.getVideoUrl())
+                        }
+                        // 只预热当前频道当前线路的下一条（自动换线用），避免并发请求挤占网络
+                        tvModel.tv.uris.getOrNull(tvModel.videoIndexValue + 1)?.let { nextLine ->
+                            playerFragment.prewarm(nextLine)
+                        }
+                    }
                 }
             }
 
@@ -464,6 +533,8 @@ class MainActivity : AppCompatActivity() {
                     Log.w(TAG, "No current TV model available")
                 }
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "ready() initialization failed: ${e.message}", e)
         }
     }
 
@@ -482,9 +553,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun watch() {
         viewModel.listModel.forEach { tvModel ->
-            // 为每个 tvModel 创建独立的防抖实例
-            val errInfoThrottled = tvModel.errInfo.throttle(1000)
-            errInfoThrottled.observe(this) { _ ->
+            // 同一频道的节流观察只创建一次（增量 watch，避免重复注册观察者）
+            if (tvModel.errInfoThrottled == null) {
+                tvModel.errInfoThrottled = tvModel.errInfo.throttle(1000)
+            }
+            tvModel.errInfoThrottled!!.observe(this) { _ ->
                 if (tvModel.errInfo.value != null && tvModel == viewModel.groupModel.getCurrent()) {
                     hideFragment(loadingFragment)
                     if (tvModel.errInfo.value == "") {
@@ -499,8 +572,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            val readyThrottled = tvModel.ready.throttle(1000)
-            readyThrottled.observe(this) { _ ->
+            if (tvModel.readyThrottled == null) {
+                tvModel.readyThrottled = tvModel.ready.throttle(1000)
+            }
+            tvModel.readyThrottled!!.observe(this) { _ ->
                 if (tvModel.ready.value != null && tvModel == viewModel.groupModel.getCurrent()) {
                     hideFragment(errorFragment)
                     playerFragment.play(tvModel)
@@ -511,15 +586,18 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            tvModel.like.observe(this) { _ ->
-                if (tvModel.like.value != null && tvModel.tv.id != -1) {
-                    val liked = tvModel.like.value as Boolean
-                    if (liked) {
-                        viewModel.groupModel.getFavoritesList()?.replaceTVModel(tvModel)
-                    } else {
-                        viewModel.groupModel.getFavoritesList()?.removeTVModel(tvModel.tv.id)
+            if (!watchedLikes.contains(tvModel)) {
+                watchedLikes.add(tvModel)
+                tvModel.like.observe(this) { _ ->
+                    if (tvModel.like.value != null && tvModel.tv.id != -1) {
+                        val liked = tvModel.like.value as Boolean
+                        if (liked) {
+                            viewModel.groupModel.getFavoritesList()?.replaceTVModel(tvModel)
+                        } else {
+                            viewModel.groupModel.getFavoritesList()?.removeTVModel(tvModel.tv.id)
+                        }
+                        SP.setLike(tvModel.tv.id, liked)
                     }
-                    SP.setLike(tvModel.tv.id, liked)
                 }
             }
         }
@@ -792,7 +870,7 @@ class MainActivity : AppCompatActivity() {
         }
         val transaction = supportFragmentManager.beginTransaction()
         if (!fragment.isAdded) {
-            transaction.add(R.id.main_browse_fragment, fragment)
+            transaction.add(R.id.main_browse_fragment, fragment, fragmentTag(fragment))
         } else if (!fragment.isHidden) {
             return
         }
@@ -820,7 +898,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun sourceUp() {
+    fun sourceUp(showToast: Boolean = true) {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastSourceUpTime < sourceUpDebounce) {
             Log.d(TAG, "Debounced sourceUp for ${viewModel.groupModel.getCurrent()?.tv?.title}")
@@ -854,11 +932,11 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // 只调用一次 nextVideo 和 switchSource
-        tvModel.nextVideo()
-        tvModel.confirmVideoIndex()
-        playerFragment.switchSource(tvModel)
-        showSourceInfo(tvModel.videoIndexValue + 1, urls.size)
+        // switchSource 内部统一切换下一条健康线路
+        playerFragment.switchSource(tvModel, showToast)
+        if (showToast) {
+            showSourceInfo(tvModel.videoIndexValue + 1, urls.size)
+        }
         Log.d(TAG, "sourceUp: switched to source ${tvModel.videoIndexValue + 1}, uris: ${tvModel.tv.uris.size}")
     }
 
@@ -1206,6 +1284,10 @@ class MainActivity : AppCompatActivity() {
         when (keyCode) {
             KEYCODE_ESCAPE, KEYCODE_BACK -> {
                 if (menuFragment.isAdded && !menuFragment.isHidden) {
+                    // 三级列表下钻状态优先返回上一级，再关闭菜单
+                    if (menuFragment.onBackPressed()) {
+                        return true
+                    }
                     hideFragment(menuFragment)
                     return true
                 }
@@ -1474,6 +1556,10 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         isSafeToPerformFragmentTransactions = true
         showTimeFragment()
+        // 从后台恢复时继续播放（onStop 只暂停不释放）
+        if (playerFragment.isAdded && playerFragment.player != null) {
+            playerFragment.player?.play()
+        }
     }
 
     // 在 onPause 中暂停播放并释放资源
@@ -1490,10 +1576,8 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "In Picture-in-Picture mode, skipping player release and process termination")
                 return
             }
-            playerFragment.player?.stop()
-            playerFragment.player?.release()
-            playerFragment.player = null
-            android.os.Process.killProcess(android.os.Process.myPid())
+            // 暂停播放而不是释放：保留播放器，回来秒恢复，避免黑屏
+            playerFragment.player?.pause()
         }
     }
 
@@ -1565,7 +1649,8 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("SourceCache", Context.MODE_PRIVATE)
         lifecycleScope.launch {
             try {
-                val cachedContent = prefs.getString("cache_$filename", null)
+                val cacheFile = File(filesDir, "cache_$filename")
+                val cachedContent = if (cacheFile.exists()) cacheFile.readText() else null
                 if (cachedContent != null && System.currentTimeMillis() - prefs.getLong("cache_time_$filename", 0) < 24 * 60 * 60 * 1000) {
                     Log.d(TAG, "switchSource: Using cache for filename=$filename")
                     viewModel.tryStr2Channels(cachedContent, null, "", filename)

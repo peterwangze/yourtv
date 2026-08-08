@@ -3,11 +3,22 @@ package com.horsenma.yourtv.models
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import android.util.Log
 import com.horsenma.yourtv.SP
+
+/** 菜单导航条目：显示名 + 底层分组索引 + 所属一级分类 */
+data class NavEntry(val name: String, val flatIndex: Int, val category: String)
 
 class TVGroupModel : ViewModel() {
     var version = 0
     var isInLikeMode = false
+
+    /** 当前下钻的一级分类（地方/海外/其他），null = 顶级分类视图 */
+    private var _navCategory: String? = null
+    val navCategory: String?
+        get() = _navCategory
+
+    fun isDrilled(): Boolean = _navCategory != null
 
     private val _tvGroup = MutableLiveData<List<TVListModel>>()
     val tvGroup: LiveData<List<TVListModel>>
@@ -26,24 +37,39 @@ class TVGroupModel : ViewModel() {
         get() = _current
 
     fun setPosition(position: Int) {
-        _position.value = position
+        _position.setValueSafe(position)
     }
 
     fun setCurrent(tvModel: TVModel) {
-        _current.value = tvModel
-        val currentList = getCurrentList()
-        if (currentList != null) {
-            val tvList = currentList.tvList.value ?: emptyList()
-            val index = tvList.indexOfFirst { it.tv.id == tvModel.tv.id }
-            if (index >= 0) {
-                currentList.setPosition(index)
-            } else {
-                val newList = tvList.toMutableList().apply { add(tvModel) }
-                currentList.setTVListModel(newList)
-                currentList.setPosition(newList.size - 1)
+        _current.setValueSafe(tvModel)
+        // 定位频道所属的真实分组（央视/卫视/地方/海外/其他），
+        // 跳过“我的收藏/全部频道”（索引 0/1，全部频道包含所有频道会抢先命中），
+        // 避免播放位置停留在“全部频道”导致菜单恢复导航时定位错误
+        var groupIdx = -1
+        for (i in 2 until tvGroupValue.size) {
+            if (tvGroupValue[i].tvList.value?.any { it.tv.id == tvModel.tv.id } == true) {
+                groupIdx = i
+                break
             }
         }
-        setPositionPlaying(positionValue)
+        if (groupIdx >= 0) {
+            setPosition(groupIdx)
+            setPositionPlaying(groupIdx)
+        } else {
+            val currentList = getCurrentList()
+            if (currentList != null) {
+                val tvList = currentList.tvList.value ?: emptyList()
+                val index = tvList.indexOfFirst { it.tv.id == tvModel.tv.id }
+                if (index >= 0) {
+                    currentList.setPosition(index)
+                } else {
+                    val newList = tvList.toMutableList().apply { add(tvModel) }
+                    currentList.setTVListModel(newList)
+                    currentList.setPosition(newList.size - 1)
+                }
+            }
+            setPositionPlaying(positionValue)
+        }
         setChange()
     }
 
@@ -54,7 +80,7 @@ class TVGroupModel : ViewModel() {
         get() = _positionPlaying.value ?: DEFAULT_POSITION_PLAYING
 
     fun setPositionPlaying(position: Int) {
-        _positionPlaying.value = position
+        _positionPlaying.setValueSafe(position)
         SP.positionGroup = position
     }
 
@@ -67,22 +93,102 @@ class TVGroupModel : ViewModel() {
         get() = _change
 
     fun setChange() {
-        _change.value = version
+        _change.setValueSafe(version)
         version++
     }
 
     fun setTVListModelList(tvGroup: List<TVListModel>) {
-        _tvGroup.value = tvGroup
+        _tvGroup.setValueSafe(tvGroup)
     }
 
     fun addTVListModel(listTVModel: TVListModel) {
-        _tvGroup.value = tvGroupValue.toMutableList().apply {
+        _tvGroup.setValueSafe(tvGroupValue.toMutableList().apply {
             add(listTVModel)
-        }
+        })
     }
 
     fun getTVListModel(): TVListModel? {
         return getTVListModel(positionValue)
+    }
+
+    /** 按底层分组索引取分组（不过滤收藏组），供导航/菜单使用 */
+    fun getGroupAt(flatIndex: Int): TVListModel? {
+        if (flatIndex < 0 || flatIndex >= tvGroupValue.size) {
+            return null
+        }
+        return tvGroupValue[flatIndex]
+    }
+
+    /** 顶级导航：收藏 / 全部 / 央视 / 卫视 / 地方 / 海外 / 其他（只列有内容的分类） */
+    fun topEntries(): List<NavEntry> {
+        val entries = mutableListOf<NavEntry>()
+        getGroupAt(0)?.let { entries.add(NavEntry(it.getName(), 0, "")) }
+        getGroupAt(1)?.let { entries.add(NavEntry(it.getName(), 1, "")) }
+        // 收藏/全部 为特殊分组（索引 0/1），不参与一级分类扫描
+        val seen = tvGroupValue.drop(2).mapIndexedNotNull { offset, group ->
+            val index = offset + 2
+            val cat = com.horsenma.yourtv.models.ChannelClassifier.topCategoryOfGroup(group.getName())
+            if (cat.isNotEmpty()) cat to index else null
+        }
+        for (cat in com.horsenma.yourtv.models.ChannelClassifier.TOP_CATEGORIES) {
+            val first = seen.firstOrNull { it.first == cat }?.second ?: continue
+            entries.add(NavEntry(cat, first, cat))
+        }
+        return entries
+    }
+
+    /** 二级导航：某分类下的地区/分类分组（地方=省份，海外=国家，其他=分类名） */
+    fun subEntries(category: String): List<NavEntry> {
+        return tvGroupValue.drop(2).mapIndexedNotNull { offset, group ->
+            val index = offset + 2
+            val cat = com.horsenma.yourtv.models.ChannelClassifier.topCategoryOfGroup(group.getName())
+            if (cat == category) NavEntry(group.getName(), index, category) else null
+        }
+    }
+
+    /** 当前显示的导航条目（顶级 or 下钻） */
+    fun navEntries(): List<NavEntry> {
+        val cat = _navCategory
+        return if (cat != null) subEntries(cat) else topEntries()
+    }
+
+    fun navEntryAt(position: Int): NavEntry? = navEntries().getOrNull(position)
+
+    fun navFlatIndexAt(position: Int): Int = navEntryAt(position)?.flatIndex ?: 0
+
+    /** 下钻到分类（地方/海外/其他），并把当前分组切到该分类下第一个地区 */
+    fun enterCategory(category: String) {
+        _navCategory = category
+        val subs = subEntries(category)
+        if (subs.isNotEmpty()) {
+            val cur = getGroupAt(positionValue)?.getName()
+                ?.let { com.horsenma.yourtv.models.ChannelClassifier.topCategoryOfGroup(it) }
+            if (cur != category) {
+                setPosition(subs.first().flatIndex)
+            }
+        }
+    }
+
+    /** 返回顶级分类视图 */
+    fun exitCategory() {
+        _navCategory = null
+    }
+
+    /**
+     * 根据底层分组索引恢复导航状态：地方/海外/其他 恢复为下钻视图，
+     * 央视/卫视/收藏/全部 恢复为顶级视图。
+     */
+    fun restoreNav(flatIndex: Int) {
+        val group = getGroupAt(flatIndex) ?: return
+        // 收藏/全部为顶级视图
+        if (flatIndex <= 1) {
+            _navCategory = null
+            Log.d(TAG, "restoreNav: special group flat=$flatIndex, nav=top")
+            return
+        }
+        val cat = com.horsenma.yourtv.models.ChannelClassifier.topCategoryOfGroup(group.getName())
+        _navCategory = if (com.horsenma.yourtv.models.ChannelClassifier.isThreeLevelCategory(cat)) cat else null
+        Log.d(TAG, "restoreNav: flat=$flatIndex group=${group.getName()} cat=$cat nav=${_navCategory}")
     }
 
     fun getTVListModel(idx: Int): TVListModel? {
@@ -136,6 +242,26 @@ class TVGroupModel : ViewModel() {
         }
 
         return getCurrentList()?.getCurrent()
+    }
+
+    /**
+     * 只读获取当前频道标题。与 getCurrent() 不同，不会触碰任何 LiveData setter，
+     * 可在后台线程（如解析链路 IO 线程）安全调用。
+     */
+    fun getCurrentTitle(): String? {
+        // No item
+        if (tvGroupValue.size < 3 || tvGroupValue[1].size() == 0) {
+            return null
+        }
+
+        val currentList = getCurrentList() ?: return null
+        val list = currentList.tvList.value ?: return null
+        if (list.isEmpty()) {
+            return null
+        }
+
+        val idx = currentList.positionValue
+        return list.getOrNull(idx)?.tv?.title ?: list.first().tv.title
     }
 
     fun getCurrentList(): TVListModel? {

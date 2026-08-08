@@ -42,6 +42,16 @@ object SP {
 
     private lateinit var sp: SharedPreferences
     private var listener: OnSharedPreferenceChangeListener? = null
+    // 收藏集内存缓存：避免列表构建时逐频道 getStringSet 全量复制（O(n²) 主线程开销）
+    @Volatile
+    private var likeCache: Set<String>? = null
+
+    private fun likeSet(): Set<String> {
+        likeCache?.let { return it }
+        val loaded = sp.getStringSet(KEY_LIKE, emptySet()) ?: emptySet()
+        likeCache = loaded
+        return loaded
+    }
 
     /**
      * The method must be invoked as early as possible(At least before using the keys)
@@ -99,12 +109,11 @@ object SP {
         set(value) = sp.edit().putInt(KEY_CHANNEL, value).apply()
 
     fun getLike(id: Int): Boolean {
-        val stringSet = sp.getStringSet(KEY_LIKE, emptySet())
-        return stringSet?.contains(id.toString()) ?: false
+        return likeSet().contains(id.toString())
     }
 
     fun setLike(id: Int, liked: Boolean) {
-        val stringSet = sp.getStringSet(KEY_LIKE, emptySet())?.toMutableSet() ?: mutableSetOf()
+        val stringSet = likeSet().toMutableSet()
         if (liked) {
             stringSet.add(id.toString())
         } else {
@@ -112,10 +121,12 @@ object SP {
         }
 
         sp.edit().putStringSet(KEY_LIKE, stringSet).apply()
+        likeCache = stringSet
     }
 
     fun deleteLike() {
         sp.edit().remove(KEY_LIKE).apply()
+        likeCache = emptySet()
     }
 
     var epg: String?
