@@ -24,6 +24,8 @@ data class TV(
     @SerializedName("uris") @SerialName("uris") var uris: List<String> = emptyList(),
     @SerializedName("videoIndex") @SerialName("videoIndex") var videoIndex: Int = 0,
     @SerializedName("headers") @SerialName("headers") val headers: Map<String, String>? = emptyMap(),
+    /** Per-URI HTTP headers; needed when aggregated sources use different Referer/User-Agent values. */
+    @SerializedName("uriHeaders") @SerialName("uriHeaders") val uriHeaders: Map<String, Map<String, String>> = emptyMap(),
     @SerializedName("group") @SerialName("group") val group: String = "",
     @SerializedName("sourceType") @SerialName("sourceType") var sourceType: SourceType = SourceType.UNKNOWN,
     @SerializedName("number") @SerialName("number") val number: Int = -1,

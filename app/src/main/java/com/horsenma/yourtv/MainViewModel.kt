@@ -19,6 +19,8 @@ import com.horsenma.yourtv.data.Source
 import com.horsenma.yourtv.data.SourceType
 import com.horsenma.yourtv.data.TV
 import com.horsenma.yourtv.models.EPGXmlParser
+import com.horsenma.yourtv.models.ChannelClassifier
+import com.horsenma.yourtv.models.ChannelMetadataParser
 import com.horsenma.yourtv.models.Sources
 import com.horsenma.yourtv.models.TVGroupModel
 import com.horsenma.yourtv.models.TVListModel
@@ -64,7 +66,10 @@ class MainViewModel : ViewModel() {
     @Volatile private var aggregateStarted = false
 
     // 解析结果缓存：启动秒出列表，避免每次启动重新解析/下载
-    private val channelsCacheFileName = "channels_list_cache.json"
+    // Bump the parsed-list cache when the metadata parser changes.  Reusing a
+    // v2.7 cache would reintroduce the old `tvg-id=...` display names after an
+    // upgrade even though all new source files are parsed correctly.
+    private val channelsCacheFileName = "channels_list_cache_v280.json"
     private var lastChannelsHash = 0
 
     private val _playTrigger = MutableLiveData<TVModel?>()
@@ -285,12 +290,14 @@ class MainViewModel : ViewModel() {
                     mergedMap[key] = tv
                 } else {
                     existing.uris = (existing.uris + tv.uris).distinct()
-                    if (existing.logo.isNullOrEmpty() && !tv.logo.isNullOrEmpty()) {
-                        mergedMap[key] = existing.copy(logo = tv.logo)
+                    val incomingHeaders = tv.uriHeaders.ifEmpty {
+                        tv.uris.associateWith { tv.headers.orEmpty() }
                     }
-                    if (existing.name.isNullOrEmpty() && !tv.name.isNullOrEmpty()) {
-                        mergedMap[key] = existing.copy(name = tv.name)
-                    }
+                    mergedMap[key] = existing.copy(
+                        logo = if (existing.logo.isNullOrEmpty()) tv.logo else existing.logo,
+                        name = if (existing.name.isNullOrEmpty()) tv.name else existing.name,
+                        uriHeaders = existing.uriHeaders + incomingHeaders
+                    )
                 }
             }
         }
@@ -299,19 +306,9 @@ class MainViewModel : ViewModel() {
             Log.w(TAG, "aggregateAllSources: merged list empty")
             return
         }
-        // 线路排序：清晰度优先（URL 关键词 + 实测分辨率缓存），坏线靠 LineHealth 运行时跳过
-        val stableByUrl = SP.getStableSources().associate { it.id to it.uris.firstOrNull() }
+        // 线路排序：频道反向聚合后，先健康度，再清晰度/稳定度/延迟。
         merged.forEach { tv ->
-            if (tv.uris.size > 1) {
-                tv.uris = tv.uris.sortedByDescending { url ->
-                    val stableBonus = if (url == stableByUrl[tv.id]) 1_000_000 else 0
-                    stableBonus + com.horsenma.yourtv.SourceQuality.scoreWithResolution(
-                        url,
-                        SP.getResolutionCache(url),
-                        tv.title
-                    )
-                }
-            }
+            tv.uris = rankChannelUris(tv)
         }
         Log.i(TAG, "aggregateAllSources: merged ${merged.size} channels")
         // 频道列表按 央视→卫视→地方→海外→其他 稳定排序，默认频道落在央视（CCTV）
@@ -321,11 +318,20 @@ class MainViewModel : ViewModel() {
                     com.horsenma.yourtv.models.ChannelClassifier.rankOfGroup(
                         com.horsenma.yourtv.models.ChannelClassifier.displayGroup(it.title, it.group)
                     )
-                }
+                },
+                { com.horsenma.yourtv.models.ChannelClassifier.channelSortOrder(it.title, it.group) },
+                { com.horsenma.yourtv.models.ChannelClassifier.displayGroup(it.title, it.group) },
+                { com.horsenma.yourtv.models.ChannelClassifier.normalizeName(it.title) },
+                { it.title.lowercase() }
             )
         )
         withContext(Dispatchers.Main) {
-            applyChannelList(ordered, groupModel.getCurrentTitle(), null)
+            // 首次聚合期间初始内置源的第一项可能是 CCTV4K/CCTV+，
+            // 这会让用户以为选择 CCTV1 后跳台。没有稳定播放记录时，
+            // 明确以 CCTV1 为默认；已有稳定源则恢复用户上次频道。
+            val restoreTitle = groupModel.getCurrentTitle()
+                ?.takeIf { SP.getStableSources().isNotEmpty() }
+            applyChannelList(ordered, restoreTitle, null)
         }
         saveChannelsCache(ordered)
         aggregateBuffer.clear()
@@ -1055,47 +1061,27 @@ class MainViewModel : ViewModel() {
                     val endIndex = trimmedLine.indexOf("\"", epgIndex + 11)
                     if (endIndex != -1) epgUrl = trimmedLine.substring(epgIndex + 11, endIndex)
                 }
-            } else if (trimmedLine.startsWith("#EXTINF")) {
-                iptvLines.add(trimmedLine)
-                currentTV = com.horsenma.mytv1.data.TV(uris = emptyList(), block = null)
-                val info = trimmedLine.split(",", limit = 2)
-                if (info.size < 2) {
-                    Log.w(TAG, "Invalid #EXTINF line: $trimmedLine")
-                    currentTV = null
-                    continue
+            } else if (trimmedLine.startsWith("#EXTINF", ignoreCase = true)) {
+                val parsed = com.horsenma.yourtv.models.ChannelMetadataParser.parse(trimmedLine)
+                currentTV = parsed?.let {
+                    iptvLines.add(trimmedLine)
+                    com.horsenma.mytv1.data.TV(
+                        title = it.title,
+                        name = it.name,
+                        logo = it.logo,
+                        group = it.group,
+                        uris = emptyList(),
+                        block = null
+                    )
                 }
-                currentTV = currentTV.copy(title = info.last().trim(), name = info.last().trim())
-
-                val extinf = info.first()
-                val nameStart = extinf.indexOf("tvg-name=\"") + 10
-                val nameEnd = extinf.indexOf("\"", nameStart)
-                currentTV = currentTV.copy(
-                    name = if (nameStart > 9 && nameEnd > nameStart) {
-                        extinf.substring(nameStart, nameEnd)
-                    } else {
-                        currentTV.title
-                    }
-                )
-
-                val logoStart = extinf.indexOf("tvg-logo=\"") + 10
-                val logoEnd = extinf.indexOf("\"", logoStart)
-                currentTV = currentTV.copy(
-                    logo = if (logoStart > 9 && logoEnd > logoStart) {
-                        extinf.substring(logoStart, logoEnd)
-                    } else {
-                        ""
-                    }
-                )
-
-                val groupStart = extinf.indexOf("group-title=\"") + 13
-                val groupEnd = extinf.indexOf("\"", groupStart)
-                currentTV = currentTV.copy(
-                    group = if (groupStart > 12 && groupEnd > groupStart) {
-                        extinf.substring(groupStart, groupEnd)
-                    } else {
-                        ""
-                    }
-                )
+                if (parsed == null) {
+                    // Public feeds contain many expected VOD/ad entries; keep
+                    // them out of logcat so a real playback error remains visible.
+                    Log.d(TAG, "Ignoring malformed/noise #EXTINF line")
+                }
+            } else if (trimmedLine.startsWith("#EXTVLCOPT:http-", ignoreCase = true)) {
+                // Preserve per-channel HTTP headers for the strict IPTV parser below.
+                iptvLines.add(trimmedLine)
             } else if (trimmedLine.startsWith("webview://") && currentTV != null) {
                 val url = trimmedLine.removePrefix("webview://")
                 val domain = Uri.parse(url).host ?: ""
@@ -1190,71 +1176,45 @@ class MainViewModel : ViewModel() {
                     }
                 }
                 iptvContent.startsWith("#") -> {
-                    val tvMap = mutableMapOf<String, MutableList<TV>>()
+                    val tvMap = linkedMapOf<String, TV>()
                     var currentTV: TV? = null
+
+                    fun flushCurrent() {
+                        val tv = currentTV ?: return
+                        if (tv.uris.isEmpty()) return
+                        val key = ChannelClassifier.mergeKey(tv.title, tv.group)
+                        val previous = tvMap[key]
+                        tvMap[key] = if (previous == null) {
+                            tv.copy(uriHeaders = tv.uris.associateWith { tv.headers.orEmpty() })
+                        } else {
+                            previous.copy(
+                                uris = (previous.uris + tv.uris).distinct(),
+                                logo = previous.logo.ifBlank { tv.logo },
+                                headers = previous.headers?.takeIf { it.isNotEmpty() } ?: tv.headers,
+                                uriHeaders = previous.uriHeaders + tv.uris.associateWith { tv.headers.orEmpty() }
+                            )
+                        }
+                    }
+
                     for (line in iptvLines) {
                         val trimmedLine = line.trim()
                         if (trimmedLine.isEmpty()) continue
 
-                        if (trimmedLine.startsWith("#EXTM3U")) {
+                        if (trimmedLine.startsWith("#EXTM3U", ignoreCase = true)) {
                             continue
-                        } else if (trimmedLine.startsWith("#EXTINF")) {
-                            var lastKey: String? = null // 跟踪上一个频道的 key
-                            if (currentTV != null && currentTV.uris.isNotEmpty()) {
-                                val key = (currentTV.group + currentTV.name).ifEmpty { currentTV.title }
-                                if (key != lastKey) {
-                                    tvMap.computeIfAbsent(key) { mutableListOf() }.add(currentTV)
-                                    lastKey = key
-                                } else {
-                                    tvMap[key]?.last()?.uris?.toMutableList()?.addAll(currentTV.uris)
-                                }
+                        } else if (trimmedLine.startsWith("#EXTINF", ignoreCase = true)) {
+                            flushCurrent()
+                            val parsed = ChannelMetadataParser.parse(trimmedLine)
+                            currentTV = parsed?.let {
+                                TV(
+                                    name = it.name,
+                                    title = it.title,
+                                    logo = it.logo,
+                                    group = it.group,
+                                    number = it.number
+                                )
                             }
-                            currentTV = TV()
-                            val info = trimmedLine.split(",", limit = 2)
-                            if (info.size < 2) continue
-                            currentTV = currentTV.copy(title = info.last().trim())
-
-                            val extinf = info.first()
-                            val nameStart = extinf.indexOf("tvg-name=\"") + 10
-                            val nameEnd = extinf.indexOf("\"", nameStart)
-                            currentTV = currentTV.copy(
-                                name = if (nameStart > 9 && nameEnd > nameStart) {
-                                    extinf.substring(nameStart, nameEnd)
-                                } else {
-                                    currentTV.title
-                                }
-                            )
-
-                            val logoStart = extinf.indexOf("tvg-logo=\"") + 10
-                            val logoEnd = extinf.indexOf("\"", logoStart)
-                            currentTV = currentTV.copy(
-                                logo = if (logoStart > 9 && logoEnd > logoStart) {
-                                    extinf.substring(logoStart, logoEnd)
-                                } else {
-                                    ""
-                                }
-                            )
-
-                            val numStart = extinf.indexOf("tvg-chno=\"") + 10
-                            val numEnd = extinf.indexOf("\"", numStart)
-                            currentTV = currentTV.copy(
-                                number = if (numStart > 9 && numEnd > numStart) {
-                                    extinf.substring(numStart, numEnd).toIntOrNull() ?: -1
-                                } else {
-                                    -1
-                                }
-                            )
-
-                            val groupStart = extinf.indexOf("group-title=\"") + 13
-                            val groupEnd = extinf.indexOf("\"", groupStart)
-                            currentTV = currentTV.copy(
-                                group = if (groupStart > 12 && groupEnd > groupStart) {
-                                    extinf.substring(groupStart, groupEnd)
-                                } else {
-                                    ""
-                                }
-                            )
-                        } else if (trimmedLine.startsWith("#EXTVLCOPT:http-")) {
+                        } else if (trimmedLine.startsWith("#EXTVLCOPT:http-", ignoreCase = true)) {
                             if (currentTV != null) {
                                 val keyValue = trimmedLine.substringAfter("#EXTVLCOPT:http-").split("=", limit = 2)
                                 if (keyValue.size == 2) {
@@ -1266,13 +1226,10 @@ class MainViewModel : ViewModel() {
                                 }
                             }
                         } else if (!trimmedLine.startsWith("#") && currentTV != null) {
-                            // 过滤咪咕 VOD 回放/预告噪音（gslbmgspvod 为点播域名，非直播流）
-                            if (trimmedLine.contains("gslbmgspvod") || trimmedLine.contains("depository_eos")) {
-                                continue
-                            }
-                            // 过滤回放/元数据垃圾分组（aptv 历年春晚、zbds 更新时间）
-                            val curGroup = currentTV.group.orEmpty()
-                            if (curGroup == "历年春晚" || curGroup == "更新时间") {
+                            if (ChannelMetadataParser.isNoiseUri(trimmedLine) ||
+                                ChannelMetadataParser.isLikelyWrongChannelUri(currentTV.title, trimmedLine) ||
+                                ChannelMetadataParser.isNoise(currentTV.title, currentTV.group, trimmedLine)
+                            ) {
                                 continue
                             }
                             currentTV = currentTV.copy(
@@ -1280,33 +1237,23 @@ class MainViewModel : ViewModel() {
                             )
                         }
                     }
+                    flushCurrent()
 
-                    var lastKey: String? = null // 跟踪上一个频道的 key
-                    if (currentTV != null && currentTV.uris.isNotEmpty()) {
-                        val key = (currentTV.group + currentTV.name).ifEmpty { currentTV.title }
-                        if (key != lastKey) {
-                            tvMap.computeIfAbsent(key) { mutableListOf() }.add(currentTV)
-                            lastKey = key
-                        } else {
-                            tvMap[key]?.last()?.uris?.toMutableList()?.addAll(currentTV.uris)
-                        }
-                    }
-
-                    tvMap.values.map { tvs ->
-                        val uris = tvs.flatMap { it.uris }.distinct()
+                    tvMap.values.map { tv ->
                         TV(
                             id = -1,
-                            name = tvs[0].name,
-                            title = tvs[0].title,
+                            name = tv.name,
+                            title = tv.title,
                             description = null,
-                            logo = tvs[0].logo,
+                            logo = tv.logo,
                             image = null,
-                            uris = uris,
+                            uris = tv.uris.distinct(),
                             videoIndex = 0,
-                            headers = tvs[0].headers,
-                            group = tvs[0].group,
+                            headers = tv.headers,
+                            uriHeaders = tv.uriHeaders,
+                            group = tv.group,
                             sourceType = SourceType.UNKNOWN,
-                            number = tvs[0].number,
+                            number = tv.number,
                             child = emptyList(),
                             playerType = PlayerType.IPTV
                         )
@@ -1318,16 +1265,9 @@ class MainViewModel : ViewModel() {
             emptyList()
         }
 
-        // 线路排序：该频道稳定源线路优先，其余按清晰度（URL 关键词 + 实测分辨率缓存）降序
-        val stableByUrl = SP.getStableSources().associate { it.id to (it.uris.firstOrNull()) }
+        // 频道级反向关联：每个频道独立汇总线路，质量高/健康的线路排在前面。
         iptvList.forEach { tv ->
-            if (tv.uris.size > 1) {
-                val stableUrl = stableByUrl[tv.id]
-                tv.uris = tv.uris.sortedByDescending { url ->
-                    val stableBonus = if (url == stableUrl) 1_000_000 else 0
-                    stableBonus + SourceQuality.scoreWithResolution(url, SP.getResolutionCache(url), tv.title)
-                }
-            }
+            tv.uris = rankChannelUris(tv)
         }
 
         if (iptvList.isEmpty() && webviewModels.isEmpty()) {
@@ -1361,6 +1301,27 @@ class MainViewModel : ViewModel() {
         }
 
         return true
+    }
+
+    /**
+     * Rank all URLs belonging to one logical channel.  Stable sources are
+     * matched by the canonical channel key rather than TV.id (the latter is
+     * -1 while a source is being parsed and used to make every channel share
+     * one unrelated stable URL).  Dead lines stay visible for manual recovery,
+     * but never win automatic playback.
+     */
+    private fun rankChannelUris(tv: TV): List<String> {
+        val stableUrls = SP.getStableSources()
+            .filter { ChannelClassifier.mergeKey(it.title, it.group) == ChannelClassifier.mergeKey(tv.title, tv.group) }
+            .flatMap { it.uris }
+            .toSet()
+        return tv.uris.distinct().sortedWith(
+            compareByDescending<String> { if (LineHealth.isDead(it)) 0 else 1 }
+                .thenByDescending { if (it in stableUrls) 1 else 0 }
+                .thenByDescending { SourceQuality.scoreWithResolution(it, SP.getResolutionCache(it), tv.title) }
+                .thenBy { LineHealth.latency(it) ?: Long.MAX_VALUE }
+                .thenBy { it }
+        )
     }
 
     fun clearCacheChannels() {
@@ -1405,7 +1366,8 @@ class MainViewModel : ViewModel() {
                 )
             )
             val iptvModels = tvs.mapIndexed { index, tv ->
-                TVModel(tv.copy(id = index)).apply {
+                val canonicalTitle = ChannelClassifier.displayName(tv.title)
+                TVModel(tv.copy(id = index, title = canonicalTitle, name = canonicalTitle)).apply {
                     setLike(SP.getLike(index))
                     setGroupIndex(2)
                     listIndex = index
@@ -1420,7 +1382,20 @@ class MainViewModel : ViewModel() {
                     modelMap[key] = tvModel
                 }
             }
-            val listModelNew = modelMap.values.sortedBy { it.listIndex }.toMutableList()
+            // Cached lists are intentionally accepted for instant startup, but
+            // they must use the same deterministic order as a fresh aggregate.
+            // Otherwise a v2.7-era source order puts CCTV10 before CCTV3 until
+            // the next full refresh completes.
+            val listModelNew = modelMap.values.sortedWith(
+                compareBy<TVModel>(
+                    { ChannelClassifier.rankOfGroup(ChannelClassifier.displayGroup(it.tv.title, it.tv.group)) },
+                    { ChannelClassifier.channelSortOrder(it.tv.title, it.tv.group) },
+                    { ChannelClassifier.displayGroup(it.tv.title, it.tv.group) },
+                    { ChannelClassifier.normalizeName(it.tv.title) },
+                    { it.tv.title.lowercase() },
+                    { it.listIndex }
+                )
+            ).toMutableList()
             val groupMap = mutableMapOf<String, MutableList<TVModel>>()
             listModelNew.forEach { tvModel ->
                 val group = com.horsenma.yourtv.models.ChannelClassifier
@@ -1454,8 +1429,11 @@ class MainViewModel : ViewModel() {
                 }
             } else if (groupModel.getCurrent() == null || currentStableSource == null) {
                 if (listModelNew.isNotEmpty()) {
-                    groupModel.setCurrent(listModelNew[0])
-                    Log.d(TAG, "applyChannelList: Set default current to: ${listModelNew[0].tv.title}")
+                    val preferred = listModelNew.firstOrNull {
+                        ChannelClassifier.mergeKey(it.tv.title, it.tv.group) == "央视||cctv1"
+                    } ?: listModelNew[0]
+                    groupModel.setCurrent(preferred)
+                    Log.d(TAG, "applyChannelList: Set default current to: ${preferred.tv.title}")
                 }
             }
 

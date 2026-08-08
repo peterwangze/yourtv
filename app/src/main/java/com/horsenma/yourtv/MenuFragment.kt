@@ -295,14 +295,16 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
             return
         }
         updateList(viewModel.groupModel.navFlatIndexAt(position))
-        groupAdapter.focusable(true)
-        listAdapter.focusable(false)
-        binding.group.requestFocus()
+        // 央视/卫视/收藏/全部（两级直达频道）以及下钻后的地区/分类：
+        // 确认键直接进入频道列表，避免每次都要再按一次右键。
         groupAdapter.scrollToPositionAndSelect(
             viewModel.groupModel.navEntries().indexOfFirst {
                 it.flatIndex == viewModel.groupModel.positionValue
             }.coerceAtLeast(0)
         )
+        listAdapter.focusable(true)
+        groupAdapter.focusable(false)
+        binding.list.requestFocus()
         (activity as? MainActivity)?.menuActive() // 重置计时器
         //Log.d(TAG, "MenuFragment: Group item clicked, focusing on position $position")
     }
@@ -389,7 +391,19 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
                 return true
             }
             KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_CENTER -> {
-                hideSelf()
+                // 确认键：三级分类下钻地区/分类；央视/卫视/收藏/全部或下钻后的
+                // 地区/分类则直接进入频道列表（不再关闭菜单，符合遥控器操作习惯）
+                val entry = focusedNavEntry()
+                if (!viewModel.groupModel.isDrilled() && entry != null &&
+                    ChannelClassifier.isThreeLevelCategory(entry.category)
+                ) {
+                    drillInto(entry.category)
+                } else {
+                    viewModel.groupModel.getCurrentList()?.let { listAdapter.update(it) }
+                    listAdapter.focusable(true)
+                    groupAdapter.focusable(false)
+                    binding.list.requestFocus()
+                }
                 return true
             }
         }
@@ -640,7 +654,7 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
             if (isInitialized) {
                 updateSourceSwitcher()
                 view?.post {
-                    if (cachedSources.size >= 1) {
+                    if (SOURCE_FILE_SWITCHER_ENABLED && cachedSources.size >= 2) {
                         view?.findViewById<View>(R.id.source_switcher_container)?.visibility = View.VISIBLE
                     } else {
                         view?.findViewById<View>(R.id.source_switcher_container)?.visibility = View.GONE
@@ -652,6 +666,13 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
 
     private fun updateSourceSwitcher() {
         try {
+            // 频道列表已经按“频道 → 多线路”聚合并完成质量排序。旧版顶部左右
+            // 箭头切的是整份源文件，既不会切当前频道线路，也会让用户误以为
+            // 分类依赖源文件。源文件管理统一放到设置页，菜单顶部不再占用焦点。
+            if (!SOURCE_FILE_SWITCHER_ENABLED) {
+                binding.sourceSwitcherContainer.visibility = View.GONE
+                return
+            }
             if (cachedSources.size >= 2) {
                 Log.d(TAG, "Showing source switcher: cachedSources.size=${cachedSources.size}")
                 binding.sourceSwitcherContainer.visibility = View.VISIBLE
@@ -865,7 +886,7 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
 
     private fun updateSourceText() {
         val sourceName = cachedSources.values.elementAtOrNull(displaySourceIndex) ?: ""
-        binding.sourceSwitcherText.text = sourceName
+        binding.sourceSwitcherText.text = "源文件：$sourceName"
         //Log.d(TAG, "Updated source text: $sourceName")
     }
 
@@ -892,5 +913,6 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
 
     companion object {
         private const val TAG = "MenuFragment"
+        private const val SOURCE_FILE_SWITCHER_ENABLED = false
     }
 }

@@ -34,6 +34,7 @@ import androidx.media3.exoplayer.mediacodec.MediaCodecUtil
 import com.horsenma.yourtv.data.SourceType
 import com.horsenma.yourtv.databinding.PlayerBinding
 import com.horsenma.yourtv.models.TVModel
+import com.horsenma.yourtv.models.ChannelClassifier
 import com.horsenma.yourtv.requests.HttpClient
 import androidx.media3.ui.PlayerView
 import com.horsenma.yourtv.data.StableSource
@@ -76,6 +77,13 @@ class PlayerFragment : Fragment() {
     private val aspectRatio = 16f / 9f
     internal var isInPictureInPictureMode = false
     private val handler = Handler(Looper.myLooper()!!)
+
+    private fun stableSourceFor(tvModel: TVModel): StableSource? {
+        val key = ChannelClassifier.mergeKey(tvModel.tv.title, tvModel.tv.group)
+        return SP.getStableSources().firstOrNull {
+            ChannelClassifier.mergeKey(it.title, it.group) == key
+        }
+    }
     private val delayHideVolume = 2 * 1000L
     // 新增：缓冲检测变量
     private val bufferingThreshold = 5
@@ -507,7 +515,7 @@ class PlayerFragment : Fragment() {
                             }
                         }, 3_000L)
                         return
-                    } else if (!tvModel!!.isLastVideo()) {
+                    } else if (tvModel!!.hasNextHealthyVideo()) {
                         tvModel!!.nextVideo() // 尝试下一个视频源
                         tvModel!!.setReady(true)
                         tvModel!!.retryTimes = 0
@@ -522,33 +530,12 @@ class PlayerFragment : Fragment() {
                         }, 3_000L)
                         return
                     } else {
-                        // Fallback 冷却：避免网络差时频道连续漂移
-                        if (System.currentTimeMillis() - lastFallbackTime < fallbackCooldown) {
-                            Log.w(TAG, "Fallback cooldown active, stop for ${tvModel!!.tv.title}")
-                            tvModel!!.setErrInfo(R.string.play_error.getString())
-                            return
-                        }
-                        lastFallbackTime = System.currentTimeMillis()
-                        // 所有源无效，尝试下一个频道
-                        val nextChannel = viewModel.groupModel.getNext()
-                        if (nextChannel != null) {
-                            nextChannel.setReady()
-                            viewModel.groupModel.setCurrent(nextChannel)
-                            switchSource(nextChannel)
-                            Log.d(TAG, "First use: Fell back to next channel: ${nextChannel.tv.title}")
-                            lastSwitchTime = System.currentTimeMillis()
-                            handler.postDelayed({
-                                if (player?.isPlaying != true) {
-                                    (activity as MainActivity).sourceUp(false)
-                                    Log.i(TAG, "First use: 3s timeout, retry switching for ${nextChannel.tv.title}")
-                                }
-                            }, 3_000L)
-                            return
-                        } else {
-                            tvModel!!.setErrInfo(R.string.play_error.getString())
-                            Log.w(TAG, "First use: No next channel available")
-                            return
-                        }
+                        // 不要把播放失败的频道静默替换成下一个频道：这会造成
+                        // 用户选择 CCTV1 却不断跳到 CCTV2/3。保留频道焦点，
+                        // 让用户手动换线或重新播放，并显示明确错误。
+                        tvModel!!.setErrInfo(R.string.play_error.getString())
+                        Log.w(TAG, "First use: all lines failed for ${tvModel!!.tv.title}; keeping channel selected")
+                        return
                     }
                 }
 
@@ -595,60 +582,16 @@ class PlayerFragment : Fragment() {
                         lastSwitchTime = System.currentTimeMillis()
                     }
                 } else {
-                    if (!tv.isLastVideo()) {
+                    if (tv.hasNextHealthyVideo()) {
                         tv.nextVideo()
                         tv.setReady(true)
                         tv.retryTimes = 0
                         (activity as MainActivity).sourceUp(false)
                     } else {
-                        // Fallback to stable source
-                        lifecycleScope.launch(Dispatchers.Main) {
-                            val stableSource = selectRandomStableSource()
-                            if (stableSource != null) {
-                                val newTvModel = TVModel(
-                                    TV(
-                                        id = stableSource.id,
-                                        name = stableSource.name,
-                                        title = stableSource.title,
-                                        description = stableSource.description,
-                                        logo = stableSource.logo,
-                                        image = stableSource.image,
-                                        uris = stableSource.uris,
-                                        videoIndex = stableSource.videoIndex,
-                                        headers = stableSource.headers,
-                                        group = stableSource.group,
-                                        sourceType = SourceType.valueOf(stableSource.sourceType),
-                                        number = stableSource.number,
-                                        child = stableSource.child,
-                                        playerType = stableSource.playerType,
-                                        block = stableSource.block,
-                                        script = stableSource.script,
-                                        selector = stableSource.selector,
-                                        started = stableSource.started,
-                                        finished = stableSource.finished
-                                    )
-                                ).apply {
-                                    setLike(SP.getLike(stableSource.id))
-                                    setGroupIndex(2)
-                                    listIndex = 0
-                                }
-                                viewModel.groupModel.setCurrent(newTvModel)
-                                switchSource(newTvModel)
-                                Log.d(TAG, "Fell back to stable source: ${newTvModel.tv.title}, url: ${newTvModel.getVideoUrl()}")
-                                return@launch
-                            }
-                            // No stable sources, try next channel
-                            val nextChannel = viewModel.groupModel.getNext()
-                            if (nextChannel != null) {
-                                nextChannel.setReady()
-                                viewModel.groupModel.setCurrent(nextChannel)
-                                switchSource(nextChannel)
-                                Log.d(TAG, "Fell back to next channel: ${nextChannel.tv.title}")
-                            } else {
-                                tv.setErrInfo(R.string.play_error.getString())
-                                Log.w(TAG, "No stable sources or next channel available")
-                            }
-                        }
+                        // 播放失败只在当前频道内耗尽线路，不跨频道漂移。
+                        // 稳定源只能用于启动恢复，不能覆盖用户当前的频道选择。
+                        tv.setErrInfo(R.string.play_error.getString())
+                        Log.w(TAG, "All lines failed for ${tv.tv.title}; keeping channel selected")
                     }
                 }
             }
@@ -742,6 +685,12 @@ class PlayerFragment : Fragment() {
             val currentTime = System.currentTimeMillis()
             if (tvModel == null || !isResumed) {
                 Log.d(TAG, "Playback check skipped: tvModel=$tvModel, isResumed=$isResumed, isInPip=$isInPictureInPictureMode")
+                handler.postDelayed(this, checkPlaybackInterval)
+                return
+            }
+            if (tvModel!!.retryTimes >= tvModel!!.retryMaxTimes &&
+                !tvModel!!.errInfo.value.isNullOrBlank()
+            ) {
                 handler.postDelayed(this, checkPlaybackInterval)
                 return
             }
@@ -852,8 +801,11 @@ class PlayerFragment : Fragment() {
                     finished = tv.finished
                 )
                 val currentSources = SP.getStableSources()
-                // 检查 id、playerType、uris 和 videoIndex 是否完全相同
-                val existingSource = currentSources.firstOrNull { it.id == newSource.id }
+                val channelKey = ChannelClassifier.mergeKey(newSource.title, newSource.group)
+                // 频道列表会在聚合后重新编号，不能只用 TV.id 判断稳定源归属。
+                val existingSource = currentSources.firstOrNull {
+                    it.id == newSource.id || ChannelClassifier.mergeKey(it.title, it.group) == channelKey
+                }
                 if (existingSource != null &&
                     existingSource.playerType == newSource.playerType &&
                     existingSource.uris == newSource.uris &&
@@ -863,7 +815,9 @@ class PlayerFragment : Fragment() {
                     return@launch
                 }
                 // 保存新源，覆盖同 id 的旧源
-                val updatedSources = (currentSources.filter { it.id != newSource.id } + newSource)
+                val updatedSources = (currentSources.filter {
+                    it.id != newSource.id && ChannelClassifier.mergeKey(it.title, it.group) != channelKey
+                } + newSource)
                     .sortedByDescending { it.timestamp }.take(200)
                 SP.setStableSources(updatedSources)
                 Log.d(TAG, "Saved stable source: ${newSource.title}, playerType=${newSource.playerType}, url=$currentUrl, videoIndex=${newSource.videoIndex}, uris=${newSource.uris}")
@@ -894,12 +848,15 @@ class PlayerFragment : Fragment() {
         playbackStartTime = currentTime
 
         // 切换到下一条健康线路（自动跳过已探测失败的线路）
-        val beforeIndex = tvModel.videoIndexValue
-        tvModel.nextVideo()
-        if (tvModel.videoIndexValue == beforeIndex && tvModel.tv.uris.size > 1) {
-            // 所有线路都已失败：停止重试，避免无限换线循环
+        val moved = tvModel.nextVideo()
+        if (!moved && tvModel.tv.uris.size > 1) {
+            // 所有线路都已失败：停止重试，避免在死线路之间循环
             Log.w(TAG, "All lines failed for ${tvModel.tv.title}, stop retrying")
             tvModel.setErrInfo(R.string.play_error.getString())
+            tvModel.retryTimes = tvModel.retryMaxTimes
+            handler.removeCallbacks(checkPlaybackRunnable)
+            handler.removeCallbacks(stableSourceCheckRunnable)
+            player?.stop()
             return
         }
         tvModel.confirmVideoIndex()
@@ -950,16 +907,10 @@ class PlayerFragment : Fragment() {
             clearMediaItems()
             val mediaSource = tvModel.getMediaSource()
             try {
-                // 优化 HLS 配置
-                val hlsMediaSource = if (mediaSource != null && videoUrl.endsWith(".m3u8")) {
-                    HlsMediaSource.Factory(DefaultHttpDataSource.Factory())
-                        .setLoadErrorHandlingPolicy(DefaultLoadErrorHandlingPolicy(3)) // 重试 3 次
-                        .createMediaSource(mediaItem)
-                } else {
-                    mediaSource
-                }
-                if (hlsMediaSource != null) {
-                    setMediaSource(hlsMediaSource)
+                // Keep the OkHttp factory from TVModel so per-URI headers
+                // (Referer/User-Agent/Cookie) survive source aggregation.
+                if (mediaSource != null) {
+                    setMediaSource(mediaSource)
                 } else {
                     setMediaItem(mediaItem)
                 }
@@ -999,7 +950,7 @@ class PlayerFragment : Fragment() {
         this.tvModel = tvModel
         // 不再切台时探测全部线路（避免并发请求挤占网络）；
         // 线路健康由后台 probeAllLines（首线路）+ 播放失败动态标记维护
-        val stableSource = SP.getStableSources().firstOrNull { it.id == tvModel.tv.id }
+        val stableSource = stableSourceFor(tvModel)
         if (stableSource != null) {
             tvModel.tv = tvModel.tv.copy(
                 playerType = stableSource.playerType,
@@ -1015,7 +966,7 @@ class PlayerFragment : Fragment() {
         // 选择可用线路：跳过已探测失败的线路（稳定源线路优先保留）
         if (tvModel.tv.playerType != PlayerType.WEBVIEW && tvModel.tv.uris.size > 1) {
             val currentIdx = tvModel.videoIndexValue
-            val stableUrl = SP.getStableSources().firstOrNull { it.id == tvModel.tv.id }?.uris?.firstOrNull()
+            val stableUrl = stableSourceFor(tvModel)?.uris?.firstOrNull()
             // 综合评分选线：延迟桶优先（快线>中速>慢速），同桶内清晰度高的优先，稳定源线路加权
             val betterIdx = tvModel.tv.uris.withIndex()
                 .filter { !LineHealth.isDead(it.value) }

@@ -21,8 +21,14 @@ object SourceQuality {
             // 咪咕运营商级 HLS（gslbmgsplive/hlsztemgsplive/aikan.miguvideo.com），
             // 路径中的 /2000/、/2500/、/3000/ 为码率档位，实测多为 1080p+ h265
             "miguvideo.com" in u || "migu" in u -> 90
+            // 芒果TV 官方直播（湖南卫视4K 等 qing.mgtv.com）
+            "mgtv.com" in u || "mgtv" in u -> 88
             // 百视通 bestv / APTV 8M 卫视源，实测 1080p 高码率
-            "bestv" in u || "aptvapp.com" in u -> 88
+            "bestv" in u || "aptvapp.com" in u || "kan0512.com" in u -> 88
+            // 浙江广电官方流（cztv 蓝天下/云平台，多为 1080p 以上）
+            "cztv" in u || "cztvcloud" in u -> 87
+            // 运营商 OTT 直播（移动 ottrrs/dbiptv、电信 dxhmt、广东移动 gmcc、华数 mobaibox）
+            "chinamobile.com" in u || "dxhmt" in u || "gmcc.net" in u || "mobaibox.com" in u -> 85
             "1080" in u || "fhd" in u -> 85
             "720" in u || RE_HD.containsMatchIn(u) -> 70
             "576" in u || "480" in u || "sd" in u -> 50

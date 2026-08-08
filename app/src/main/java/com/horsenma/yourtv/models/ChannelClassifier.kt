@@ -50,10 +50,70 @@ object ChannelClassifier {
         return if (c.category == CAT_CCTV) "央视||" + cctvCanonicalId(title) else mergeKey(title, null)
     }
 
+    /** Stable numeric order for CCTV entries in the channel list. */
+    fun channelSortOrder(title: String, groupHint: String? = null): Int {
+        if (classify(title, groupHint).category != CAT_CCTV) return Int.MAX_VALUE
+        val lower = title.lowercase()
+        if (Regex("cctv\\s*[-－+]?\\s*8k").containsMatchIn(lower)) return 8000
+        if (Regex("cctv\\s*[-－+]?\\s*4k").containsMatchIn(lower)) return 4000
+        return Regex("cctv\\s*[-－+]?\\s*(\\d+)").find(lower)?.groupValues?.get(1)?.toIntOrNull()
+            ?: Int.MAX_VALUE - 1
+    }
+
     /** 英文/拼音频道名 → 中文规范名（跨源合并与分类用，如 Hunan TV → 湖南卫视） */
     fun canonicalAlias(name: String): String? {
         return ALIASES[normalizeName(name)]
     }
+
+    /** Canonical user-facing title used after cross-source aggregation. */
+    fun displayName(name: String): String {
+        canonicalAlias(name)?.let { return it }
+        val id = cctvCanonicalId(name)
+        when {
+            id == "cgtn" -> return "CGTN"
+            id.startsWith("cctv") -> {
+                val suffix = id.removePrefix("cctv")
+                return "CCTV" + if (suffix.endsWith("plus")) {
+                    suffix.removeSuffix("plus") + "+"
+                } else {
+                    suffix.uppercase()
+                }
+            }
+            id.startsWith("cetv") -> return "CETV" + id.removePrefix("cetv")
+        }
+        // 非 CCTV 频道：清理展示后缀（清晰度/地区/播放限制标记），
+        // 避免用户看到 "北京衛視 (1080p) [Geo-blocked]" 式原始标题
+        var clean = name.trim()
+        clean = clean.replace(Regex("[（(][^（）()]*[）)]"), "")
+        clean = clean.replace(Regex("\\[[^\\]]*\\]"), "")
+        clean = clean.replace(
+            Regex("(?i)(4k|8k|2160p|1440p|1080p|720p|480p|360p|fhd|hd|sd|uhd|超清|高清|标清|蓝光|流畅|极速|hdr|geo-blocked|geoblocked|not 24/7|24/7)\\s*$"),
+            ""
+        )
+        clean = clean.replace(Regex("[\\s\\-—–_.·,，、:：;；!！?？/\\\\|\\[\\]【】\"'‘’“”]+$"), "")
+        return clean.ifBlank { name.trim() }
+    }
+
+    /** 常见繁体电视用字 → 简体（提升跨源合并与分类一致性） */
+    private fun simplifyTraditional(s: String): String {
+        if (s.none { it in TRADITIONAL_TO_SIMPLIFIED }) return s
+        return s.map { TRADITIONAL_TO_SIMPLIFIED[it] ?: it }.joinToString("")
+    }
+
+    private val TRADITIONAL_TO_SIMPLIFIED: Map<Char, Char> = mapOf(
+        '衛' to '卫', '視' to '视', '頻' to '频', '聞' to '闻', '綜' to '综',
+        '體' to '体', '錄' to '录', '紀' to '纪', '實' to '实', '兒' to '儿',
+        '樂' to '乐', '國' to '国', '際' to '际', '財' to '财', '經' to '经',
+        '娛' to '娱', '劇' to '剧', '戲' to '戏', '時' to '时', '訊' to '讯',
+        '臺' to '台', '灣' to '湾', '東' to '东', '廣' to '广', '鳳' to '凤',
+        '無' to '无', '線' to '线', '電' to '电', '畫' to '画', '網' to '网',
+        '華' to '华', '語' to '语', '說' to '说', '會' to '会', '館' to '馆',
+        '業' to '业', '動' to '动', '數' to '数', '碼' to '码', '眾' to '众',
+        '觀' to '观', '賞' to '赏', '藝' to '艺', '術' to '术', '節' to '节',
+        '氣' to '气', '報' to '报', '導' to '导', '題' to '题', '書' to '书',
+        '單' to '单', '雙' to '双', '學' to '学', '習' to '习', '醫' to '医',
+        '療' to '疗', '優' to '优', '質' to '质', '傳' to '传', '統' to '统'
+    )
 
     private fun cctvCanonicalId(name: String): String {
         val lower = name.lowercase()
@@ -63,7 +123,10 @@ object ChannelClassifier {
             return if (m != null) "cetv" + m.groupValues[1] else "cetv"
         }
         Regex("cctv\\s*[-－]?\\s*(4k|8k)").find(lower)?.let { return "cctv" + it.groupValues[1] }
-        Regex("cctv\\s*[-－]?\\s*(\\d+)\\s*\\+?").find(lower)?.let { return "cctv" + it.groupValues[1] }
+        // Accept the common `CCTV+ 1` spelling used by several IPTV feeds.
+        Regex("cctv\\s*\\+\\s*(\\d+)").find(lower)?.let { return "cctv" + it.groupValues[1] }
+        Regex("cctv\\s*[-－]?\\s*(\\d+)\\s*\\+").find(lower)?.let { return "cctv" + it.groupValues[1] + "plus" }
+        Regex("cctv\\s*[-－]?\\s*(\\d+)").find(lower)?.let { return "cctv" + it.groupValues[1] }
         Regex("(中央|央视)([一二三四五六七八九十]+)\\s*套").find(name)?.let {
             val num = chineseNumeralToInt(it.groupValues[2])
             if (num != null) return "cctv$num"
@@ -113,7 +176,9 @@ object ChannelClassifier {
     /** 名称规范化：去括号内容/清晰度后缀/空白标点，用于跨源合并 */
     fun normalizeName(name: String): String {
         var s = name.lowercase()
+        s = simplifyTraditional(s)
         s = s.replace(Regex("[（(][^（）()]*[）)]"), "")
+        s = s.replace(Regex("\\[[^\\]]*\\]"), "")
         s = s.replace(
             Regex("(4k|8k|2160p|1440p|1080p|720p|480p|360p|fhd|hd|sd|uhd|超清|高清|标清|蓝光|流畅|极速|hdr)$"),
             ""
@@ -142,8 +207,10 @@ object ChannelClassifier {
         // 2. 港澳台（先于卫视规则：凤凰卫视/香港卫视/澳门卫视等归入港澳台）
         matchHkTwMo(name, hint)?.let { return Classification(CAT_LOCAL, it) }
 
-        // 3. 地方卫视
-        if (name.contains("卫视") || hint.contains("卫视")) return Classification(CAT_WEISHI, "")
+        // 3. 地方卫视（含繁体"衛視"写法）
+        if (name.contains("卫视") || name.contains("衛視") || hint.contains("卫视")) {
+            return Classification(CAT_WEISHI, "")
+        }
 
         // 4. 地方频道：省份/城市
         matchProvince(name, hint)?.let { return Classification(CAT_LOCAL, it) }
@@ -345,6 +412,7 @@ object ChannelClassifier {
         "兰州" to "甘肃", "天水" to "甘肃", "嘉峪关" to "甘肃", "金昌" to "甘肃", "白银" to "甘肃",
         "武威" to "甘肃", "张掖" to "甘肃", "平凉" to "甘肃", "酒泉" to "甘肃", "庆阳" to "甘肃",
         "定西" to "甘肃", "陇南" to "甘肃", "临夏" to "甘肃", "甘南" to "甘肃", "敦煌" to "甘肃",
+        "卡酷少儿" to "北京", // 北京广播电视台卡酷少儿（卫视）
         "西宁" to "青海", "海东" to "青海", "格尔木" to "青海", "德令哈" to "青海", "玉树" to "青海",
         "银川" to "宁夏", "石嘴山" to "宁夏", "吴忠" to "宁夏", "固原" to "宁夏", "中卫" to "宁夏",
         "灵武" to "宁夏", "青铜峡" to "宁夏", "永宁" to "宁夏", "贺兰" to "宁夏", "同心" to "宁夏",

@@ -140,7 +140,8 @@ class TVModel(var tv: TV) : ViewModel() {
             val scheme = uri.scheme ?: return@let null
 
             val okHttpDataSource = OkHttpDataSource.Factory(HttpClient.okHttpClient)
-            tv.headers?.let { i ->
+            val requestHeaders = tv.uriHeaders[it] ?: tv.headers
+            requestHeaders?.let { i ->
                 okHttpDataSource.setDefaultRequestProperties(i)
                 i.forEach { (key, value) ->
                     if (key.equals("user-agent", ignoreCase = true)) {
@@ -239,24 +240,31 @@ class TVModel(var tv: TV) : ViewModel() {
         return videoIndexValue == tv.uris.size - 1
     }
 
+    /** True when another URI (excluding the current one) is not known dead. */
+    fun hasNextHealthyVideo(): Boolean {
+        if (tv.uris.size <= 1) return false
+        return tv.uris.indices.any { it != videoIndexValue && !LineHealth.isDead(tv.uris[it]) }
+    }
+
+    /** Move to the next healthy URI. Returns false when no alternative exists. */
     fun nextVideo(): Boolean {
-        if (tv.uris.isEmpty()) {
+        if (tv.uris.size <= 1) {
             return false
         }
 
-        var next = (videoIndexValue + 1) % tv.uris.size
-        val start = next
-        // 跳过已探测失败的线路，直到找到健康线路或绕回起点
-        while (LineHealth.isDead(tv.uris[next])) {
-            next = (next + 1) % tv.uris.size
-            if (next == start) break
+        val start = videoIndexValue.coerceIn(0, tv.uris.lastIndex)
+        for (offset in 1..tv.uris.size) {
+            val next = (start + offset) % tv.uris.size
+            if (next == start) continue
+            if (!LineHealth.isDead(tv.uris[next])) {
+                _videoIndex.setValueSafe(next)
+                sourceTypeList = listOf(SourceType.UNKNOWN)
+                Log.d(TAG, "nextVideo: title=${tv.title}, new videoIndex=$videoIndexValue, url=${tv.uris.getOrNull(videoIndexValue)}")
+                return true
+            }
         }
-        _videoIndex.setValueSafe(next)
-        sourceTypeList = listOf(
-            SourceType.UNKNOWN,
-        )
-        Log.d(TAG, "nextVideo: title=${tv.title}, new videoIndex=$videoIndexValue, url=${tv.uris.getOrNull(videoIndexValue)}")
-        return isLastVideo()
+        Log.w(TAG, "nextVideo: no healthy alternative for ${tv.title}")
+        return false
     }
 
     fun update(t: TV) {
