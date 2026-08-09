@@ -15,6 +15,8 @@ import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.rtsp.RtspMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
+import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import com.horsenma.yourtv.SP
 import com.horsenma.yourtv.data.EPG
 import com.horsenma.yourtv.data.SourceType
@@ -213,7 +215,9 @@ class TVModel(var tv: TV) : ViewModel() {
         val httpDataSource = _httpDataSource!!
 
         return when (getSourceTypeCurrent()) {
-            SourceType.HLS -> HlsMediaSource.Factory(httpDataSource).createMediaSource(mediaItem)
+            SourceType.HLS -> HlsMediaSource.Factory(httpDataSource)
+                .setLoadErrorHandlingPolicy(NoRetryLoadErrorHandlingPolicy)
+                .createMediaSource(mediaItem)
             SourceType.RTSP -> if (userAgent.isEmpty()) {
                 RtspMediaSource.Factory().createMediaSource(mediaItem)
             } else {
@@ -228,12 +232,31 @@ class TVModel(var tv: TV) : ViewModel() {
 
             SourceType.RTP -> null
 
-            SourceType.DASH -> DashMediaSource.Factory(httpDataSource).createMediaSource(mediaItem)
+            SourceType.DASH -> DashMediaSource.Factory(httpDataSource)
+                .setLoadErrorHandlingPolicy(NoRetryLoadErrorHandlingPolicy)
+                .createMediaSource(mediaItem)
             SourceType.PROGRESSIVE -> ProgressiveMediaSource.Factory(httpDataSource)
+                .setLoadErrorHandlingPolicy(NoRetryLoadErrorHandlingPolicy)
                 .createMediaSource(mediaItem)
 
             else -> null
         }
+    }
+
+    /**
+     * 快速失败加载策略（对齐 zcode 项目的成熟方案）：
+     * 源加载只尝试 1 次、不做指数退避重试，死线路的 onPlayerError 在 1-2 秒内
+     * 到达，交给上层"同频道换下一条线路"的 failover 逻辑，而不是在
+     * 默认 3 次退避重试里黑屏等待 5 秒以上。IPTV 源是尽力而为的：
+     * 一次连不上，重试只会拖延错误面板/换线。
+     */
+    @OptIn(UnstableApi::class)
+    private object NoRetryLoadErrorHandlingPolicy : DefaultLoadErrorHandlingPolicy() {
+        override fun getMinimumLoadableRetryCount(dataType: Int): Int = 1
+
+        override fun getRetryDelayMsFor(
+            loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo,
+        ): Long = androidx.media3.common.C.TIME_UNSET
     }
 
     fun isLastVideo(): Boolean {

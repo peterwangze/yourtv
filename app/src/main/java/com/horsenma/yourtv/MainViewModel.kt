@@ -192,7 +192,10 @@ class MainViewModel : ViewModel() {
 
     /**
      * 首次启动时自动导入预置的公共直播源（界面就绪后延迟执行）。
-     * 任一预置源导入成功后即停止，其余源保留在源列表中可随时切换；
+     * 全部预置源并行下载（每个最多 12 秒），首个成功即成为激活源并出列表，
+     * 无需按顺序逐个试错——串行最坏情况是 19 源 × 12 秒才出第一个列表，
+     * 并行后首列表耗时 = 最快可用源耗时（对齐 zcode 项目并行 fan-out 方案）。
+     * 解析/应用阶段仍由 parseMutex 串行化，避免列表被并发整体替换。
      * 全部失败时记录时间，24 小时内不再重试，避免每次启动卡顿。
      */
     fun importDefaultsIfNeeded() {
@@ -213,26 +216,30 @@ class MainViewModel : ViewModel() {
         defaultsImportStarted = true
         SP.defaultsLastAttempt = System.currentTimeMillis()
         viewModelScope.launch(Dispatchers.IO) {
-            var anySuccess = false
-            for (url in SP.defaultSourceUrls()) {
-                if (url.isBlank()) continue
-                Log.d(TAG, "importDefaultsIfNeeded: trying default source $url")
-                try {
-                   // 每个源最多等 12 秒：弱网/源失效时快速跳过，避免首屏长时间卡"解析源"
-                    withTimeoutOrNull(12_000L) { importFromUrl(url, silent = true) }
-                } catch (e: Exception) {
-                    Log.e(TAG, "importDefaultsIfNeeded: failed $url: ${e.message}")
-                }
-                if (SP.configUrl == url) {
-                    Log.i(TAG, "importDefaultsIfNeeded: active source set to $url")
-                    anySuccess = true
-                    break
-                }
+            val urls = SP.defaultSourceUrls().filter { it.isNotBlank() }
+            // 只有第一个真正解析成功的源允许 apply=true（防止并行导入多源先后
+            // 整体替换列表：加载页延迟隐藏 + 列表闪换）。其余成功源进入聚合缓冲。
+            val firstApplied = java.util.concurrent.atomic.AtomicBoolean(false)
+            coroutineScope {
+                urls.map { url ->
+                    async(Dispatchers.IO) {
+                        Log.d(TAG, "importDefaultsIfNeeded: trying default source $url (parallel)")
+                        try {
+                            // 每个源最多等 12 秒：弱网/源失效时快速跳过，避免首屏长时间卡"解析源"
+                            withTimeoutOrNull(12_000L) {
+                                importFromUrl(url, silent = true, applyGate = firstApplied)
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "importDefaultsIfNeeded: failed $url: ${e.message}")
+                        }
+                    }
+                }.awaitAll()
             }
+            val anySuccess = !SP.configUrl.isNullOrEmpty()
             // 无论成败都标记已尝试；失败时靠 lastAttempt 控制 24 小时后重试
             SP.defaultsImported = true
             if (anySuccess) {
-                Log.i(TAG, "importDefaultsIfNeeded: done, active source = ${SP.configUrl}")
+                Log.i(TAG, "importDefaultsIfNeeded: done, active source = ${SP.configUrl} (parallel first-success)")
                 // 后台静默导入其余源并聚合多线路（不阻塞观看、不弹提示）
                 aggregateRemainingSources()
             } else {
@@ -642,8 +649,9 @@ class MainViewModel : ViewModel() {
        id: String = "",
        skipHistory: Boolean = false,
        forceDownload: Boolean = false,
-        apply: Boolean = true,
-        silent: Boolean = false
+       apply: Boolean = true,
+        silent: Boolean = false,
+        applyGate: java.util.concurrent.atomic.AtomicBoolean? = null
    ) {
        Log.d(TAG, "importFromUrl: url=$url, id=$id, skipHistory=$skipHistory, forceDownload=$forceDownload")
        if (url.isBlank()) {
@@ -712,7 +720,14 @@ class MainViewModel : ViewModel() {
                 } else {
                     cachedContent
                 }
-                parseAndApplyChannels(contentToParse, cacheCodeFile, if (skipHistory) "" else url, id, apply)
+                parseAndApplyChannels(
+                    contentToParse,
+                    cacheCodeFile,
+                    if (skipHistory) "" else url,
+                    id,
+                    apply,
+                    applyGate = applyGate
+                )
             }
             return
         }
@@ -747,7 +762,14 @@ class MainViewModel : ViewModel() {
                     }
                 }
                 withContext(Dispatchers.IO) {
-                    parseAndApplyChannels(normalizedContent, cacheCodeFile, if (skipHistory) "" else url, id, apply)
+                    parseAndApplyChannels(
+                        normalizedContent,
+                        cacheCodeFile,
+                        if (skipHistory) "" else url,
+                        id,
+                        apply,
+                        applyGate = applyGate
+                    )
                     SP.lastDownloadTime = System.currentTimeMillis()
                     with(prefs.edit()) {
                         putLong(cacheTimeKey, System.currentTimeMillis())
@@ -888,7 +910,8 @@ class MainViewModel : ViewModel() {
         url: String,
         id: String = "",
         apply: Boolean = true,
-        onApplied: (suspend () -> Unit)? = null
+        onApplied: (suspend () -> Unit)? = null,
+        applyGate: java.util.concurrent.atomic.AtomicBoolean? = null
     ): Boolean {
         return parseMutex.withLock {
             try {
@@ -904,11 +927,18 @@ class MainViewModel : ViewModel() {
                 val isHex = str.trim().matches(Regex("^[0-9a-fA-F]+$"))
                 val targetFile = file ?: cacheFile
                 Log.d(TAG, "parseAndApplyChannels: Input str length=${str.length}, isPlainText=$isPlainText, isHex=$isHex, url=$url, apply=$apply")
-                val ok = str2Channels(str, apply) {
+                // 并行首源导入时只有一个源可以真正应用（applyGate 判定在 parseMutex
+                // 内执行，无并发竞态；仅解析成功后才占用名额，失败源不消耗 gate），
+                // 其余成功源只进 aggregateBuffer，避免列表被反复整体替换
+                val effectiveApply = if (applyGate != null) !applyGate.get() else apply
+                val ok = str2Channels(str, effectiveApply) {
                     withContext(Dispatchers.Main) {
                         _channelsOk.value = true
                     }
                     onApplied?.invoke()
+                }
+                if (ok && applyGate != null) {
+                    applyGate.set(true)
                 }
                 if (ok) {
                     if (isPlainText) {
@@ -939,7 +969,7 @@ class MainViewModel : ViewModel() {
                     }
                     if (url.isNotEmpty()) {
                         // 仅 apply 模式更新激活源指针；聚合（apply=false）导入不移动激活源
-                        if (apply) com.horsenma.yourtv.SP.configUrl = url
+                        if (effectiveApply) com.horsenma.yourtv.SP.configUrl = url
                         val source = Source(id = id, uri = url)
                         viewModelScope.launch(Dispatchers.Main) {
                             sources.addSource(source)

@@ -340,8 +340,26 @@ class SettingFragment : Fragment() {
             (activity as? MainActivity)?.settingActive() // 新增
         }
 
-        binding.verifyUser.setOnClickListener {
-            showVerificationDialog()
+        // 画面比例（G7）：跟随内容 → 16:9 → 4:3 → 铺满，循环切换，主/备视图立即生效
+        binding.btnAspectRatio.setOnClickListener {
+            val order = listOf("fit", "16_9", "4_3", "zoom")
+            val next = order[(order.indexOf(SP.aspectRatio).coerceAtLeast(0) + 1) % order.size]
+            SP.aspectRatio = next
+            updateSettingsLabels()
+            (activity as? MainActivity)?.playerFragment?.updateAspectRatio()
+            mainActivity.settingActive()
+        }
+
+        // 定时关机（G6）：关闭 → 30/60/90/120 分钟循环；到点由 MainActivity 检查退出
+        binding.btnSleepTimer.setOnClickListener {
+            val order = listOf(0, 30, 60, 90, 120)
+            val next = order[(order.indexOf(SP.sleepTimerMinutes).coerceAtLeast(0) + 1) % order.size]
+            SP.sleepTimerMinutes = next
+            updateSettingsLabels()
+            if (next > 0) {
+                requireContext().getString(R.string.sleep_timer_remaining, next).showToast()
+            }
+            mainActivity.settingActive()
         }
 
         val txtTextSize = application.px2PxFont(binding.versionName.textSize)
@@ -364,9 +382,6 @@ class SettingFragment : Fragment() {
 
         val btnWidth = application.px2Px(binding.confirmConfig.layoutParams.width)
 
-        val btnLayoutParams = binding.verifyUser.layoutParams as ViewGroup.MarginLayoutParams
-        btnLayoutParams.marginEnd = application.px2Px(binding.verifyUser.marginEnd)
-
         binding.versionName.textSize = txtTextSize
 
         for (i in listOf(
@@ -374,22 +389,29 @@ class SettingFragment : Fragment() {
             binding.confirmConfig,
             binding.clear,
             binding.checkVersion,
-            binding.verifyUser,
             binding.appreciate,
             binding.updateEpg,
             binding.refreshSource,
+            binding.btnAspectRatio,
+            binding.btnSleepTimer,
         )) {
             i.layoutParams.width = btnWidth
             i.textSize = txtTextSize
-            i.layoutParams = btnLayoutParams
             i.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
-                    //i.background = ContextCompat.getColor(context,R.color.focus).toDrawable()
                     i.setTextColor(ContextCompat.getColor(context,R.color.white))
                 } else {
                     i.setTextColor(ContextCompat.getColor(context,R.color.blur))
                 }
             }
+        }
+
+        updateSettingsLabels()
+
+        // 定时关机剩余时间随页面显示刷新
+        binding.root.setOnKeyListener { _, _, _ ->
+            updateSettingsLabels()
+            false
         }
 
         val textSizeSwitch = application.px2PxFont(binding.switchChannelReversal.textSize)
@@ -710,64 +732,22 @@ class SettingFragment : Fragment() {
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    private fun showVerificationDialog() {
-        val mainActivity = activity as? MainActivity
-        val dialog = Dialog(requireContext()).apply {
-            setContentView(R.layout.loading)
-            setCancelable(true)
-            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            window?.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+    /** 刷新设置页动态文案（画面比例/定时关机当前值） */
+    private fun updateSettingsLabels() {
+        if (_binding == null) return
+        val ratioText = when (SP.aspectRatio) {
+            "16_9" -> getString(R.string.ratio_16_9)
+            "4_3" -> getString(R.string.ratio_4_3)
+            "zoom" -> getString(R.string.ratio_zoom)
+            else -> getString(R.string.ratio_follow)
         }
-        val callback = object : MainActivity.VerificationCallback {
-            override fun onKeyConfirmed(key: String) {}
-            override fun onSkip() {}
-            override fun onCompleted() {
-                hideSelf()
-                mainActivity?.settingActive()
-            }
-        }
+        binding.btnAspectRatio.text = getString(R.string.aspect_ratio) + "：" + ratioText
 
-        dialog.setOnShowListener {
-            dialog.findViewById<View>(R.id.loading)?.setOnTouchListener { _, _ ->
-                mainActivity?.settingActive()
-                false
-            }
-            dialog.findViewById<View>(R.id.confirm_button)?.setOnClickListener {
-                val handler = UserVerificationHandler(mainActivity!!, UserInfoManager, viewModel)
-                val key = handler.getKeyInputText()?.trim() ?: ""
-                if (key.isNotEmpty() && key.matches("[0-9A-Z]{1,20}".toRegex())) {
-                    handler.triggerConfirm(key, dialog, callback)
-                } else {
-                    handler.showErrorText("測試碼格式錯，請重新輸入。")
-                    handler.requestKeyInputFocus()
-                }
-                mainActivity?.settingActive()
-            }
-            dialog.findViewById<View>(R.id.skip_button)?.setOnClickListener {
-                UserVerificationHandler(mainActivity!!, UserInfoManager, viewModel).triggerSkip(dialog, callback)
-                mainActivity?.settingActive()
-            }
-        }
-
-        // Show dialog before handleUserVerification
-        try {
-            dialog.show()
-            Log.d(TAG, "showVerificationDialog: Dialog shown")
-        } catch (e: Exception) {
-            Log.e(TAG, "showVerificationDialog: Failed to show dialog: ${e.message}", e)
-            R.string.verify_user_error.showToast()
-            return
-        }
-
-        // Use UserVerificationHandler
-        mainActivity?.let {
-            val handler = UserVerificationHandler(it, UserInfoManager, viewModel)
-            handler.handleUserVerification(dialog, callback)
-        } ?: run {
-            Log.e(TAG, "MainActivity not available for verification")
-            R.string.verify_user_error.showToast()
-            dialog.dismiss()
+        val minutes = SP.sleepTimerMinutes
+        binding.btnSleepTimer.text = if (minutes > 0) {
+            getString(R.string.sleep_timer_remaining, minutes)
+        } else {
+            getString(R.string.sleep_timer) + "：" + getString(R.string.sleep_timer_off)
         }
     }
 

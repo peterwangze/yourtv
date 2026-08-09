@@ -22,6 +22,7 @@ class ProgramAdapter(
 
     private var listener: ItemListener? = null
     private var focused: View? = null
+    private var now: Long = System.currentTimeMillis() / 1000
     val application = context.applicationContext as YourTVApplication
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -59,6 +60,13 @@ class ProgramAdapter(
                 }
             }
             if (event?.action == KeyEvent.ACTION_DOWN) {
+                // 已播出节目按 OK：给出"回看需源支持"的诚实提示（G8），不假装支持
+                if ((keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) &&
+                    epg.endTime.toLong() < now
+                ) {
+                    application.toast(context.getString(R.string.catchup_hint))
+                    return@setOnKeyListener true
+                }
                 // If it is already the first item and you continue to move up...
                 if (keyCode == KeyEvent.KEYCODE_DPAD_UP && position == 0) {
                     val p = getItemCount() - 1
@@ -102,13 +110,14 @@ class ProgramAdapter(
 
     override fun getItemCount() = epgList.size
 
-    fun updateData(epgList: List<EPG>, index: Int) {
+    fun updateData(epgList: List<EPG>, index: Int, now: Long = System.currentTimeMillis() / 1000) {
         this.epgList = epgList
         this.index = index
+        this.now = now
         notifyDataSetChanged()
     }
 
-    class ViewHolder(private val context: Context, private val binding: ProgramItemBinding) :
+    inner class ViewHolder(private val context: Context, private val binding: ProgramItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bindTitle(epg: EPG, isCurrent: Boolean) {
@@ -120,6 +129,8 @@ class ProgramAdapter(
             }"
             binding.description.text = epg.title
             binding.badge.visibility = if (isCurrent) View.VISIBLE else View.GONE
+            binding.catchupBadge.visibility =
+                if (!isCurrent && epg.endTime.toLong() < now) View.VISIBLE else View.GONE
             if (!isCurrent) {
                 binding.root.setBackgroundResource(R.color.blur)
                 binding.title.setTextColor(ContextCompat.getColor(context, R.color.description_blur))

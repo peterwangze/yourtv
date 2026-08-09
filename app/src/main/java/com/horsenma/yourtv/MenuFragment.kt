@@ -121,6 +121,19 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
             }
         }
 
+        // 菜单头部"搜索"入口：打开搜索/最近观看浮层
+        binding.searchButton.setOnClickListener {
+            (activity as? MainActivity)?.showSearch()
+        }
+        binding.searchButton.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                binding.group.requestFocus()
+                true
+            } else {
+                false
+            }
+        }
+
         groupAdapter.focusable(true)
         listAdapter.focusable(true)
 

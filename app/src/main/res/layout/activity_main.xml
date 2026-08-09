@@ -7,4 +7,19 @@
     android:background="@android:color/black"
     tools:context=".MainActivity"
     tools:deviceIds="tv"
-    tools:ignore="MergeRootFrame" />
+    tools:ignore="MergeRootFrame">
+
+    <!-- 触摸手势一次性引导卡（首次进入触摸设备显示 10 秒，任何按键/触摸即关闭） -->
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/gesture_guide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/rounded_dark_bottom"
+        android:padding="24dp"
+        android:text="@string/gesture_guide_content"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:lineSpacingExtra="6dp"
+        android:visibility="gone" />
+</FrameLayout>

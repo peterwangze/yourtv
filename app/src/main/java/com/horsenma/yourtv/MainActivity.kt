@@ -68,6 +68,7 @@ class MainActivity : AppCompatActivity() {
     internal var settingFragment = com.horsenma.yourtv.SettingFragment()
     internal var programFragment = com.horsenma.yourtv.ProgramFragment()
     internal var sourceSelectFragment = com.horsenma.yourtv.SourceSelectFragment()
+    internal var searchFragment = com.horsenma.yourtv.SearchFragment()
 
     /**
      * Fragment 统一使用类名作为 tag：初始 add、懒加载 add 与进程重建后的
@@ -90,8 +91,9 @@ class MainActivity : AppCompatActivity() {
         timeFragment = rebind(fragmentTag(timeFragment), timeFragment)
         menuFragment = rebind(fragmentTag(menuFragment), menuFragment)
         settingFragment = rebind(fragmentTag(settingFragment), settingFragment)
-        programFragment = rebind(fragmentTag(programFragment), programFragment)
-        sourceSelectFragment = rebind(fragmentTag(sourceSelectFragment), sourceSelectFragment)
+    programFragment = rebind(fragmentTag(programFragment), programFragment)
+    sourceSelectFragment = rebind(fragmentTag(sourceSelectFragment), sourceSelectFragment)
+    searchFragment = rebind(fragmentTag(searchFragment), searchFragment)
         Log.d(TAG, "Rebound restored fragments: player=" + playerFragment.isAdded + ", loading=" + loadingFragment.isAdded + ", menu=" + menuFragment.isAdded)
     }
 
@@ -107,6 +109,8 @@ class MainActivity : AppCompatActivity() {
     private val DEBOUNCE_INTERVAL = 2000L
     private var lastBackPressTime = 0L
     private val BACK_PRESS_INTERVAL = 2000L
+    private val SLEEP_TIMER_CHECK_INTERVAL = 30_000L
+    private val GESTURE_GUIDE_DURATION = 10_000L
     private val watchedLikes = java.util.Collections.newSetFromMap(java.util.WeakHashMap<TVModel, Boolean>())
 
     internal lateinit var viewModel: MainViewModel
@@ -178,8 +182,9 @@ class MainActivity : AppCompatActivity() {
                     .add(R.id.main_browse_fragment, infoFragment, fragmentTag(infoFragment))
                     .add(R.id.main_browse_fragment, channelFragment, fragmentTag(channelFragment))
                     .add(R.id.main_browse_fragment, menuFragment, fragmentTag(menuFragment))
-                    .add(R.id.main_browse_fragment, settingFragment, fragmentTag(settingFragment))
-                    .add(R.id.main_browse_fragment, sourceSelectFragment, fragmentTag(sourceSelectFragment))
+            .add(R.id.main_browse_fragment, settingFragment, fragmentTag(settingFragment))
+            .add(R.id.main_browse_fragment, sourceSelectFragment, fragmentTag(sourceSelectFragment))
+            .add(R.id.main_browse_fragment, searchFragment, fragmentTag(searchFragment))
                     // 加载页最后 add 置于最上层：解析期间不被播放器黑面遮挡
                     .add(R.id.main_browse_fragment, loadingFragment, fragmentTag(loadingFragment))
                     .hide(infoFragment)
@@ -187,6 +192,7 @@ class MainActivity : AppCompatActivity() {
                     .hide(menuFragment)
                     .hide(settingFragment)
                     .hide(sourceSelectFragment)
+                    .hide(searchFragment)
                     .commitNow()
             } catch (e: IllegalStateException) {
                 Log.e(TAG, "Failed to add fragments: ${e.message}")
@@ -195,14 +201,16 @@ class MainActivity : AppCompatActivity() {
                     .add(R.id.main_browse_fragment, infoFragment, fragmentTag(infoFragment))
                     .add(R.id.main_browse_fragment, channelFragment, fragmentTag(channelFragment))
                     .add(R.id.main_browse_fragment, menuFragment, fragmentTag(menuFragment))
-                    .add(R.id.main_browse_fragment, settingFragment, fragmentTag(settingFragment))
-                    .add(R.id.main_browse_fragment, sourceSelectFragment, fragmentTag(sourceSelectFragment))
+            .add(R.id.main_browse_fragment, settingFragment, fragmentTag(settingFragment))
+            .add(R.id.main_browse_fragment, sourceSelectFragment, fragmentTag(sourceSelectFragment))
+            .add(R.id.main_browse_fragment, searchFragment, fragmentTag(searchFragment))
                     .add(R.id.main_browse_fragment, loadingFragment, fragmentTag(loadingFragment))
                     .hide(infoFragment)
                     .hide(channelFragment)
                     .hide(menuFragment)
                     .hide(settingFragment)
                     .hide(sourceSelectFragment)
+                    .hide(searchFragment)
                     .commit()
             }
         } else {
@@ -432,12 +440,15 @@ class MainActivity : AppCompatActivity() {
         initializedReady = true
         Log.d(TAG, "ready(): running one-time initialization")
         try {
+            startSleepTimerCheck()
+            maybeShowGestureGuide()
             gestureDetector = GestureDetector(this, GestureListener(this))
             // 确保 Fragment 状态正确
             supportFragmentManager.beginTransaction()
                 .hide(menuFragment)
                 .hide(settingFragment)
                 .hide(sourceSelectFragment)
+                .hide(searchFragment)
                 .commit()
             viewModel.groupModel.change.observe(this) { _ ->
                 if (viewModel.groupModel.tvGroup.value != null) {
@@ -513,18 +524,70 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ---------- 定时关机（G6） ----------
+    private val sleepTimerCheckRunnable = object : Runnable {
+        override fun run() {
+            checkSleepTimer()
+            handler.postDelayed(this, SLEEP_TIMER_CHECK_INTERVAL)
+        }
+    }
+
+    private fun startSleepTimerCheck() {
+        handler.removeCallbacks(sleepTimerCheckRunnable)
+        handler.postDelayed(sleepTimerCheckRunnable, SLEEP_TIMER_CHECK_INTERVAL)
+    }
+
+    private fun checkSleepTimer() {
+        val deadline = SP.sleepTimerDeadline
+        if (deadline <= 0L) return
+        if (System.currentTimeMillis() >= deadline) {
+            R.string.sleep_timer_fired.showToast()
+            handler.postDelayed({
+                finishAffinity()
+            }, 1_500L)
+        }
+    }
+
+    // ---------- 触摸手势一次性引导（G9，F18） ----------
+    private fun maybeShowGestureGuide() {
+        if (!isTouchScreenDevice() || SP.gestureGuideShown) return
+        SP.gestureGuideShown = true
+        val guide = findViewById<View>(R.id.gesture_guide) ?: return
+        guide.visibility = View.VISIBLE
+        guide.bringToFront()
+        handler.removeCallbacks(hideGestureGuideRunnable)
+        handler.postDelayed(hideGestureGuideRunnable, GESTURE_GUIDE_DURATION)
+    }
+
+    private val hideGestureGuideRunnable = Runnable {
+        findViewById<View>(R.id.gesture_guide)?.visibility = View.GONE
+    }
+
+    /** 任意按键/触摸即关闭引导卡 */
+    private fun dismissGestureGuide() {
+        if (findViewById<View>(R.id.gesture_guide)?.visibility == View.VISIBLE) {
+            hideGestureGuideRunnable.run()
+        }
+    }
+
     private fun <T> LiveData<T>.throttle(durationMs: Long): LiveData<T> {
         val result = MutableLiveData<T>()
         var lastEmission = 0L
-        observeForever { value ->
+        val observer = androidx.lifecycle.Observer<T> { value ->
             val now = System.currentTimeMillis()
             if (now - lastEmission >= durationMs) {
                 result.value = value
                 lastEmission = now
             }
         }
+        observeForever(observer)
+        throttledObservers.add(observer to this)
         return result
     }
+
+    /** F20：节流观察者随 Activity 生命周期移除，避免进程重建重复注册 */
+    private val throttledObservers =
+        mutableListOf<Pair<androidx.lifecycle.Observer<*>, LiveData<*>>>()
 
     private fun watch() {
         viewModel.listModel.forEach { tvModel ->
@@ -579,6 +642,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
+        if (event?.action == MotionEvent.ACTION_DOWN) {
+            dismissGestureGuide()
+        }
         // 新增：禁用用户输入时拦截触摸
         if (isInputDisabled) {
             Log.d(TAG, "Touch input blocked until listModel initialized")
@@ -1129,6 +1195,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** 打开搜索/最近观看浮层（菜单头部"搜索"按钮、遥控器搜索键） */
+    fun showSearch() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            if (programFragment.isAdded && !programFragment.isHidden) {
+                hideFragment(programFragment)
+            }
+            if (menuFragment.isAdded && !menuFragment.isHidden) {
+                hideFragment(menuFragment)
+            }
+            if (settingFragment.isAdded && !settingFragment.isHidden) {
+                hideFragment(settingFragment)
+            }
+            if (sourceSelectFragment.isAdded && sourceSelectFragment.isVisible) {
+                sourceSelectFragment.hideSelf()
+            }
+            showFragment(searchFragment)
+            searchFragment.onShow()
+            menuActive()
+        }
+    }
+
     // 错误页重试：重新触发当前频道播放（内部会跳过坏线、选健康线路）
     fun retryCurrentPlayback() {
         val tvModel = viewModel.groupModel.getCurrent() ?: return
@@ -1201,6 +1288,27 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("GestureBackNavigation")
     fun onKey(keyCode: Int): Boolean {
+        // 搜索浮层打开时：字母/数字/删除键转发给搜索（焦点在列表上，事件不会
+        // 自动到达 Fragment 根监听）；方向键/OK 走系统焦点导航；MENU 关闭浮层
+        if (searchFragment.isAdded && !searchFragment.isHidden) {
+            when (keyCode) {
+                KEYCODE_0, KEYCODE_1, KEYCODE_2, KEYCODE_3, KEYCODE_4,
+                KEYCODE_5, KEYCODE_6, KEYCODE_7, KEYCODE_8, KEYCODE_9,
+                KEYCODE_A, KEYCODE_B, KEYCODE_C, KEYCODE_D, KEYCODE_E,
+                KEYCODE_F, KEYCODE_G, KEYCODE_H, KEYCODE_I, KEYCODE_J,
+                KEYCODE_K, KEYCODE_L, KEYCODE_M, KEYCODE_N, KEYCODE_O,
+                KEYCODE_P, KEYCODE_Q, KEYCODE_R, KEYCODE_S, KEYCODE_T,
+                KEYCODE_U, KEYCODE_V, KEYCODE_W, KEYCODE_X, KEYCODE_Y,
+                KEYCODE_Z, KEYCODE_DEL -> {
+                    searchFragment.handleSearchKey(keyCode)
+                    return true
+                }
+                KEYCODE_MENU, KEYCODE_SETTINGS -> {
+                    hideFragment(searchFragment)
+                    return true
+                }
+            }
+        }
         // 优先检查 SourceSelectFragment 是否可见
         if (sourceSelectFragment.isAdded && sourceSelectFragment.isVisible) {
             when (keyCode) {
@@ -1236,6 +1344,10 @@ class MainActivity : AppCompatActivity() {
         }
         when (keyCode) {
             KEYCODE_ESCAPE, KEYCODE_BACK -> {
+                if (searchFragment.isAdded && !searchFragment.isHidden) {
+                    hideFragment(searchFragment)
+                    return true
+                }
                 if (menuFragment.isAdded && !menuFragment.isHidden) {
                     // 三级列表下钻状态优先返回上一级，再关闭菜单
                     if (menuFragment.onBackPressed()) {
@@ -1301,7 +1413,14 @@ class MainActivity : AppCompatActivity() {
                 showSetting()
                 return true
             }
+            KEYCODE_SEARCH -> {
+                showSearch()
+                return true
+            }
             KEYCODE_DPAD_UP, KEYCODE_CHANNEL_UP -> {
+                if (searchFragment.isAdded && !searchFragment.isHidden) {
+                    return false
+                }
                 if (isLoadingInputVisible) {
                     if (userVerificationHandler.isInputUIVisible()) {
                         return true // 焦点切换由 XML 的 nextFocusUp 处理
@@ -1318,6 +1437,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             KEYCODE_DPAD_DOWN, KEYCODE_CHANNEL_DOWN -> {
+                if (searchFragment.isAdded && !searchFragment.isHidden) {
+                    return false
+                }
                 if (isLoadingInputVisible) {
                     if (userVerificationHandler.isInputUIVisible()) {
                         return true // 焦点切换由 XML 的 nextFocusDown 处理
@@ -1334,6 +1456,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             KEYCODE_ENTER, KEYCODE_DPAD_CENTER -> {
+                if (searchFragment.isAdded && !searchFragment.isHidden) {
+                    return false
+                }
                 if (isLoadingInputVisible) {
                     if (userVerificationHandler.isInputUIVisible()) {
                         val currentFocus = currentFocus
@@ -1378,6 +1503,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             KEYCODE_DPAD_LEFT -> {
+                if (searchFragment.isAdded && !searchFragment.isHidden) {
+                    return false
+                }
                 if (isLoadingInputVisible) {
                     val loadingFragment = supportFragmentManager.findFragmentByTag(LoadingFragment.TAG) as? LoadingFragment
                     if (loadingFragment != null && loadingFragment.isVisible && userVerificationHandler.isInputUIVisible()) {
@@ -1400,6 +1528,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             KEYCODE_DPAD_RIGHT -> {
+                if (searchFragment.isAdded && !searchFragment.isHidden) {
+                    return false
+                }
                 if (isLoadingInputVisible) {
                     val loadingFragment = supportFragmentManager.findFragmentByTag(LoadingFragment.TAG) as? LoadingFragment
                     if (loadingFragment != null && loadingFragment.isVisible && userVerificationHandler.isInputUIVisible()) {
@@ -1446,6 +1577,7 @@ class MainActivity : AppCompatActivity() {
 
     // 保留原有 onKeyDown，仅处理返回键
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        dismissGestureGuide()
         if (isInputDisabled) {
             Log.d(TAG, "Key input blocked until listModel initialized, keyCode=$keyCode")
             return true
@@ -1530,6 +1662,13 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         server?.stop()
+        // F20：节流观察者随 Activity 销毁移除，避免进程重建后重复注册
+        throttledObservers.forEach { (observer, liveData) ->
+            @Suppress("UNCHECKED_CAST")
+            (liveData as androidx.lifecycle.LiveData<Any?>)
+                .removeObserver(observer as androidx.lifecycle.Observer<Any?>)
+        }
+        throttledObservers.clear()
         handler.removeCallbacksAndMessages(null)
         updateManager.destroy()
     }

@@ -170,6 +170,21 @@
                 app:thumbTint="@color/switch_thumb_color"
                 app:trackTint="@color/switch_track_color" />
 
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_aspect_ratio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:layout_marginTop="4dp"
+                android:text="@string/aspect_ratio"
+                android:textColor="@color/title_blur"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:stateListAnimator="@drawable/button_scale"
+                android:background="@drawable/focus_item_background"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/group_display_title"
                 android:layout_width="match_parent"
@@ -266,6 +281,21 @@
                 android:focusableInTouchMode="true"
                 app:thumbTint="@color/switch_thumb_color"
                 app:trackTint="@color/switch_track_color" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_sleep_timer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:layout_marginTop="4dp"
+                android:text="@string/sleep_timer"
+                android:textColor="@color/title_blur"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:stateListAnimator="@drawable/button_scale"
+                android:background="@drawable/focus_item_background"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/group_favorite_title"

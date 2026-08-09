@@ -89,12 +89,14 @@ class PlayerFragment : Fragment() {
     // 新增：缓冲检测变量
     private val bufferingThreshold = 5
     private val bufferingDurationThreshold = 8_000L
-    private val switchCooldown = 15_000L
+    private val switchCooldown = 8_000L
     private val stablePlaybackThreshold = 10_000L
     private var bufferingStartTime = 0L
     private var bufferingCount = 0
     private var lastSwitchTime = 0L
     private var playbackStartTime = 0L
+    /** 最近一次播放/换线请求时间：首帧看门狗以此计算"多久没出画" */
+    private var playRequestTime = 0L
     private val bufferingTimestamps = mutableListOf<Long>()
     private var lastBufferingTime = 0L
     private var isSourceButtonVisible = false
@@ -105,13 +107,20 @@ class PlayerFragment : Fragment() {
     // 新增：播放停止检测变量
     private var lastStopTime = 0L
     private val stopDurationThreshold = 2_500L
-    private val retryCooldown = 30_000L
+    private val retryCooldown = 8_000L
     // 会话内是否成功出过画面：从未出画时（启动稳定源失效等）跳过换线冷却与
     // 自动换源开关，立即换下一条线路，避免"首帧黑屏 30 秒"
     private var hasPlayedSuccessfully = false
-    private val checkPlaybackInterval = 15_000L
+    // 播放健康轮询：2s 一查（原 15s）。只做 isPlaying/state 检查，开销可忽略；
+    // 缩短轮询后停播检测（2.5s 阈值）与首帧看门狗都能及时触发，不再让用户干等。
+    private val checkPlaybackInterval = 2_000L
+
+    /** 首帧看门狗：播放请求发出后该时长内未出画（持续 BUFFERING 且无错误事件）即换下一条线路 */
+    private val firstFrameTimeoutMs = 8_000L
     // 定义保存间隔（例如 5 分钟，防止频繁保存）
     private var lastPauseTime = 0L
+    /** 稳定源保存节流：健康轮询 2s 一查后，同一频道 30s 内只保存一次 */
+    private var lastStableSaveTime = 0L
     private val stableSourceCheckRunnable = Runnable {
         if (player?.isPlaying == true && tvModel != null &&
             System.currentTimeMillis() - playbackStartTime >= stablePlaybackDuration &&
@@ -355,6 +364,8 @@ class PlayerFragment : Fragment() {
         if (standbyPlayer == null) {
             standbyPlayer = buildStandbyPlayer(ctx)
             _binding?.standbyView?.player = standbyPlayer
+            // 备用视图与主视图共用同一套 FIT+居中布局，比例表现完全一致
+            _binding?.let { applyVideoLayout(it.standbyView) }
             Log.d(TAG, "Standby player created")
         }
         // 定时任务随播放器池常驻
@@ -679,12 +690,45 @@ class PlayerFragment : Fragment() {
 
     @OptIn(UnstableApi::class)
     private fun updatePlayerViewLayout() {
-        val playerView = binding.playerView
+        applyVideoLayout(binding.playerView)
+        applyVideoLayout(binding.standbyView)
+    }
+
+    /**
+     * 主/备播放视图共用同一套布局规则：
+     * - resizeMode=FIT 等比缩放（4:3/21:9 源留黑边不变形）
+     * - 全屏=铺满屏幕，非全屏=16:9 应显区域，均居中
+     * 根布局已改为 FrameLayout，FrameLayout.LayoutParams 原生生效，
+     * 不再有替换 ConstraintLayout.LayoutParams 导致约束丢失的隐患。
+     */
+    @OptIn(UnstableApi::class)
+    private fun applyVideoLayout(playerView: androidx.media3.ui.PlayerView) {
         val app = YourTVApplication.getInstance()
         val isFullScreen = SP.fullScreenMode
 
-        // 全屏/非全屏都保持原始比例（留黑边），避免 4:3/21:9 源被拉伸变形
-        playerView.resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
+        // 画面比例（G7）：fit=跟随内容；16_9/4_3=按目标比例留边（FIT + 自定义宽高比）；
+        // zoom=铺满裁剪。主/备视图同步，比例表现一致。
+        val aspectFrame = playerView.findViewById<androidx.media3.ui.AspectRatioFrameLayout>(
+            androidx.media3.ui.R.id.exo_content_frame
+        )
+        when (SP.aspectRatio) {
+            "16_9" -> {
+                playerView.resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
+                aspectFrame?.setAspectRatio(16f / 9f)
+            }
+            "4_3" -> {
+                playerView.resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
+                aspectFrame?.setAspectRatio(4f / 3f)
+            }
+            "zoom" -> {
+                playerView.resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                aspectFrame?.setAspectRatio(0f)
+            }
+            else -> {
+                playerView.resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
+                aspectFrame?.setAspectRatio(0f)
+            }
+        }
 
         val layoutParams = FrameLayout.LayoutParams(
             if (isFullScreen) ViewGroup.LayoutParams.MATCH_PARENT else app.videoWidthPx(),
@@ -696,7 +740,7 @@ class PlayerFragment : Fragment() {
 
         playerView.requestLayout()
         playerView.post {
-            Log.d(TAG, "Updated PlayerView layout: fullScreen=$isFullScreen, width=${layoutParams.width}, height=${layoutParams.height}, gravity=${layoutParams.gravity}")
+            Log.d(TAG, "Updated ${if (playerView == binding.standbyView) "standby" else "main"} view layout: fullScreen=$isFullScreen, width=${layoutParams.width}, height=${layoutParams.height}, gravity=${layoutParams.gravity}")
         }
     }
 
@@ -732,7 +776,7 @@ class PlayerFragment : Fragment() {
             binding.webView.isFocusable = true
             binding.webView.isFocusableInTouchMode = true
         } else {
-            updatePlayerViewLayout()
+        updatePlayerViewLayout()
             binding.playerView.visibility = View.VISIBLE
             binding.webView.visibility = View.GONE
             binding.playerView.requestFocus()
@@ -801,6 +845,22 @@ class PlayerFragment : Fragment() {
                     "isResumed=$isResumed, isInPip=$isInPictureInPictureMode, playerType=${tvModel!!.tv.playerType}, " +
                     "bufferingCount=$bufferingCount, retryTimes=${tvModel!!.retryTimes}, " +
                     "playbackDuration=${if (playbackStartTime > 0) currentTime - playbackStartTime else 0L}")
+            // 首帧看门狗（IPTV）：播放请求后持续 BUFFERING 超过阈值且无错误事件
+            // （ExoPlayer 不会为"永远缓冲"发 onPlayerError），直接标记坏线换下一条，
+            // 避免黑屏/转圈干等。换线节奏由 switchSourceDebounce(2s) 与
+            // nextVideo 的"全部线路试完才停止"语义兜底，不会在坏线间死循环。
+            if (!isPlaying &&
+                tvModel!!.tv.playerType == PlayerType.IPTV &&
+                player?.playbackState == Player.STATE_BUFFERING &&
+                currentTime - playRequestTime >= firstFrameTimeoutMs &&
+                tvModel!!.retryTimes < tvModel!!.retryMaxTimes
+            ) {
+                Log.w(TAG, "${tvModel!!.tv.title} buffering ${(currentTime - playRequestTime) / 1000}s without first frame, switching line")
+                tvModel?.getVideoUrl()?.let { LineHealth.mark(it, false) }
+                switchSource(tvModel!!)
+                lastSwitchTime = currentTime
+                lastStopTime = 0L
+            }
             if (!isPlaying && lastStopTime > 0 && stopDuration >= stopDurationThreshold &&
                 (cooldownRemaining == 0L || !hasPlayedSuccessfully)
             ) {
@@ -819,10 +879,12 @@ class PlayerFragment : Fragment() {
                 }
             } else if (isPlaying && stopDuration == 0L && cooldownRemaining == 0L) {
                 // Check for stable source saving
-                if (currentTime - playbackStartTime >= stablePlaybackDuration && // 播放持续 30 秒
+                if (currentTime - lastStableSaveTime >= stablePlaybackDuration && // 30s 节流
+                    currentTime - playbackStartTime >= stablePlaybackDuration && // 播放持续 30 秒
                     bufferingCount == 0 && tvModel!!.retryTimes == 0) {
                     isStable = true
                     saveStableSource(tvModel!!)
+                    lastStableSaveTime = currentTime
                     Log.d(TAG, "Stable source saved: ${tvModel!!.tv.title}, playerType=${tvModel!!.tv.playerType}, isPlaying=$isPlaying")
                 }
             }
@@ -916,6 +978,7 @@ class PlayerFragment : Fragment() {
         }
         lastSwitchSourceTime = currentTime
         playbackStartTime = currentTime
+        playRequestTime = currentTime
 
         // 切换到下一条健康线路（自动跳过已探测失败的线路）
         val moved = tvModel.nextVideo()
@@ -1017,7 +1080,10 @@ class PlayerFragment : Fragment() {
             return
         }
         lastSwitchSourceTime = currentTime
+        playRequestTime = currentTime
         this.tvModel = tvModel
+        // 最近观看：每次实际起播的频道都记录（去重顶置，跨重启保留）
+        SP.addRecentChannel(tvModel.tv.id)
         // 不再切台时探测全部线路（避免并发请求挤占网络）；
         // 线路健康由后台 probeAllLines（首线路）+ 播放失败动态标记维护
         val stableSource = stableSourceFor(tvModel)
@@ -1211,6 +1277,10 @@ class PlayerFragment : Fragment() {
                 standbyTargetUrl = null
                 standbyChannelId = -1
                 standbyReady = false
+                // 关键：旧主播放器成为备用槽后必须立即停播（playWhenReady=false），
+                // 否则它会在后续 prepare 新频道 READY 后自动起播，
+                // 产生"CCTV2 覆盖在 CCTV1 上"的音画双播问题。
+                old?.playWhenReady = false
                 binding.playerView.player = player
                 binding.standbyView.player = standbyPlayer
                 player?.play()
@@ -1267,6 +1337,14 @@ class PlayerFragment : Fragment() {
             // 无论秒切/冷切，都用备用槽预加载新的"下一频道"，为下一次切台做准备
             prepareStandbyForNextChannel()
         }
+    }
+
+    /** 画面比例设置变更：主/备视图立即生效 */
+    @OptIn(UnstableApi::class)
+    fun updateAspectRatio() {
+        if (_binding == null) return
+        applyVideoLayout(binding.playerView)
+        applyVideoLayout(binding.standbyView)
     }
 
     @OptIn(UnstableApi::class)
@@ -1347,6 +1425,10 @@ class PlayerFragment : Fragment() {
         standbyTargetUrl = url
         standbyChannelId = next.tv.id
         standbyReady = false
+        // 先停播再准备：playWhenReady 必须为 false（可能在角色交换后残留 true），
+        // 否则 READY 后备用播放器会自动起播，导致画面/声音双播。
+        standbyPlayer?.playWhenReady = false
+        standbyPlayer?.pause()
         standbyPlayer?.stop()
         standbyPlayer?.clearMediaItems()
         val mediaSource = next.getMediaSource()

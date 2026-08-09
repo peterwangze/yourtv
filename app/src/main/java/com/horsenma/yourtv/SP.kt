@@ -47,6 +47,11 @@ object SP {
     private const val KEY_ENABLE_WEBVIEW_TYPE = "enable_webview_type"
     private const val KEY_FULL_SCREEN_MODE = "full_screen_mode"
     private const val KEY_FAST_ZAP = "fast_zap"
+    private const val KEY_RECENT = "recent_channels"
+    private const val KEY_SLEEP_TIMER = "sleep_timer_minutes"
+    private const val KEY_SLEEP_DEADLINE = "sleep_timer_deadline"
+    private const val KEY_ASPECT_RATIO = "aspect_ratio"
+    private const val KEY_GESTURE_GUIDE_SHOWN = "gesture_guide_shown"
     private const val RESOLUTION_CACHE_PREFIX = "resolution_"
     private const val RESOLUTION_CACHE_TIMESTAMP_PREFIX = "resolution_timestamp_"
     private const val CACHE_DURATION = 24 * 60 * 60 * 1000L // 24 小时
@@ -58,8 +63,13 @@ object SP {
     const val DEFAULT_ENABLE_WEBVIEW_TYPE = false
     const val DEFAULT_ENABLE_SCREEN_OFF_AUDIO = true
     const val DEFAULT_SHOW_SOURCE_BUTTON = true
-    const val DEFAULT_AUTO_SWITCH_SOURCE = false
+    // 默认开启自动换线路：对齐主流电视直播 APP（电视家/星火TV/DIYP）与
+    // zcode 项目"多 URL 静默 failover"的默认体验——线路失效立即换下一条，
+    // 全部线路失败才进入错误页。已有用户存储值不受影响（仅新安装默认）。
+    const val DEFAULT_AUTO_SWITCH_SOURCE = true
     const val DEFAULT_FAST_ZAP = true
+    const val DEFAULT_ASPECT_RATIO = "fit"
+    const val RECENT_CHANNEL_LIMIT = 24
     const val DEFAULT_CHANNEL_REVERSAL = false
     const val DEFAULT_CHANNEL_NUM = false
     const val DEFAULT_TIME = true
@@ -240,6 +250,48 @@ object SP {
                 sp.edit(commit = true) { putBoolean(KEY_FAST_ZAP, value) }
             }
         }
+
+    /** 最近观看：按时间倒序的频道 stable id 列表（跨重启保留，上限 [RECENT_CHANNEL_LIMIT]） */
+    fun getRecentChannels(): List<String> {
+        return sp.getString(KEY_RECENT, null)?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+    }
+
+    fun addRecentChannel(id: Int) {
+        val idStr = id.toString()
+        val current = getRecentChannels()
+        val updated = (listOf(idStr) + current.filter { it != idStr }).take(RECENT_CHANNEL_LIMIT)
+        sp.edit { putString(KEY_RECENT, updated.joinToString(",")) }
+    }
+
+    fun clearRecentChannels() {
+        sp.edit { remove(KEY_RECENT) }
+    }
+
+    /** 定时关机：分钟数（0=关闭）；设置后记录截止时间戳 */
+    var sleepTimerMinutes: Int
+        get() = sp.getInt(KEY_SLEEP_TIMER, 0)
+        set(value) {
+            sp.edit {
+                putInt(KEY_SLEEP_TIMER, value)
+                if (value > 0) {
+                    putLong(KEY_SLEEP_DEADLINE, System.currentTimeMillis() + value * 60_000L)
+                } else {
+                    remove(KEY_SLEEP_DEADLINE)
+                }
+            }
+        }
+
+    val sleepTimerDeadline: Long
+        get() = sp.getLong(KEY_SLEEP_DEADLINE, 0L)
+
+    /** 画面比例：fit=跟随内容 / 16_9 / 4_3 / zoom=铺满（裁剪） */
+    var aspectRatio: String
+        get() = sp.getString(KEY_ASPECT_RATIO, DEFAULT_ASPECT_RATIO) ?: DEFAULT_ASPECT_RATIO
+        set(value) = sp.edit { putString(KEY_ASPECT_RATIO, value) }
+
+    var gestureGuideShown: Boolean
+        get() = sp.getBoolean(KEY_GESTURE_GUIDE_SHOWN, false)
+        set(value) = sp.edit { putBoolean(KEY_GESTURE_GUIDE_SHOWN, value) }
 
     fun getLike(id: Int): Boolean {
         return likeSet().contains(id.toString())
