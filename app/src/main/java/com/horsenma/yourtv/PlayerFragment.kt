@@ -75,6 +75,8 @@ class PlayerFragment : Fragment() {
     private var standbyChannelId = -1
     private var standbyReady = false
     private var standbyRetryCount = 0
+    private var standbyPending = false
+    private val STANDBY_PRELOAD_DELAY_MS = 3_000L
     private val aspectRatio = 16f / 9f
     internal var isInPictureInPictureMode = false
     private val handler = Handler(Looper.myLooper()!!)
@@ -87,8 +89,17 @@ class PlayerFragment : Fragment() {
     }
     private val delayHideVolume = 2 * 1000L
     // 新增：缓冲检测变量
-    private val bufferingThreshold = 5
-    private val bufferingDurationThreshold = 8_000L
+    // v3.3.0 校准：公开直播流轻微抖动常见，10 秒 5 次/8 秒累计即换线过于敏感，
+    // 配合 500ms 缓冲会让"进频道 2-3 秒一换"（用户反馈"几秒后卡住像在切源"）。
+    // 放宽为 15 秒 8 次事件 / 10 秒连续缓冲，并给单频道会话内换线上限。
+    private val bufferingThreshold = 8
+    private val bufferingWindowMs = 15_000L
+    private val bufferingDurationThreshold = 10_000L
+    private val maxAutoSwitchPerChannel = 5
+    private var autoSwitchCount = 0
+    private var autoSwitchChannelId = -1
+    /** 本次播放尝试是否已出画（用于区分"起播缓冲中"与"播放中卡停"，v3.3.0） */
+    private var attemptPlayed = false
     private val switchCooldown = 8_000L
     private val stablePlaybackThreshold = 10_000L
     private var bufferingStartTime = 0L
@@ -388,7 +399,18 @@ class PlayerFragment : Fragment() {
             .setLoadControl(createFastLoadControl())
             .build()
         exo.repeatMode = REPEAT_MODE_ALL
-        exo.addListener(object : Player.Listener {
+        exo.addListener(createMainPlayerListener(exo))
+        // v3.3.0 修复（v3.2.0 遗留）：无缝切台角色交换后，新主播放器（原备用实例）
+        // 只带备用监听器，丢失缓冲监控/停播检测/出画状态 → 换台后线路冻结无恢复。
+        // 主/备监听器同时挂到两个实例，用 self 守卫区分角色，交换后行为一致。
+        exo.addListener(createStandbyPlayerListener(exo))
+        return exo
+    }
+
+    /** 主播放器监听：出画状态/缓冲监控/自动换线/分辨率缓存/布局刷新 */
+    @OptIn(UnstableApi::class)
+    private fun createMainPlayerListener(exo: ExoPlayer): Player.Listener {
+        return object : Player.Listener {
             // 备用播放器与主播放器共享本监听器：只有"当前可见"的实例才处理
             private val self = exo
 
@@ -416,6 +438,7 @@ class PlayerFragment : Fragment() {
                 val tv = tvModel!!
                 if (isPlaying) {
                     hasPlayedSuccessfully = true
+                    attemptPlayed = true
                     tv.confirmSourceType()
                     tv.confirmVideoIndex()
                     tv.setErrInfo("")
@@ -428,7 +451,15 @@ class PlayerFragment : Fragment() {
                     playbackCallback?.onPlaybackStarted()
                     lastStopTime = 0L // 重置停止时间
                     Log.d(TAG, "${tv.tv.title} is playing")
-                    prepareStandbyForNextChannel()
+                    // v3.3.0：备用预加载延迟到主播放稳定 3s 后，避免与主播放抢带宽
+                    // （弱网下原先"一出画就预加载下一频道"会加剧主播放卡顿）
+                    if (!standbyPending) {
+                        standbyPending = true
+                        handler.postDelayed({
+                            standbyPending = false
+                            prepareStandbyForNextChannel()
+                        }, STANDBY_PRELOAD_DELAY_MS)
+                    }
 
                 } else {
                     isStable = false
@@ -468,20 +499,23 @@ class PlayerFragment : Fragment() {
                     }
                     lastBufferingTime = currentTime
                     bufferingTimestamps.add(currentTime)
-                    // 统计最近10秒内的缓冲次数
-                    bufferingCount = bufferingTimestamps.count { it >= currentTime - 10_000L }
+                    // 统计最近缓冲窗口内的缓冲次数
+                    bufferingCount = bufferingTimestamps.count { it >= currentTime - bufferingWindowMs }
                     val bufferingDuration = currentTime - bufferingStartTime
 
                     // 清理过旧的时间戳
-                    bufferingTimestamps.removeAll { it < currentTime - 10_000L }
+                    bufferingTimestamps.removeAll { it < currentTime - bufferingWindowMs }
 
                     // 检查是否需要切换源
-                    if ((bufferingCount >= bufferingThreshold && currentTime - lastSwitchTime >= switchCooldown) ||
-                        (bufferingDuration >= bufferingDurationThreshold && currentTime - lastSwitchTime >= switchCooldown)) {
+                    if (autoSwitchCount < maxAutoSwitchPerChannel &&
+                        ((bufferingCount >= bufferingThreshold && currentTime - lastSwitchTime >= switchCooldown) ||
+                        (bufferingDuration >= bufferingDurationThreshold && currentTime - lastSwitchTime >= switchCooldown))) {
                         if (tvModel!!.retryTimes < tvModel!!.retryMaxTimes && player!!.currentPosition > 0) {
                             Log.i(TAG, "Non-smooth playback detected: bufferingCount=$bufferingCount, duration=$bufferingDuration")
                             (activity as MainActivity).sourceUp(false)
                             lastSwitchTime = currentTime
+                            autoSwitchCount++
+                            autoSwitchChannelId = tvModel!!.tv.id
                             playbackStartTime = currentTime // 重置播放开始时间
                             bufferingCount = 0
                             bufferingStartTime = 0L
@@ -650,8 +684,7 @@ class PlayerFragment : Fragment() {
                     }
                 }
             }
-        })
-        return exo
+        }
     }
 
     /** 备用播放器：只负责把下一频道预加载到 READY（停首帧不拉流） */
@@ -659,33 +692,44 @@ class PlayerFragment : Fragment() {
     private fun buildStandbyPlayer(ctx: android.content.Context): ExoPlayer {
         val exo = ExoPlayer.Builder(ctx)
             .setLoadControl(createFastLoadControl())
-            .build().apply {
-                repeatMode = REPEAT_MODE_ALL
-                addListener(object : Player.Listener {
-                    override fun onPlaybackStateChanged(state: Int) {
-                        if (state == Player.STATE_READY) {
-                            standbyReady = true
-                            Log.d(TAG, "Standby ready for next channel")
-                        }
-                    }
-
-                    override fun onPlayerError(error: PlaybackException) {
-                        // 预加载失败不打扰主播放：标记坏线并换下一条线路重试（最多 3 次）
-                        Log.d(TAG, "Standby prepare failed, discard: ${error.message}")
-                        standbyTargetUrl?.let { LineHealth.mark(it, false) }
-                        standbyTargetUrl = null
-                        standbyChannelId = -1
-                        standbyReady = false
-                        standbyRetryCount++
-                        if (standbyRetryCount < 3) {
-                            handler.post { prepareStandbyForNextChannel() }
-                        } else {
-                            standbyRetryCount = 0
-                        }
-                    }
-                })
-            }
+            .build()
+        exo.repeatMode = REPEAT_MODE_ALL
+        exo.addListener(createStandbyPlayerListener(exo))
+        // 同 v3.3.0 修复：主监听器也挂在备用实例上（角色交换后新主播放器
+        // 立即具备完整监控逻辑），self 守卫保证只有当前主实例处理。
+        exo.addListener(createMainPlayerListener(exo))
         return exo
+    }
+
+    /** 备用播放器监听：只维护 standbyReady/坏线重试，且只在当前是备用实例时生效 */
+    @OptIn(UnstableApi::class)
+    private fun createStandbyPlayerListener(exo: ExoPlayer): Player.Listener {
+        return object : Player.Listener {
+            private val self = exo
+            override fun onPlaybackStateChanged(state: Int) {
+                if (self !== standbyPlayer) return
+                if (state == Player.STATE_READY) {
+                    standbyReady = true
+                    Log.d(TAG, "Standby ready for next channel")
+                }
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                if (self !== standbyPlayer) return
+                // 预加载失败不打扰主播放：标记坏线并换下一条线路重试（最多 3 次）
+                Log.d(TAG, "Standby prepare failed, discard: ${error.message}")
+                standbyTargetUrl?.let { LineHealth.mark(it, false) }
+                standbyTargetUrl = null
+                standbyChannelId = -1
+                standbyReady = false
+                standbyRetryCount++
+                if (standbyRetryCount < 3) {
+                    handler.post { prepareStandbyForNextChannel() }
+                } else {
+                    standbyRetryCount = 0
+                }
+            }
+        }
     }
 
     @OptIn(UnstableApi::class)
@@ -862,7 +906,7 @@ class PlayerFragment : Fragment() {
                 lastStopTime = 0L
             }
             if (!isPlaying && lastStopTime > 0 && stopDuration >= stopDurationThreshold &&
-                (cooldownRemaining == 0L || !hasPlayedSuccessfully)
+                cooldownRemaining == 0L && attemptPlayed
             ) {
                 if (tvModel?.tv?.playerType == PlayerType.WEBVIEW) {
                     // 网页源解析/加载慢（可达数十秒），停播检测不适用：
@@ -870,7 +914,7 @@ class PlayerFragment : Fragment() {
                     Log.d(TAG, "WebView channel slow to start, skipping stop-based auto-switch")
                     lastStopTime = 0L
                 } else {
-                    Log.w(TAG, "${tvModel!!.tv.title} stopped for ${stopDurationThreshold / 1000}s, retrying")
+                    Log.w(TAG, "${tvModel!!.tv.title} stopped after playing for ${stopDurationThreshold / 1000}s, retrying")
                     // 停播超时：标记当前线路不可用
                     tvModel?.getVideoUrl()?.let { LineHealth.mark(it, false) }
                     switchSource(tvModel!!)
@@ -979,6 +1023,11 @@ class PlayerFragment : Fragment() {
         lastSwitchSourceTime = currentTime
         playbackStartTime = currentTime
         playRequestTime = currentTime
+        attemptPlayed = false
+        if (autoSwitchChannelId != tvModel.tv.id) {
+            autoSwitchCount = 0
+            autoSwitchChannelId = tvModel.tv.id
+        }
 
         // 切换到下一条健康线路（自动跳过已探测失败的线路）
         val moved = tvModel.nextVideo()
@@ -1081,6 +1130,11 @@ class PlayerFragment : Fragment() {
         }
         lastSwitchSourceTime = currentTime
         playRequestTime = currentTime
+        attemptPlayed = false
+        if (autoSwitchChannelId != tvModel.tv.id) {
+            autoSwitchCount = 0
+            autoSwitchChannelId = tvModel.tv.id
+        }
         this.tvModel = tvModel
         // 最近观看：每次实际起播的频道都记录（去重顶置，跨重启保留）
         SP.addRecentChannel(tvModel.tv.id)
@@ -1443,15 +1497,20 @@ class PlayerFragment : Fragment() {
         Log.d(TAG, "Preparing standby for next channel: ${next.tv.title}, url=$url")
     }
 
-    /** 低缓冲加载策略：直播秒开（minBuffer 500ms），避免默认 2.5s 缓冲等待 */
+    /**
+     * 直播缓冲策略（v3.3.0 校准）：
+     * 原 500/2000/300/500 对公网直播流过于激进——起播仅 300ms 缓冲，轻微抖动即
+     * BUFFERING，配合事件计数换线导致"进频道几秒后卡住/像在切源"。
+     * 新参数保留秒开（bufferForPlayback 750ms），同时给足抗抖动余量。
+     */
     @OptIn(UnstableApi::class)
     private fun createFastLoadControl(): DefaultLoadControl {
         return DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                500,
-                2_000,
-                300,
-                500
+                1_500,
+                6_000,
+                750,
+                1_500
             )
             .build()
     }

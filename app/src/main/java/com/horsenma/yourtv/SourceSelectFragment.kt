@@ -227,9 +227,35 @@ class SourceSelectFragment : Fragment() {
                 getString(R.string.unknown),
                 -1,
                 SP.getStableSources().any { it.uris.contains(url) },
-                index == tvModel.videoIndexValue
+                index == tvModel.videoIndexValue,
+                // v3.3.0：线路来源标注（聚合反向关联源），换线面板直接可见
+                tvModel.tv.uriSources[url]?.let { sourceNameOf(it) } ?: ""
             )
         })
+    }
+
+    /** 源名精简：取域名最后两段（raw.githubusercontent.com/CCSH/IPTV → CCSH） */
+    private fun sourceNameOf(url: String): String {
+        val lower = url.lowercase()
+        return when {
+            "zbds.top" in lower -> "爱直播"
+            "vbskycn" in lower -> "vbskycn"
+            "ccsh" in lower -> "CCSH"
+            "best-fan" in lower -> "best-fan"
+            "yuechan" in lower -> "YueChan"
+            "yangg-1989" in lower -> "YanG-1989"
+            "migu-sports" in lower -> "咪咕体育"
+            "iptv-org" in lower -> "iptv-org"
+            "aptv" in lower -> "aptv"
+            "jk2024988" in lower -> "咪咕2"
+            "hujingguang" in lower -> "ChinaIPTV"
+            "fanmingming" in lower -> "fanmingming"
+            "suxuang" in lower -> "myIPTV"
+            else -> {
+                val host = Regex("https?://([^/]+)").find(url)?.groupValues?.get(1).orEmpty()
+                host.removePrefix("www.").take(20)
+            }
+        }
     }
 
     private fun startDynamicUpdate() {
@@ -435,7 +461,9 @@ data class SourceInfo(
     val resolution: String,
     val ping: Int,
     val isStable: Boolean,
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
+    /** v3.3.0：线路来源（聚合反向关联源），换线面板直接展示 */
+    val sourceName: String = ""
 )
 
 class SourceAdapter(
@@ -467,7 +495,8 @@ class SourceAdapter(
         }
 
         // 创建 SpannableString 设置 ping 部分的颜色
-        val text = context.getString(R.string.source_info, source.index, source.resolution, pingText)
+        val namePrefix = if (source.sourceName.isNotBlank()) " [${source.sourceName}]" else ""
+        val text = context.getString(R.string.source_info, source.index, source.resolution, pingText) + namePrefix
         val spannable = SpannableString(text)
         val pingLabel = "Ping:"
         val pingStart = text.indexOf(pingLabel) + pingLabel.length
@@ -517,7 +546,8 @@ class SourceAdapter(
                     resolution,
                     ping,
                     isStable,
-                    index - 1 == currentIndex
+                    index - 1 == currentIndex,
+                    sources[position].sourceName
                 )
             }
             notifyItemChanged(position)

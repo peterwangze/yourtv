@@ -265,4 +265,72 @@ class ChannelClassifierTest {
             ChannelClassifier.mergeKey("广东卫视", "卫视频道")
         )
     }
+
+    @Test
+    fun `短英文关键词词边界匹配 v330`() {
+        // inter 不再误匹配 International
+        assertEquals(ChannelClassifier.CAT_WEISHI, ChannelClassifier.classify("Zhejiang TV International", "Undefined").category)
+        assertEquals("浙江卫视", ChannelClassifier.displayName("Zhejiang TV International"))
+        assertEquals(ChannelClassifier.CAT_WEISHI, ChannelClassifier.classify("Dragon TV International", "General").category)
+        assertEquals("东方卫视", ChannelClassifier.displayName("Dragon TV International"))
+        // ary 不再误匹配 documentary
+        assertEquals(ChannelClassifier.CAT_OTHER, ChannelClassifier.classify("发现之旅", "Documentary").category)
+        // Channel U 是香港有线频道（此前因 Entertainment 含 ert 被误分希腊）
+        assertEquals("香港", ChannelClassifier.classify("Channel U", "Entertainment").region)
+        // TDM 是澳门频道（此前因 Sports 含 rts 被误分塞尔维亚）
+        assertEquals("澳门", ChannelClassifier.classify("TDM Sports Ch. 93", "Sports").region)
+        assertEquals("澳门", ChannelClassifier.classify("TDM Entertainment Ch. 95", "Entertainment").region)
+        // CGNTV 不再因 ntv 误判日本
+        assertEquals(ChannelClassifier.CAT_OVERSEAS, ChannelClassifier.classify("CGNTV Chinese", "Religious").category)
+        assertEquals("韩国", ChannelClassifier.classify("CGNTV Chinese", "Religious").region)
+        // 数字后缀品牌保持兼容：BBC1/KBS1/ORF1 仍能识别
+        assertEquals("英国", ChannelClassifier.classify("BBC1", null).region)
+        assertEquals("英国", ChannelClassifier.classify("BBC World News", null).region)
+        assertEquals("韩国", ChannelClassifier.classify("KBS1", null).region)
+    }
+
+    @Test
+    fun `咪咕体育每日轮换分组归位 v330`() {
+        // 标题含球队/国家名不再误分地方/海外
+        val c = ChannelClassifier.classify("伦敦团体世乒赛 中国男团VS法国男团 全场回放", "体育-今天05-10")
+        assertEquals(ChannelClassifier.CAT_OTHER, c.category)
+        assertEquals("体育", c.region)
+        assertEquals("体育", ChannelClassifier.displayGroup("中超 上海申花VS重庆铜梁龙 全场回放", "体育-昨天05-09"))
+        val c2 = ChannelClassifier.classify("U17亚洲杯 中国U17VS日本U17 全场回放", "体育-明天05-11")
+        assertEquals(ChannelClassifier.CAT_OTHER, c2.category)
+        assertEquals("体育", c2.region)
+    }
+
+    @Test
+    fun `卫视分组提示纠偏 v330`() {
+        assertEquals("上海", ChannelClassifier.classify("五星体育", "卫视IPV4").region)
+        assertEquals("山东", ChannelClassifier.classify("山东教育", "卫视频道").region)
+        assertEquals("江苏", ChannelClassifier.classify("苏州4K", "卫视频道").region)
+        assertEquals(ChannelClassifier.CAT_CCTV, ChannelClassifier.classify("重温经典", "卫视IPV4").category)
+        assertEquals(ChannelClassifier.CAT_LOCAL, ChannelClassifier.classify("苏州", "卫视").category)
+    }
+
+    @Test
+    fun `县市区补充映射 v330`() {
+        assertEquals("广西", ChannelClassifier.classify("灌阳新闻综合", null).region)
+        assertEquals("甘肃", ChannelClassifier.classify("高台电视台", null).region)
+        assertEquals("甘肃", ChannelClassifier.classify("和政电视台", null).region)
+        assertEquals("北京", ChannelClassifier.classify("房山电视台", null).region)
+        assertEquals("吉林", ChannelClassifier.classify("白城新闻综合", null).region)
+        assertEquals("吉林", ChannelClassifier.classify("珲春新闻", null).region)
+        assertEquals("重庆", ChannelClassifier.classify("江津新闻", null).region)
+    }
+
+    @Test
+    fun `无分组专题频道归类 v330`() {
+        assertEquals("纪录", ChannelClassifier.classify("发现之旅", null).region)
+        assertEquals("教育", ChannelClassifier.classify("中学生", null).region)
+        assertEquals("财经", ChannelClassifier.classify("财富天下", null).region)
+        assertEquals("旅游", ChannelClassifier.classify("环球旅游", null).region)
+        assertEquals("生活", ChannelClassifier.classify("中华特产", null).region)
+        assertEquals("天气", ChannelClassifier.classify("中国天气", null).region)
+        assertEquals("电影", ChannelClassifier.classify("都市剧场", null).region)
+        assertEquals("数字电视", ChannelClassifier.classify("数码时代", null).region)
+        assertEquals(ChannelClassifier.CAT_OTHER, ChannelClassifier.classify("发现之旅", null).category)
+    }
 }

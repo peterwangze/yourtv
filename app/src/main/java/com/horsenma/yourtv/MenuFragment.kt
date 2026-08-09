@@ -873,28 +873,9 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
         Log.d(TAG, "Switching source: direction=$direction, index=$currentTestCodeIndex, filename=$selectedFilename, url=$selectedUrl")
         hideSelf()
         view?.post {
-            if (selectedFilename == "default_channels.txt" || selectedFilename == "webchannelsiniptv.txt") {
-                val resourceId = if (selectedFilename == "webchannelsiniptv.txt") {
-                    R.raw.webchannelsiniptv
-                } else {
-                    R.raw.channels
-                }
-                try {
-                    val str = requireContext().resources.openRawResource(resourceId).bufferedReader().use { it.readText() }
-                    viewModel.tryStr2Channels(str, null, "default://$selectedFilename", selectedFilename)
-                    prefs.edit { putString("active_source", selectedFilename) }
-                    Log.d(TAG, "Switched to resource: $selectedFilename")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to load resource $selectedFilename: ${e.message}", e)
-                    context?.let {
-                        (it.applicationContext as YourTVApplication).toast(
-                            it.getString(R.string.load_failed, selectedSourceName)
-                        )
-                    }
-                }
-            } else {
-                (activity as? MainActivity)?.switchSource(selectedFilename, selectedUrl)
-            }
+            // v3.3.0：菜单源切换统一走"聚合首选源 + 重新聚合"，
+            // 不再用内置/单源整体替换聚合列表（避免"切源后分类消失"）
+            (activity as? MainActivity)?.switchSource(selectedFilename, selectedUrl)
             updateSourceText()
             context?.let {
                 (it.applicationContext as YourTVApplication).toast(

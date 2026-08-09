@@ -97,10 +97,8 @@ class SourcesFragment : DialogFragment(), SourcesAdapter.ItemListener {
 
     override fun onItemClicked(position: Int, tag: String) {
         viewModel.sources.getSource(position)?.let {
-            val uri = Uri.parse(it.uri)
-            handler.post {
-                viewModel.importFromUri(uri)
-            }
+            // v3.3.0：源列表点击 = 设为聚合首选源并重新聚合（不再单源替换列表）
+            (activity as? MainActivity)?.switchSource(it.id.orEmpty(), it.uri)
         }
 
         handler.postDelayed(hideFragment, 0)

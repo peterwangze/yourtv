@@ -344,6 +344,25 @@ class MainActivity : AppCompatActivity() {
                         Log.w(TAG, "No tvModel available, showing MenuFragment")
                     }
                 } else {
+                    // v3.3.0：列表就绪后，若当前播放的是兜底频道（rawstablesource/旧缓存，
+                    // 不在聚合列表内或线路已过期），重新指向列表内同频道，避免
+                    // "起播单 URL 死线 → 错误循环 → 当前没有直播源"的启动黑屏
+                    val playing = playerFragment.tvModel
+                    if (playing != null) {
+                        val listVersion = viewModel.listModel.firstOrNull {
+                            com.horsenma.yourtv.models.ChannelClassifier.mergeKey(it.tv.title, it.tv.group) ==
+                                com.horsenma.yourtv.models.ChannelClassifier.mergeKey(playing.tv.title, playing.tv.group)
+                        }
+                        val playingOk = playerFragment.player?.isPlaying == true
+                        if (listVersion != null && !playingOk &&
+                            (playing.tv.id != listVersion.tv.id || playing.tv.uris.size < listVersion.tv.uris.size)
+                        ) {
+                            viewModel.groupModel.setCurrent(listVersion)
+                            viewModel.groupModel.setPositionPlaying()
+                            Log.d(TAG, "Re-pointed startup playback to list channel: ${listVersion.tv.title} (${listVersion.tv.uris.size} lines)")
+                            viewModel.triggerPlay(listVersion)
+                        }
+                    }
                     Log.d(TAG, "Channels loaded, playback already triggered: ${playerFragment.tvModel?.tv?.title}...")
                 }
             } catch (e: Exception) {
@@ -1728,35 +1747,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * v3.3.0 架构演进：源管理/菜单切换 = 调整聚合首选源并重新聚合。
+     * 频道列表永远是多源聚合结果，不再用单源整体替换（用户诉求：
+     * "将频道整合分类之后反向关联源，支持频道级别换源和自动选优"）。
+     */
     fun switchSource(filename: String, url: String) {
-        Toast.makeText(this, "正在切换直播源，请稍候再操作...", Toast.LENGTH_LONG).show()
         val viewModel = ViewModelProvider(this)[MainViewModel::class.java]
-        val prefs = getSharedPreferences("SourceCache", Context.MODE_PRIVATE)
-        lifecycleScope.launch {
-            try {
-                val cacheFile = File(filesDir, "cache_$filename")
-                val cachedContent = if (cacheFile.exists()) cacheFile.readText() else null
-                if (cachedContent != null && System.currentTimeMillis() - prefs.getLong("cache_time_$filename", 0) < 24 * 60 * 60 * 1000) {
-                    Log.d(TAG, "switchSource: Using cache for filename=$filename")
-                    viewModel.tryStr2Channels(cachedContent, null, "", filename)
-                    prefs.edit().putString("active_source", filename).apply()
-                    supportFragmentManager.findFragmentByTag("MenuFragment")?.let { (it as MenuFragment).update() }
-                    Toast.makeText(this@MainActivity, "直播源切换成功", Toast.LENGTH_SHORT).show()
-                } else {
-                    Log.w(TAG, "switchSource: Invalid cache for filename=$filename, url=$url")
-                    viewModel.importFromUrl(url, filename, skipHistory = true)
-                    prefs.edit().putString("active_source", filename).apply()
-                    supportFragmentManager.findFragmentByTag("MenuFragment")?.let { (it as MenuFragment).update() }
-                    Toast.makeText(this@MainActivity, "直播源切换成功", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "switchSource: Failed for filename=$filename: ${e.message}")
-                viewModel.reset(this@MainActivity)
-                prefs.edit().putString("active_source", "default_channels.txt").apply()
-                supportFragmentManager.findFragmentByTag("MenuFragment")?.let { (it as MenuFragment).update() }
-                Toast.makeText(this@MainActivity, "切换失败，使用默认源", Toast.LENGTH_SHORT).show()
-            }
+        if (url.startsWith("http")) {
+            SP.configUrl = url
         }
+        Toast.makeText(this, "已设为聚合首选源，正在重新聚合…", Toast.LENGTH_LONG).show()
+        viewModel.refreshActiveSource()
+        supportFragmentManager.findFragmentByTag("MenuFragment")?.let { (it as MenuFragment).update() }
     }
 
     companion object {

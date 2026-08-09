@@ -52,6 +52,8 @@ object SP {
     private const val KEY_SLEEP_DEADLINE = "sleep_timer_deadline"
     private const val KEY_ASPECT_RATIO = "aspect_ratio"
     private const val KEY_GESTURE_GUIDE_SHOWN = "gesture_guide_shown"
+    private const val KEY_LINE_HEALTH = "line_health"
+    private const val KEY_LAST_AGGREGATION_MS = "last_aggregation_ms"
     private const val RESOLUTION_CACHE_PREFIX = "resolution_"
     private const val RESOLUTION_CACHE_TIMESTAMP_PREFIX = "resolution_timestamp_"
     private const val CACHE_DURATION = 24 * 60 * 60 * 1000L // 24 小时
@@ -92,24 +94,25 @@ object SP {
     // 预置公共直播源（首次启动自动导入第一个可用源，其余可在"源管理"中切换）
     var DEFAULT_SOURCES = """
         [{"uri":"https://live.zbds.top/tv/iptv4.txt"},
-         {"uri":"https://live.fanmingming.cn/tv/m3u/ipv6.m3u"},
-         {"uri":"https://live.fanmingming.com/tv/m3u/ipv6.m3u"},
-         {"uri":"https://live.fanmingming.cn/tv/m3u/ipv4.m3u"},
-         {"uri":"https://raw.githubusercontent.com/jk2024988/TV2024/main/%E5%92%AA%E5%92%952.m3u"},
-         {"uri":"https://raw.githubusercontent.com/hououinkami/AppleTV/main/Source/China_v4.m3u"},
-         {"uri":"https://raw.githubusercontent.com/zhmzjj310144/migu-sports/main/%E4%B8%89%E6%BA%90%E5%90%88%E5%B9%B6_%E5%A4%AE%E8%A7%86%E4%BD%93%E8%82%B2%E5%9C%B0%E6%96%B9%E7%BB%BC%E5%90%88%E6%BA%90.m3u"},
-         {"uri":"https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV1_ALL.m3u8"},
          {"uri":"https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.m3u"},
-         {"uri":"https://raw.githubusercontent.com/vicjl/myIPTV/main/TV-IPV4.m3u"},
-         {"uri":"https://iptv-org.github.io/iptv/countries/cn.m3u"},
+         {"uri":"https://raw.githubusercontent.com/CCSH/IPTV/master/live_lite.m3u"},
          {"uri":"https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_all.m3u8"},
          {"uri":"https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_province.m3u8"},
          {"uri":"https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_cctv.m3u8"},
-         {"uri":"https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u"},
+         {"uri":"https://raw.githubusercontent.com/YueChan/Live/main/GNTV.m3u"},
+         {"uri":"https://raw.githubusercontent.com/YanG-1989/m3u/main/Migu.m3u"},
+         {"uri":"https://raw.githubusercontent.com/zhmzjj310144/migu-sports/main/%E4%B8%89%E6%BA%90%E5%90%88%E5%B9%B6_%E5%A4%AE%E8%A7%86%E4%BD%93%E8%82%B2%E5%9C%B0%E6%96%B9%E7%BB%BC%E5%90%88%E6%BA%90.m3u"},
+         {"uri":"https://iptv-org.github.io/iptv/countries/cn.m3u"},
          {"uri":"https://iptv-org.github.io/iptv/languages/zho.m3u"},
          {"uri":"https://iptv-org.github.io/iptv/countries/hk.m3u"},
          {"uri":"https://iptv-org.github.io/iptv/countries/tw.m3u"},
-         {"uri":"https://iptv-org.github.io/iptv/countries/mo.m3u"}]
+         {"uri":"https://iptv-org.github.io/iptv/countries/mo.m3u"},
+         {"uri":"https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u"},
+         {"uri":"https://live.fanmingming.com/tv/m3u/ipv6.m3u"},
+         {"uri":"https://live.fanmingming.com/tv/m3u/index.m3u"},
+         {"uri":"https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u"},
+         {"uri":"https://raw.githubusercontent.com/jk2024988/TV2024/main/%E5%92%AA%E5%92%952.m3u"},
+         {"uri":"https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV1_ALL.m3u8"}]
     """.trimIndent()
 
     fun defaultSourceUrls(): List<String> {
@@ -416,5 +419,29 @@ object SP {
             apply()
         }
     }
+
+    /** 线路健康持久化（url → "延迟|时间戳[|d]"），上限 3000 条 */
+    fun getLineHealth(): Map<String, String> {
+        return try {
+            val json = sp.getString(KEY_LINE_HEALTH, null) ?: return emptyMap()
+            gson.fromJson(json, object : com.google.gson.reflect.TypeToken<Map<String, String>>() {}.type)
+                ?: emptyMap()
+        } catch (e: Exception) {
+            emptyMap()
+        }
+    }
+
+    fun setLineHealth(health: Map<String, String>) {
+        try {
+            sp.edit().putString(KEY_LINE_HEALTH, gson.toJson(health)).apply()
+        } catch (e: Exception) {
+            Log.e("SP", "setLineHealth failed: ${e.message}")
+        }
+    }
+
+    /** 最近一次完整聚合时间戳（refreshSourcesIfStale 24h 节流用） */
+    var lastAggregationMs: Long
+        get() = sp.getLong(KEY_LAST_AGGREGATION_MS, 0L)
+        set(value) = sp.edit { putLong(KEY_LAST_AGGREGATION_MS, value) }
 
 }

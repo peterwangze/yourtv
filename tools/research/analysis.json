@@ -1,0 +1,492 @@
+{
+ "aptv_iptv.m3u": {
+  "total": 120,
+  "cctv": 25,
+  "weishi": 40,
+  "local": 9,
+  "ott": 0,
+  "noise": 46,
+  "wrong_uri": 0,
+  "groups": 4
+ },
+ "bestfan_cn_all.m3u8": {
+  "total": 431,
+  "cctv": 206,
+  "weishi": 212,
+  "local": 11,
+  "ott": 0,
+  "noise": 2,
+  "wrong_uri": 0,
+  "groups": 7
+ },
+ "bestfan_cn_cctv.m3u8": {
+  "total": 206,
+  "cctv": 206,
+  "weishi": 0,
+  "local": 0,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 3
+ },
+ "bestfan_cn_province.m3u8": {
+  "total": 212,
+  "cctv": 0,
+  "weishi": 212,
+  "local": 0,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 2
+ },
+ "fanmingming_com_ipv6.m3u": {
+  "total": 82,
+  "cctv": 24,
+  "weishi": 34,
+  "local": 20,
+  "ott": 4,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 4
+ },
+ "hououinkami_china_v4.m3u": {
+  "total": 43,
+  "cctv": 18,
+  "weishi": 25,
+  "local": 0,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 2
+ },
+ "hujingguang_cnTV1.m3u8": {
+  "total": 405,
+  "cctv": 22,
+  "weishi": 37,
+  "local": 257,
+  "ott": 75,
+  "noise": 14,
+  "wrong_uri": 0,
+  "groups": 35
+ },
+ "iptvorg_cn.m3u": {
+  "total": 154,
+  "cctv": 35,
+  "weishi": 26,
+  "local": 86,
+  "ott": 5,
+  "noise": 2,
+  "wrong_uri": 0,
+  "groups": 27
+ },
+ "iptvorg_hk.m3u": {
+  "total": 13,
+  "cctv": 0,
+  "weishi": 0,
+  "local": 11,
+  "ott": 2,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 7
+ },
+ "iptvorg_mo.m3u": {
+  "total": 7,
+  "cctv": 0,
+  "weishi": 0,
+  "local": 7,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 4
+ },
+ "iptvorg_tw.m3u": {
+  "total": 25,
+  "cctv": 0,
+  "weishi": 0,
+  "local": 23,
+  "ott": 0,
+  "noise": 1,
+  "wrong_uri": 1,
+  "groups": 7
+ },
+ "iptvorg_zho.m3u": {
+  "total": 219,
+  "cctv": 40,
+  "weishi": 26,
+  "local": 142,
+  "ott": 7,
+  "noise": 3,
+  "wrong_uri": 1,
+  "groups": 32
+ },
+ "jk2024988_migu2.m3u": {
+  "total": 62,
+  "cctv": 19,
+  "weishi": 11,
+  "local": 0,
+  "ott": 29,
+  "noise": 3,
+  "wrong_uri": 0,
+  "groups": 1
+ },
+ "migu_sports.m3u": {
+  "total": 492,
+  "cctv": 47,
+  "weishi": 29,
+  "local": 114,
+  "ott": 152,
+  "noise": 150,
+  "wrong_uri": 0,
+  "groups": 17
+ },
+ "vbskycn_iptv4.m3u": {
+  "total": 449,
+  "cctv": 28,
+  "weishi": 44,
+  "local": 310,
+  "ott": 3,
+  "noise": 64,
+  "wrong_uri": 0,
+  "groups": 12
+ },
+ "vicjl_TV-IPV4.m3u": {
+  "total": 58,
+  "cctv": 18,
+  "weishi": 35,
+  "local": 1,
+  "ott": 4,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 1
+ },
+ "zbds_iptv4.txt": {
+  "total": 785,
+  "cctv": 105,
+  "weishi": 188,
+  "local": 412,
+  "ott": 7,
+  "noise": 73,
+  "wrong_uri": 0,
+  "groups": 1
+ },
+ "anguszh_meroser.m3u": {
+  "total": 213,
+  "cctv": 26,
+  "weishi": 40,
+  "local": 65,
+  "ott": 65,
+  "noise": 17,
+  "wrong_uri": 0,
+  "groups": 8
+ },
+ "aptv_bjyd.m3u": {
+  "total": 75,
+  "cctv": 21,
+  "weishi": 30,
+  "local": 0,
+  "ott": 20,
+  "noise": 4,
+  "wrong_uri": 0,
+  "groups": 4
+ },
+ "aptv_hnyd.m3u": {
+  "total": 77,
+  "cctv": 17,
+  "weishi": 24,
+  "local": 0,
+  "ott": 34,
+  "noise": 2,
+  "wrong_uri": 0,
+  "groups": 6
+ },
+ "aptv_jsyd.m3u": {
+  "total": 118,
+  "cctv": 32,
+  "weishi": 31,
+  "local": 37,
+  "ott": 0,
+  "noise": 18,
+  "wrong_uri": 0,
+  "groups": 4
+ },
+ "aptv_zjyd.m3u": {
+  "total": 171,
+  "cctv": 30,
+  "weishi": 38,
+  "local": 8,
+  "ott": 84,
+  "noise": 11,
+  "wrong_uri": 0,
+  "groups": 7
+ },
+ "burningc4_tvipv4.m3u": {
+  "total": 58,
+  "cctv": 18,
+  "weishi": 35,
+  "local": 1,
+  "ott": 4,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 1
+ },
+ "ccsh_live.m3u": {
+  "total": 4270,
+  "cctv": 390,
+  "weishi": 831,
+  "local": 2416,
+  "ott": 157,
+  "noise": 456,
+  "wrong_uri": 20,
+  "groups": 48
+ },
+ "ccsh_live_lite.m3u": {
+  "total": 2233,
+  "cctv": 390,
+  "weishi": 797,
+  "local": 711,
+  "ott": 81,
+  "noise": 235,
+  "wrong_uri": 19,
+  "groups": 12
+ },
+ "ccsh_live_platforms.m3u": {
+  "total": 3324,
+  "cctv": 0,
+  "weishi": 0,
+  "local": 3077,
+  "ott": 0,
+  "noise": 247,
+  "wrong_uri": 0,
+  "groups": 19
+ },
+ "fanmingming_com_index.m3u": {
+  "total": 94,
+  "cctv": 33,
+  "weishi": 61,
+  "local": 0,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 4
+ },
+ "fanmingming_index_raw.m3u": {
+  "total": 94,
+  "cctv": 33,
+  "weishi": 61,
+  "local": 0,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 4
+ },
+ "freetv_china.m3u8": {
+  "total": 17,
+  "cctv": 12,
+  "weishi": 0,
+  "local": 5,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 1
+ },
+ "hououinkami_gather.m3u": {
+  "total": 83,
+  "cctv": 0,
+  "weishi": 0,
+  "local": 75,
+  "ott": 1,
+  "noise": 7,
+  "wrong_uri": 0,
+  "groups": 4
+ },
+ "hououinkami_v6.m3u": {
+  "total": 29,
+  "cctv": 27,
+  "weishi": 1,
+  "local": 0,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 1,
+  "groups": 2
+ },
+ "hujingguang_guonei.m3u8": {
+  "total": 87,
+  "cctv": 16,
+  "weishi": 34,
+  "local": 37,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 13
+ },
+ "iill_cn.bin": {
+  "total": 1,
+  "cctv": 0,
+  "weishi": 0,
+  "local": 1,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 1
+ },
+ "iill_gather.bin": {
+  "total": 1,
+  "cctv": 0,
+  "weishi": 0,
+  "local": 1,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 1
+ },
+ "meroser_demo.m3u": {
+  "total": 432,
+  "cctv": 28,
+  "weishi": 43,
+  "local": 157,
+  "ott": 30,
+  "noise": 174,
+  "wrong_uri": 0,
+  "groups": 9
+ },
+ "migu_cctv.m3u": {
+  "total": 28,
+  "cctv": 25,
+  "weishi": 0,
+  "local": 0,
+  "ott": 3,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 2
+ },
+ "migu_tv.m3u": {
+  "total": 341,
+  "cctv": 25,
+  "weishi": 22,
+  "local": 151,
+  "ott": 0,
+  "noise": 143,
+  "wrong_uri": 0,
+  "groups": 7
+ },
+ "ngo5_ipv4.m3u": {
+  "total": 58,
+  "cctv": 19,
+  "weishi": 35,
+  "local": 1,
+  "ott": 3,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 2
+ },
+ "qwerttvv_mobile.m3u": {
+  "total": 134,
+  "cctv": 27,
+  "weishi": 35,
+  "local": 61,
+  "ott": 0,
+  "noise": 11,
+  "wrong_uri": 0,
+  "groups": 1
+ },
+ "qwerttvv_unicom.m3u": {
+  "total": 134,
+  "cctv": 27,
+  "weishi": 35,
+  "local": 61,
+  "ott": 0,
+  "noise": 11,
+  "wrong_uri": 0,
+  "groups": 1
+ },
+ "suxuang_gd.txt": {
+  "total": 371,
+  "cctv": 77,
+  "weishi": 109,
+  "local": 163,
+  "ott": 2,
+  "noise": 20,
+  "wrong_uri": 0,
+  "groups": 1
+ },
+ "suxuang_ipv4.m3u": {
+  "total": 1224,
+  "cctv": 135,
+  "weishi": 174,
+  "local": 632,
+  "ott": 118,
+  "noise": 151,
+  "wrong_uri": 14,
+  "groups": 40
+ },
+ "suxuang_migu.txt": {
+  "total": 165,
+  "cctv": 28,
+  "weishi": 25,
+  "local": 49,
+  "ott": 56,
+  "noise": 7,
+  "wrong_uri": 0,
+  "groups": 1
+ },
+ "suxuang_yd.m3u": {
+  "total": 124,
+  "cctv": 36,
+  "weishi": 62,
+  "local": 4,
+  "ott": 15,
+  "noise": 7,
+  "wrong_uri": 0,
+  "groups": 4
+ },
+ "yang1989_gather.m3u": {
+  "total": 129,
+  "cctv": 0,
+  "weishi": 0,
+  "local": 76,
+  "ott": 44,
+  "noise": 9,
+  "wrong_uri": 0,
+  "groups": 4
+ },
+ "yang1989_migu.m3u": {
+  "total": 45,
+  "cctv": 0,
+  "weishi": 0,
+  "local": 0,
+  "ott": 45,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 2
+ },
+ "yuechan_cutv.txt": {
+  "total": 0,
+  "cctv": 0,
+  "weishi": 0,
+  "local": 0,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 0,
+  "groups": 0
+ },
+ "yuechan_gntv.m3u": {
+  "total": 50,
+  "cctv": 2,
+  "weishi": 0,
+  "local": 46,
+  "ott": 1,
+  "noise": 1,
+  "wrong_uri": 0,
+  "groups": 3
+ },
+ "yuechan_iptv.m3u": {
+  "total": 90,
+  "cctv": 27,
+  "weishi": 26,
+  "local": 0,
+  "ott": 0,
+  "noise": 0,
+  "wrong_uri": 37,
+  "groups": 3
+ }
+}

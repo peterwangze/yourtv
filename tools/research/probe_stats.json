@@ -1,0 +1,1082 @@
+{
+  "meta": {
+    "generated_at": "2026-08-09 22:24:00",
+    "total": 3763,
+    "alive": 1630,
+    "dead": 2133,
+    "alive_ratio": 0.4332,
+    "duration_s": 366.6,
+    "concurrency": 24,
+    "timeout_s": 6,
+    "deadline_s": 840,
+    "note": "latency 统计仅针对 alive 请求; 首选线路 = 该 mergeKey 在文件序中的第一条"
+  },
+  "per_source": {
+    "aptv_iptv.m3u": {
+      "alive": 27,
+      "dead": 93,
+      "avg_ms": 111.8,
+      "median_ms": 83.0,
+      "p90_ms": 307.1
+    },
+    "bestfan_cn_all.m3u8": {
+      "alive": 156,
+      "dead": 275,
+      "avg_ms": 637.8,
+      "median_ms": 819.1,
+      "p90_ms": 1316.5
+    },
+    "bestfan_cn_cctv.m3u8": {
+      "alive": 87,
+      "dead": 119,
+      "avg_ms": 643.0,
+      "median_ms": 520.7,
+      "p90_ms": 1288.9
+    },
+    "bestfan_cn_province.m3u8": {
+      "alive": 80,
+      "dead": 132,
+      "avg_ms": 737.0,
+      "median_ms": 888.7,
+      "p90_ms": 1363.1
+    },
+    "fanmingming_com_ipv6.m3u": {
+      "alive": 12,
+      "dead": 70,
+      "avg_ms": 209.6,
+      "median_ms": 146.7,
+      "p90_ms": 327.6
+    },
+    "hououinkami_china_v4.m3u": {
+      "alive": 0,
+      "dead": 43,
+      "avg_ms": null,
+      "median_ms": null,
+      "p90_ms": null
+    },
+    "hujingguang_cnTV1.m3u8": {
+      "alive": 55,
+      "dead": 350,
+      "avg_ms": 100.8,
+      "median_ms": 82.3,
+      "p90_ms": 221.9
+    },
+    "iptvorg_cn.m3u": {
+      "alive": 54,
+      "dead": 100,
+      "avg_ms": 595.3,
+      "median_ms": 509.3,
+      "p90_ms": 1164.1
+    },
+    "iptvorg_hk.m3u": {
+      "alive": 1,
+      "dead": 12,
+      "avg_ms": 655.5,
+      "median_ms": 655.5,
+      "p90_ms": 655.5
+    },
+    "iptvorg_mo.m3u": {
+      "alive": 0,
+      "dead": 7,
+      "avg_ms": null,
+      "median_ms": null,
+      "p90_ms": null
+    },
+    "iptvorg_tw.m3u": {
+      "alive": 7,
+      "dead": 18,
+      "avg_ms": 860.7,
+      "median_ms": 566.6,
+      "p90_ms": 1607.6
+    },
+    "iptvorg_zho.m3u": {
+      "alive": 47,
+      "dead": 172,
+      "avg_ms": 676.4,
+      "median_ms": 584.9,
+      "p90_ms": 1433.2
+    },
+    "jk2024988_migu2.m3u": {
+      "alive": 0,
+      "dead": 62,
+      "avg_ms": null,
+      "median_ms": null,
+      "p90_ms": null
+    },
+    "migu_sports.m3u": {
+      "alive": 107,
+      "dead": 385,
+      "avg_ms": 129.6,
+      "median_ms": 105.7,
+      "p90_ms": 260.4
+    },
+    "vbskycn_iptv4.m3u": {
+      "alive": 392,
+      "dead": 57,
+      "avg_ms": 206.1,
+      "median_ms": 111.3,
+      "p90_ms": 470.9
+    },
+    "vicjl_TV-IPV4.m3u": {
+      "alive": 0,
+      "dead": 58,
+      "avg_ms": null,
+      "median_ms": null,
+      "p90_ms": null
+    },
+    "zbds_iptv4.txt": {
+      "alive": 605,
+      "dead": 180,
+      "avg_ms": 307.8,
+      "median_ms": 112.7,
+      "p90_ms": 797.8
+    }
+  },
+  "per_category": {
+    "央视": {
+      "alive": 356,
+      "dead": 474
+    },
+    "卫视": {
+      "alive": 381,
+      "dead": 552
+    },
+    "地方": {
+      "alive": 758,
+      "dead": 806
+    },
+    "其他": {
+      "alive": 124,
+      "dead": 224
+    },
+    "海外": {
+      "alive": 11,
+      "dead": 77
+    }
+  },
+  "dead_first_line_channels": [
+    {
+      "title": "CCTV1",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV1",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv1",
+      "note": "http:404"
+    },
+    {
+      "title": "CCTV10",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV10",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv10",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CCTV11",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV11",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv11",
+      "note": "http:404"
+    },
+    {
+      "title": "CCTV12",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV12",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv12",
+      "note": "http:404"
+    },
+    {
+      "title": "CCTV13",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV13",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv13",
+      "note": "http:404"
+    },
+    {
+      "title": "CCTV14",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV14",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv14",
+      "note": "http:404"
+    },
+    {
+      "title": "CCTV15",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV15",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv15",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CCTV16",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV16",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv16",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CCTV17",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV17",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv17",
+      "note": "http:404"
+    },
+    {
+      "title": "CCTV2",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV2",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv2",
+      "note": "http:404"
+    },
+    {
+      "title": "CCTV3",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV3",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv3",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CCTV4",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV4",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv4",
+      "note": "http:404"
+    },
+    {
+      "title": "CCTV4K",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV4K",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv4k",
+      "note": "http:404"
+    },
+    {
+      "title": "CCTV5",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV5",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv5",
+      "note": "http:404"
+    },
+    {
+      "title": "CCTV5+",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV5p",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv5plus",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CCTV6",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV6",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv6",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CCTV7",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV7",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv7",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CCTV8",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV8",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv8",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CCTV9",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CCTV9",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cctv9",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CETV1中国教育电视台一套",
+      "group": "教育",
+      "url": "http://120.196.232.24:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226673/1.m3u8",
+      "source": "hujingguang_cnTV1.m3u8",
+      "category": "央视",
+      "mergeKey": "央视||cetv1",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CETV2中国教育电视台二套",
+      "group": "教育",
+      "url": "http://120.196.232.49:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226718/1.m3u8",
+      "source": "hujingguang_cnTV1.m3u8",
+      "category": "央视",
+      "mergeKey": "央视||cetv2",
+      "note": "conn:RemoteDisconnected"
+    },
+    {
+      "title": "CETV3中国教育电视台三套",
+      "group": "教育",
+      "url": "http://120.196.232.15:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226722/1.m3u8",
+      "source": "hujingguang_cnTV1.m3u8",
+      "category": "央视",
+      "mergeKey": "央视||cetv3",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CETV4空中课堂频道",
+      "group": "教育",
+      "url": "http://120.196.232.21:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226724/1.m3u8",
+      "source": "hujingguang_cnTV1.m3u8",
+      "category": "央视",
+      "mergeKey": "央视||cetv4",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CGTN",
+      "group": "央视IPV4",
+      "url": "https://english-livebkali.cgtn.com/live/encgtn_0.m3u8",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cgtn",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CHC动作电影",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CHC动作电影",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||chc动作电影",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "CHC家庭影院",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CHC家庭影院",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||chc家庭影院",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "CHC影迷电影",
+      "group": "央视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=CHC影迷电影",
+      "source": "aptv_iptv.m3u",
+      "category": "央视",
+      "mergeKey": "央视||chc影迷电影",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "中国教育1台",
+      "group": "卫视频道",
+      "url": "http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226494/1.m3u8?",
+      "source": "fanmingming_com_ipv6.m3u",
+      "category": "央视",
+      "mergeKey": "央视||cetv",
+      "note": "url:[WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。"
+    },
+    {
+      "title": "中学生",
+      "group": "央视",
+      "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/20210415/cctvzhongxuesheng/51/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=5910019355&pid=2028597139&timestamp=20260510083822&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=708869532&ParentNodeID=-99&assertID=5910019355&client_ip=175.15.177.58&SecurityKey=20260510083822&promotionId=&mvid=5900002149&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=cb73552c10c92db803a78ce7665c04d1&ddCalcu=1cdbv47a03zc5a55626c71e0cc8972ad3b08&sv=10004&ct=android",
+      "source": "migu_sports.m3u",
+      "category": "央视",
+      "mergeKey": "央视||中学生",
+      "note": "http:660"
+    },
+    {
+      "title": "发现之旅",
+      "group": "央视",
+      "url": "http://gslbmgsplive.miguvideo.com/wd_r3/cnr/faxianzhilv/2000/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=5500212893&pid=2028597139&timestamp=20260510083822&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=624878970&ParentNodeID=-99&assertID=5500212893&client_ip=175.15.177.58&SecurityKey=20260510083822&promotionId=&mvid=5100001701&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=013bf67a21a088dea613d54effa8a241&ddCalcu=1041v23aabl8faa6f7fae2415ad038186dae&sv=10004&ct=android",
+      "source": "migu_sports.m3u",
+      "category": "央视",
+      "mergeKey": "央视||发现之旅",
+      "note": "http:660"
+    },
+    {
+      "title": "老故事",
+      "group": "央视",
+      "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/cctvlaogushi/50/20231109/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=5910022002&pid=2028597139&timestamp=20260510083821&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=884121956&ParentNodeID=-99&assertID=5910022002&client_ip=175.15.177.58&SecurityKey=20260510083821&promotionId=&mvid=5900006372&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=a396d5844f6a4b8291d2263e8e4cc740&ddCalcu=0a43v79ac6lcda45e884e43f662a24db1892&sv=10004&ct=android",
+      "source": "migu_sports.m3u",
+      "category": "央视",
+      "mergeKey": "央视||老故事",
+      "note": "http:660"
+    },
+    {
+      "title": "三沙卫视",
+      "group": "卫视频道",
+      "url": "http://38.75.136.137:98/gslb/dsdqpub/ssws.m3u8?auth=testpub",
+      "source": "bestfan_cn_all.m3u8",
+      "category": "卫视",
+      "mergeKey": "卫视||三沙卫视",
+      "note": "url:timed out"
+    },
+    {
+      "title": "东南卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=东南卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||东南卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "东方卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=东方卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||东方卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "中国农林卫视",
+      "group": "",
+      "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/zgnlws/51/20250804/index.m3u8?msisdn=20251118120107ea747e25ce654412a9cb5bc959a4e2f4&mdspid=&spid=600572&netType=0&sid=5910022186&pid=2028597139&timestamp=20251118120107&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=956904896&ParentNodeID=-99&assertID=5910022186&client_ip=106.13.250.90&SecurityKey=20251118120107&promotionId=&mvid=5900006709&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=d8ec91abafb928d1a454513d7765a5b0&ddCalcu=0db8e5e1ac6590617a7bda3f1b5942584da1",
+      "source": "jk2024988_migu2.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||中国农林卫视",
+      "note": "http:660"
+    },
+    {
+      "title": "五星体育",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=五星体育",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||五星体育",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "兵团卫视",
+      "group": "卫视频道",
+      "url": "http://112.123.243.37:50085/tsfile/live/0112_1.m3u8?key=txiptv&playlive=0&authid=0",
+      "source": "bestfan_cn_all.m3u8",
+      "category": "卫视",
+      "mergeKey": "卫视||兵团卫视",
+      "note": "url:timed out"
+    },
+    {
+      "title": "内蒙古卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=内蒙古卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||内蒙古卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "内蒙古蒙语卫视",
+      "group": "内蒙频道",
+      "url": "https://livestream-bt.nmtv.cn/nmtv/2315general.m3u8?txSecret=4971666599ef9411629213c9a300bf66&txTime=771EF880",
+      "source": "fanmingming_com_ipv6.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||内蒙古蒙语卫视",
+      "note": "url:timed out"
+    },
+    {
+      "title": "北京卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=北京卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||北京卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "厦门卫视",
+      "group": "卫视台",
+      "url": "http://120.196.232.41:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226695/1.m3u8",
+      "source": "hujingguang_cnTV1.m3u8",
+      "category": "卫视",
+      "mergeKey": "卫视||厦门卫视",
+      "note": "url:timed out"
+    },
+    {
+      "title": "吉林卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=吉林卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||吉林卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "哈哈炫动卫视",
+      "group": "上海台",
+      "url": "http://120.196.232.53:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226703/1.m3u8",
+      "source": "hujingguang_cnTV1.m3u8",
+      "category": "卫视",
+      "mergeKey": "卫视||哈哈炫动卫视",
+      "note": "conn:RemoteDisconnected"
+    },
+    {
+      "title": "四川卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=四川卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||四川卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "大湾区卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=大湾区卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||大湾区卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "天津卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=天津卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||天津卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "宁夏卫视",
+      "group": "卫视频道",
+      "url": "http://112.123.243.37:50085/tsfile/live/0125_1.m3u8?key=txiptv&playlive=0&authid=0",
+      "source": "bestfan_cn_all.m3u8",
+      "category": "卫视",
+      "mergeKey": "卫视||宁夏卫视",
+      "note": "timeout"
+    },
+    {
+      "title": "安多卫视",
+      "group": "青海台",
+      "url": "http://stream.qhbtv.com/adws/playlist.m3u8?_upt=c23aebfc1701518082",
+      "source": "hujingguang_cnTV1.m3u8",
+      "category": "卫视",
+      "mergeKey": "卫视||安多卫视",
+      "note": "url:timed out"
+    },
+    {
+      "title": "安徽卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=安徽卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||安徽卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "山东卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=山东卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||山东卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "山西卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=山西卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||山西卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "广东卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=广东卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||广东卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "广西卫视",
+      "group": "卫视IPV4",
+      "url": "rtmp://live.gxrb.com.cn/hls/a23",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||广西卫视",
+      "note": "url:unknown url type: rtmp"
+    },
+    {
+      "title": "康巴卫视",
+      "group": "卫视频道",
+      "url": "http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221227027/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7EkHMvBpWz4rccMxNvSRekpQ%7EtP4-l0lmSfjwLWEfK_el1vH_mv-s1zo4AQJwdedaVwG9xkuFTDg8J26cwOrNJzn20BErrHdLhuZ9EzLUCD3PMW-OMx4MGteHV2vLeW6BqoY%2CEND",
+      "source": "fanmingming_com_ipv6.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||康巴卫视",
+      "note": "url:[WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。"
+    },
+    {
+      "title": "新疆卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=新疆卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||新疆卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "江苏卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=江苏卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||江苏卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "江西卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=江西卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||江西卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "河北卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=河北卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||河北卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "河南卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=河南卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||河南卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "浙江卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=浙江卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||浙江卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "海南卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=海南卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||海南卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "海峡卫视",
+      "group": "",
+      "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/haixiaws/51/20230724/index.m3u8?msisdn=202511181201073f698c9cef5e4837b3c915d1345b9d58&mdspid=&spid=600717&netType=0&sid=5910022183&pid=2028597139&timestamp=20251118120107&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=849119120&ParentNodeID=-99&assertID=5910022183&client_ip=106.13.250.90&SecurityKey=20251118120107&promotionId=&mvid=5900006231&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=ce6150ddf986aadf694618885ad4432c&ddCalcu=cc2ee361419450d0ad5d8f8988166a4a9d6f",
+      "source": "jk2024988_migu2.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||海峡卫视",
+      "note": "http:660"
+    },
+    {
+      "title": "深圳卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=深圳卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||深圳卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "湖北卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=湖北卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||湖北卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "湖南卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=湖南卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||湖南卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "甘肃卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=甘肃卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||甘肃卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "苏州4K",
+      "group": "卫视频道",
+      "url": "https://tylive.kan0512.com/norecord/csztv4k_4k.m3u8",
+      "source": "vbskycn_iptv4.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||苏州",
+      "note": "url:[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1081)"
+    },
+    {
+      "title": "西藏卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=西藏卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||西藏卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "贵州卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=贵州卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||贵州卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "辽宁卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=辽宁卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||辽宁卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "重庆卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=重庆卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||重庆卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "重温经典",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=重温经典",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||重温经典",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "陕西卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=陕西卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||陕西卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "青海卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=青海卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||青海卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "黑龙江卫视",
+      "group": "卫视IPV4",
+      "url": "http://101.35.240.114:88/live.php?id=黑龙江卫视",
+      "source": "aptv_iptv.m3u",
+      "category": "卫视",
+      "mergeKey": "卫视||黑龙江卫视",
+      "note": "err:UnicodeEncodeError"
+    },
+    {
+      "title": "AXN Asia Taiwan (720p)",
+      "group": "Movies;Series",
+      "url": "https://play.wenxiang.cn/live/1a88465f153e1dd2108fd791bf4f25f7.flv",
+      "source": "iptvorg_tw.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|axnasiataiwan",
+      "note": "timeout"
+    },
+    {
+      "title": "Anshun Comprehensive News Channel",
+      "group": "News",
+      "url": "https://hplayer1.juyun.tv/camera/154379194.m3u8",
+      "source": "iptvorg_cn.m3u",
+      "category": "地方",
+      "mergeKey": "地方|贵州|anshuncomprehensivenewschannel",
+      "note": "url:timed out"
+    },
+    {
+      "title": "BRTV Kaku Childrens Channel",
+      "group": "Kids",
+      "url": "http://223.111.191.105/downflv.brtvcloud.com/kkkkasd/winfr.m3u8",
+      "source": "iptvorg_cn.m3u",
+      "category": "地方",
+      "mergeKey": "地方|北京|卡酷少儿",
+      "note": "conn:RemoteDisconnected"
+    },
+    {
+      "title": "CBA 山东高速VS上海久事 洛夫顿20分9板！上海淘汰山东 时隔四年晋级季后赛四强 19:35",
+      "group": "体育-昨天05-09",
+      "url": "http://gslbmgspvod.miguvideo.com/depository_eos_wxlz04/asset/zhengshi/1091/622/116/1091622116/media/1091622116_5335741377_91.mp4.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=800033&netType=0&sid=1784512769&pid=2028597139&timestamp=20260510080240&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=964680412&ParentNodeID=-99&assertID=1784512769&client_ip=175.15.177.58&SecurityKey=20260510080240&promotionId=&mvid=1091622116&mcid=1003&mpid=130000128758&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=46b269ba6593b164e210dd505a696a4d&ddCalcu=d446vaba62y96a69ab5a0655d9d30b1126e4&sv=10004&ct=android",
+      "source": "migu_sports.m3u",
+      "category": "地方",
+      "mergeKey": "地方|上海|cba山东高速vs上海久事洛夫顿20分9板上海淘汰山东时隔四年晋级季后赛四强1935",
+      "note": "http:660"
+    },
+    {
+      "title": "CBA 山西汾酒VS浙江浙商证券 图文直播 19:35",
+      "group": "体育-今天05-10",
+      "url": "http://gslbflvmgsplive.miguvideo.com/mglive/olympic200_54.flv?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=800033&netType=0&sid=7510480061&pid=2028597139&timestamp=20260510080301&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=964608388&ParentNodeID=-99&assertID=7510480061&client_ip=175.15.177.58&SecurityKey=20260510080301&promotionId=&mvid=7510239696&mcid=500020&mpid=120000575732&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h265&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=3170241aa345367e48ca7595e10593c1&ddCalcu=13c1v37a90b52a0411ea5a935475a3c6874e&sv=10004&ct=android",
+      "source": "migu_sports.m3u",
+      "category": "地方",
+      "mergeKey": "地方|山西|cba山西汾酒vs浙江浙商证券图文直播1935",
+      "note": "http:660"
+    },
+    {
+      "title": "CBA 浙江稠州金租VS深圳马可波罗 图文直播 19:35",
+      "group": "体育-今天05-10",
+      "url": "http://gslbflvmgsplive.miguvideo.com/mglive/olympic201_54.flv?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=800033&netType=0&sid=7510480067&pid=2028597139&timestamp=20260510080301&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=964608400&ParentNodeID=-99&assertID=7510480067&client_ip=175.15.177.58&SecurityKey=20260510080301&promotionId=&mvid=7510239699&mcid=500020&mpid=120000575733&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h265&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=6a43aaba568d66f3f28dc150e32f8816&ddCalcu=661av84a83yfaa2a3bea055618cdd6862ff3&sv=10004&ct=android",
+      "source": "migu_sports.m3u",
+      "category": "地方",
+      "mergeKey": "地方|广东|cba浙江稠州金租vs深圳马可波罗图文直播1935",
+      "note": "http:660"
+    },
+    {
+      "title": "CTS (HUA-CHI CTS) (1080p)",
+      "group": "General",
+      "url": "rtmp://59.124.75.138:1935/sat/tv111",
+      "source": "iptvorg_tw.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|cts",
+      "note": "url:unknown url type: rtmp"
+    },
+    {
+      "title": "CTS News (華視新聞資訊) [Geo-blocked]",
+      "group": "News",
+      "url": "http://seb.sason.top/sc/hsxw_fhd.m3u8",
+      "source": "iptvorg_tw.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|ctsnews",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CTi Variety (中天綜合台) (720p)",
+      "group": "General",
+      "url": "http://23.237.10.66:16372",
+      "source": "iptvorg_tw.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|ctivariety",
+      "note": "url:timed out"
+    },
+    {
+      "title": "Canal Macau Ch. 92 (720p) [Not 24/7]",
+      "group": "General",
+      "url": "https://live3.tdm.com.mo/ch2/ch2.live/playlist.m3u8",
+      "source": "iptvorg_mo.m3u",
+      "category": "地方",
+      "mergeKey": "地方|澳门|canalmacauch92",
+      "note": "url:timed out"
+    },
+    {
+      "title": "Celestial Movies (576i)",
+      "group": "Movies",
+      "url": "http://103.58.160.157:8278/720-CELESTIALMOVIES/playlist.m3u8",
+      "source": "iptvorg_hk.m3u",
+      "category": "地方",
+      "mergeKey": "地方|香港|celestialmovies",
+      "note": "url:timed out"
+    },
+    {
+      "title": "CreaTV Community Channel 15 (San Jose CA) (720p)",
+      "group": "General",
+      "url": "https://reflect-creatv.cablecast.tv/live-13/live/live.m3u8",
+      "source": "iptvorg_zho.m3u",
+      "category": "地方",
+      "mergeKey": "地方|香港|creatvcommunitychannel15",
+      "note": "http:403"
+    },
+    {
+      "title": "DAAI TV",
+      "group": "Religious",
+      "url": "https://pull.daaiplus.com/live-DAAIPLUS/live-DAAIPLUS_HD.m3u8",
+      "source": "iptvorg_zho.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|daaitv",
+      "note": "url:timed out"
+    },
+    {
+      "title": "DaAi1 (大愛1) (720p)",
+      "group": "General",
+      "url": "https://pulltv1.wanfudaluye.com/live/tv1.m3u8",
+      "source": "iptvorg_tw.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|daai1",
+      "note": "http:403"
+    },
+    {
+      "title": "DaAi2 (大愛2) (720p)",
+      "group": "General",
+      "url": "https://pulltv2.wanfudaluye.com/live/tv2.m3u8",
+      "source": "iptvorg_tw.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|daai2",
+      "note": "url:timed out"
+    },
+    {
+      "title": "EBC Financial News (東森財經新聞台) (1080p) [Not 24/7]",
+      "group": "News",
+      "url": "http://seb.sason.top/sc/dscjxw_fhd.m3u8",
+      "source": "iptvorg_tw.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|ebcfinancialnews",
+      "note": "conn:RemoteDisconnected"
+    },
+    {
+      "title": "EBC News (東森新聞台) (1080p) [Not 24/7]",
+      "group": "News",
+      "url": "http://seb.sason.top/sc/dsxw_fhd.m3u8",
+      "source": "iptvorg_tw.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|ebcnews",
+      "note": "conn:RemoteDisconnected"
+    },
+    {
+      "title": "FTV (民視) (720p) [Not 24/7]",
+      "group": "General",
+      "url": "http://seb.sason.top/ptv/ftv.php?id=ms",
+      "source": "iptvorg_tw.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|ftv",
+      "note": "conn:RemoteDisconnected"
+    },
+    {
+      "title": "FTV One (民視第一台) (720p) [Not 24/7]",
+      "group": "General",
+      "url": "http://seb.sason.top/ptv/ftv.php?id=dy",
+      "source": "iptvorg_tw.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|ftvone",
+      "note": "conn:RemoteDisconnected"
+    },
+    {
+      "title": "FTV Taiwan (民視台灣台) (720p) [Not 24/7]",
+      "group": "News",
+      "url": "http://seb.sason.top/ptv/ftv.php?id=tw",
+      "source": "iptvorg_zho.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|ftvtaiwan",
+      "note": "conn:RemoteDisconnected"
+    },
+    {
+      "title": "GOOD TV CH2 真理台 (720p)",
+      "group": "Religious",
+      "url": "https://live.streamingfast.net/osmflivech2.m3u8",
+      "source": "iptvorg_tw.m3u",
+      "category": "地方",
+      "mergeKey": "地方|台湾|goodtvch2真理台",
+      "note": "url:timed out"
+    },
+    {
+      "title": "HOY Infotainment (1080p) [Geo-blocked]",
+      "group": "Undefined",
+      "url": "https://hoytv-live-stream.hoy.tv/ch78/index.m3u8",
+      "source": "iptvorg_hk.m3u",
+      "category": "地方",
+      "mergeKey": "地方|香港|hoyinfotainment",
+      "note": "url:timed out"
+    },
+    {
+      "title": "HOY International Business Channel (1080p) [Geo-blocked]",
+      "group": "Business",
+      "url": "https://hoytv-live-stream.hoy.tv/ch76/index-fhd.m3u8",
+      "source": "iptvorg_hk.m3u",
+      "category": "地方",
+      "mergeKey": "地方|香港|hoyinternationalbusinesschannel",
+      "note": "http:403"
+    },
+    {
+      "title": "HOY TV (1080p) [Geo-blocked]",
+      "group": "General",
+      "url": "https://hoytv-live-stream.hoy.tv/ch77/index.m3u8",
+      "source": "iptvorg_hk.m3u",
+      "category": "地方",
+      "mergeKey": "地方|香港|hoytv",
+      "note": "url:timed out"
+    },
+    {
+      "title": "Jiangxi Children's Channel",
+      "group": "Animation;Kids",
+      "url": "https://play-live-hls.jxtvcn.com.cn/live-city/tv_jxtv6.m3u8",
+      "source": "iptvorg_cn.m3u",
+      "category": "地方",
+      "mergeKey": "地方|江西|jiangxichildrenschannel",
+      "note": "http:403"
+    }
+  ],
+  "dead_first_line_count": 830,
+  "dead_first_by_category": {
+    "央视": {
+      "dead_first": 31,
+      "total_keys": 52
+    },
+    "卫视": {
+      "dead_first": 44,
+      "total_keys": 50
+    },
+    "地方": {
+      "dead_first": 574,
+      "total_keys": 921
+    },
+    "其他": {
+      "dead_first": 126,
+      "total_keys": 192
+    },
+    "海外": {
+      "dead_first": 55,
+      "total_keys": 63
+    }
+  }
+}

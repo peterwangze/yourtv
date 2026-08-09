@@ -1,0 +1,7 @@
+# 调研数据：下载的源快照/截图不入库（可重新下载/复现）；
+# channels.json/classified.json/probe_stats.json 等分析产物入库，供 build_bundled.py 复现
+sources/
+downloads/
+probe_lines_results.json
+*.png
+ui*.xml

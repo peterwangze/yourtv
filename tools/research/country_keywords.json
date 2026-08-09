@@ -1,0 +1,582 @@
+{
+ "美国": [
+  "美国",
+  "北美",
+  "usa",
+  "america",
+  "cnn",
+  "fox news",
+  "abc news",
+  "cbs",
+  "nbc",
+  "hbo",
+  "espn",
+  "cnbc",
+  "bloomberg",
+  "discovery",
+  "national geographic",
+  "nat geo",
+  "animal planet",
+  "tlc",
+  "mtv",
+  "vh1",
+  "paramount",
+  "hgtv",
+  "food network",
+  "travel channel",
+  "star movies",
+  "cinemax",
+  "amc",
+  "tnt",
+  "fx",
+  "history channel",
+  "a&e",
+  "usa today",
+  "wwe"
+ ],
+ "英国": [
+  "英国",
+  "uk",
+  "britain",
+  "bbc",
+  "itv",
+  "sky news",
+  "channel 4",
+  "channel 5",
+  "eurosport uk",
+  "talktv",
+  "gb news",
+  "freesports"
+ ],
+ "法国": [
+  "法国",
+  "france",
+  "tv5",
+  "france24",
+  "tf1",
+  "canal+",
+  "france 2",
+  "france 3",
+  "arte"
+ ],
+ "德国": [
+  "德国",
+  "germany",
+  "dw",
+  "zdf",
+  "ard",
+  "rtl",
+  "prosieben",
+  "sat.1",
+  "wdr",
+  "ndr",
+  "br fernsehen"
+ ],
+ "意大利": [
+  "意大利",
+  "italy",
+  "rai",
+  "mediaset",
+  "canale 5",
+  "italia 1",
+  "rete 4",
+  "sky italia"
+ ],
+ "西班牙": [
+  "西班牙",
+  "spain",
+  "tve",
+  "antena 3",
+  "la sexta",
+  "cuatro",
+  "telecinco"
+ ],
+ "葡萄牙": [
+  "葡萄牙",
+  "portugal",
+  "rtp",
+  "sport tv"
+ ],
+ "荷兰": [
+  "荷兰",
+  "netherlands",
+  "npo",
+  "rtl4",
+  "sbs6",
+  "veronica"
+ ],
+ "比利时": [
+  "比利时",
+  "belgium",
+  "rtbf",
+  "vrt",
+  "een"
+ ],
+ "瑞士": [
+  "瑞士",
+  "switzerland",
+  "srf",
+  "rsi"
+ ],
+ "瑞典": [
+  "瑞典",
+  "sweden",
+  "svt",
+  "tv4"
+ ],
+ "挪威": [
+  "挪威",
+  "norway",
+  "nrk",
+  "tv2"
+ ],
+ "丹麦": [
+  "丹麦",
+  "denmark",
+  "dr1",
+  "tv2"
+ ],
+ "芬兰": [
+  "芬兰",
+  "finland",
+  "yle",
+  "mtv3"
+ ],
+ "冰岛": [
+  "冰岛",
+  "iceland",
+  "ruv"
+ ],
+ "波兰": [
+  "波兰",
+  "poland",
+  "tvp",
+  "polsat"
+ ],
+ "捷克": [
+  "捷克",
+  "czech",
+  "ct1",
+  "nova"
+ ],
+ "匈牙利": [
+  "匈牙利",
+  "hungary",
+  "m1",
+  "rtl klub"
+ ],
+ "奥地利": [
+  "奥地利",
+  "austria",
+  "orf",
+  "atv"
+ ],
+ "希腊": [
+  "希腊",
+  "greece",
+  "ert",
+  "mega"
+ ],
+ "土耳其": [
+  "土耳其",
+  "turkey",
+  "trt",
+  "istanbul"
+ ],
+ "俄罗斯": [
+  "俄罗斯",
+  "russia",
+  "rt news",
+  "russia today",
+  "rtr",
+  "1tv",
+  "n tv",
+  "russia 24"
+ ],
+ "乌克兰": [
+  "乌克兰",
+  "ukraine",
+  "inter",
+  "1+1",
+  "ukraine 24"
+ ],
+ "日本": [
+  "日本",
+  "japan",
+  "nhk",
+  "tokyo",
+  "东京",
+  "大阪",
+  "fuji",
+  "tv asahi",
+  "tv tokyo",
+  "nippon",
+  "ntv",
+  "bs日",
+  "wowow",
+  "朝日",
+  "日本テレビ"
+ ],
+ "韩国": [
+  "韩国",
+  "korea",
+  "kbs",
+  "mbc",
+  "sbs",
+  "arirang",
+  "tvn",
+  "jtbc",
+  "ebs",
+  "首尔",
+  "kbs1",
+  "kbs2",
+  "mbc",
+  "연합"
+ ],
+ "新加坡": [
+  "新加坡",
+  "singapore",
+  "channel newsasia",
+  "cna",
+  "mediacorp",
+  "starhub",
+  "新传媒"
+ ],
+ "马来西亚": [
+  "马来西亚",
+  "malaysia",
+  "astro",
+  "rtm",
+  "8tv",
+  "tv3"
+ ],
+ "泰国": [
+  "泰国",
+  "thailand",
+  "true",
+  "channel 3",
+  "thai",
+  "曼谷",
+  "bbtv",
+  "workpoint"
+ ],
+ "越南": [
+  "越南",
+  "vietnam",
+  "vtv",
+  "vtc",
+  "htv"
+ ],
+ "柬埔寨": [
+  "柬埔寨",
+  "cambodia",
+  "ctn",
+  "hang meas"
+ ],
+ "老挝": [
+  "老挝",
+  "laos",
+  "lnb"
+ ],
+ "缅甸": [
+  "缅甸",
+  "myanmar",
+  "mr tv",
+  "mrtv"
+ ],
+ "菲律宾": [
+  "菲律宾",
+  "philippines",
+  "abs-cbn",
+  "gma",
+  "abs cbn",
+  "manila",
+  "tv5 ph"
+ ],
+ "印度尼西亚": [
+  "印度尼西亚",
+  "印尼",
+  "indonesia",
+  "rcti",
+  "mnctv",
+  "trans7",
+  "metro tv",
+  "jakarta"
+ ],
+ "印度": [
+  "印度",
+  "india",
+  "zee tv",
+  "star plus",
+  "ndtv",
+  "doordarshan",
+  "colors",
+  "sony tv",
+  "mumbai"
+ ],
+ "巴基斯坦": [
+  "巴基斯坦",
+  "pakistan",
+  "ptv",
+  "geo news",
+  "ary"
+ ],
+ "斯里兰卡": [
+  "斯里兰卡",
+  "sri lanka",
+  "derana",
+  "rupavahini"
+ ],
+ "尼泊尔": [
+  "尼泊尔",
+  "nepal",
+  "ntv"
+ ],
+ "澳大利亚": [
+  "澳大利亚",
+  "澳洲",
+  "australia",
+  "seven network",
+  "nine network",
+  "ten network",
+  "channel 7",
+  "channel 9",
+  "channel 10",
+  "sbs australia"
+ ],
+ "新西兰": [
+  "新西兰",
+  "new zealand",
+  "tvnz",
+  "maori tv"
+ ],
+ "加拿大": [
+  "加拿大",
+  "canada",
+  "cbc",
+  "toronto",
+  "global news",
+  "citytv"
+ ],
+ "墨西哥": [
+  "墨西哥",
+  "mexico",
+  "televisa",
+  "azteca"
+ ],
+ "巴西": [
+  "巴西",
+  "brazil",
+  "globo",
+  "record",
+  "band",
+  "sbt"
+ ],
+ "阿根廷": [
+  "阿根廷",
+  "argentina",
+  "telefe",
+  "el trece",
+  "américa"
+ ],
+ "智利": [
+  "智利",
+  "chile",
+  "chv",
+  "13c",
+  "tvn"
+ ],
+ "秘鲁": [
+  "秘鲁",
+  "peru",
+  "atv",
+  "panamericana"
+ ],
+ "哥伦比亚": [
+  "哥伦比亚",
+  "colombia",
+  "caracol",
+  "rcn",
+  "citytv"
+ ],
+ "古巴": [
+  "古巴",
+  "cuba",
+  "cubavision"
+ ],
+ "南非": [
+  "南非",
+  "south africa",
+  "sabc",
+  "dstv",
+  "etv"
+ ],
+ "埃及": [
+  "埃及",
+  "egypt",
+  "ona",
+  "dmc",
+  "cairo"
+ ],
+ "尼日利亚": [
+  "尼日利亚",
+  "nigeria",
+  "channels tv",
+  "nigerian"
+ ],
+ "肯尼亚": [
+  "肯尼亚",
+  "kenya",
+  "ntv kenya"
+ ],
+ "摩洛哥": [
+  "摩洛哥",
+  "morocco",
+  "2m",
+  "al aoula"
+ ],
+ "以色列": [
+  "以色列",
+  "israel",
+  "i24news",
+  "keshet",
+  "reshet"
+ ],
+ "伊朗": [
+  "伊朗",
+  "iran",
+  "irib",
+  "press tv"
+ ],
+ "伊拉克": [
+  "伊拉克",
+  "iraq",
+  "al sharqiya"
+ ],
+ "沙特阿拉伯": [
+  "沙特",
+  "saudi",
+  "mbc",
+  "al arabiya",
+  "rotana"
+ ],
+ "阿联酋": [
+  "阿联酋",
+  "迪拜",
+  "dubai",
+  "emirates",
+  "abudhabi",
+  "阿布扎比"
+ ],
+ "卡塔尔": [
+  "卡塔尔",
+  "qatar",
+  "al jazeera",
+  "beinsports",
+  "bein"
+ ],
+ "科威特": [
+  "科威特",
+  "kuwait"
+ ],
+ "约旦": [
+  "约旦",
+  "jordan"
+ ],
+ "黎巴嫩": [
+  "黎巴嫩",
+  "lebanon",
+  "lbci"
+ ],
+ "蒙古": [
+  "蒙古",
+  "mongolia",
+  "mnb"
+ ],
+ "哈萨克斯坦": [
+  "哈萨克斯坦",
+  "kazakhstan",
+  "qazaqstan"
+ ],
+ "乌兹别克斯坦": [
+  "乌兹别克斯坦",
+  "uzbekistan",
+  "uztv"
+ ],
+ "格鲁吉亚": [
+  "格鲁吉亚",
+  "georgia",
+  "gpb"
+ ],
+ "亚美尼亚": [
+  "亚美尼亚",
+  "armenia",
+  "armtv"
+ ],
+ "阿塞拜疆": [
+  "阿塞拜疆",
+  "azerbaijan",
+  "aztv"
+ ],
+ "立陶宛": [
+  "立陶宛",
+  "lithuania",
+  "lrt"
+ ],
+ "拉脱维亚": [
+  "拉脱维亚",
+  "latvia",
+  "ltv"
+ ],
+ "爱沙尼亚": [
+  "爱沙尼亚",
+  "estonia",
+  "err"
+ ],
+ "克罗地亚": [
+  "克罗地亚",
+  "croatia",
+  "hrt"
+ ],
+ "塞尔维亚": [
+  "塞尔维亚",
+  "serbia",
+  "rts"
+ ],
+ "罗马尼亚": [
+  "罗马尼亚",
+  "romania",
+  "tvr",
+  "antena"
+ ],
+ "保加利亚": [
+  "保加利亚",
+  "bulgaria",
+  "bnt"
+ ],
+ "斯洛伐克": [
+  "斯洛伐克",
+  "slovakia",
+  "stv"
+ ],
+ "斯洛文尼亚": [
+  "斯洛文尼亚",
+  "slovenia",
+  "rts slo"
+ ],
+ "卢森堡": [
+  "卢森堡",
+  "luxembourg",
+  "rtl lux"
+ ],
+ "马耳他": [
+  "马耳他",
+  "malta",
+  "tvm"
+ ],
+ "塞浦路斯": [
+  "塞浦路斯",
+  "cyprus",
+  "cybc"
+ ]
+}

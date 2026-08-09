@@ -1,0 +1,29 @@
+[
+  {
+    "owner": "HerbertHe",
+    "repo": "iptv-sources",
+    "pushed_at": null,
+    "updated_at": null,
+    "stars": null,
+    "branch": null,
+    "err": "<urlopen error timed out>"
+  },
+  {
+    "owner": "czs6",
+    "repo": "IPTV",
+    "pushed_at": null,
+    "updated_at": null,
+    "stars": null,
+    "branch": null,
+    "err": "HTTP 404"
+  },
+  {
+    "owner": "chikewang",
+    "repo": "iptv",
+    "pushed_at": null,
+    "updated_at": null,
+    "stars": null,
+    "branch": null,
+    "err": "HTTP 404"
+  }
+]

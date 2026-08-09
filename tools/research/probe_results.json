@@ -1,0 +1,3598 @@
+{
+ "aptv_iptv.m3u": {
+  "sampled": 13,
+  "alive": 4,
+  "rate": 30.8,
+  "detail": [
+   {
+    "url": "http://101.35.240.114:88/live.php?id=北京卫视",
+    "ok": false,
+    "code": null,
+    "ms": 6,
+    "err": "'ascii' codec can't encode characters in position 17-20: ordinal not in range(12"
+   },
+   {
+    "url": "http://101.35.240.114:88/live.php?id=重庆卫视",
+    "ok": false,
+    "code": null,
+    "ms": 48,
+    "err": "'ascii' codec can't encode characters in position 17-20: ordinal not in range(12"
+   },
+   {
+    "url": "http://101.35.240.114:88/live.php?id=青海卫视",
+    "ok": false,
+    "code": null,
+    "ms": 34,
+    "err": "'ascii' codec can't encode characters in position 17-20: ordinal not in range(12"
+   },
+   {
+    "url": "http://101.35.240.114:88/live.php?id=吉林卫视",
+    "ok": false,
+    "code": null,
+    "ms": 21,
+    "err": "'ascii' codec can't encode characters in position 17-20: ordinal not in range(12"
+   },
+   {
+    "url": "http://101.35.240.114:88/live.php?id=CHC家庭影院",
+    "ok": false,
+    "code": null,
+    "ms": 2,
+    "err": "'ascii' codec can't encode characters in position 20-23: ordinal not in range(12"
+   },
+   {
+    "url": "http://101.35.240.114:88/live.php?id=内蒙古卫视",
+    "ok": false,
+    "code": null,
+    "ms": 1,
+    "err": "'ascii' codec can't encode characters in position 17-21: ordinal not in range(12"
+   },
+   {
+    "url": "http://101.35.240.114:88/live.php?id=CCTV16",
+    "ok": false,
+    "code": null,
+    "ms": 173,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "https://tylive.kan0512.com/norecord/csztv4k_4k.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 93
+   },
+   {
+    "url": "http://101.35.240.114:88/live.php?id=CCTV9",
+    "ok": false,
+    "code": null,
+    "ms": 137,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "http://101.35.240.114:88/live.php?id=CCTV12",
+    "ok": false,
+    "code": null,
+    "ms": 144,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "https://english-livebkali.cgtn.com/live/doccgtn_0.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 158
+   },
+   {
+    "url": "https://english-livebkali.cgtn.com/live/encgtn_0.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 168
+   },
+   {
+    "url": "https://event.pull.hebtv.com:443/live/live101.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 121
+   }
+  ]
+ },
+ "bestfan_cn_all.m3u8": {
+  "sampled": 15,
+  "alive": 15,
+  "rate": 100.0,
+  "detail": [
+   {
+    "url": "http://112.123.243.37:50085/tsfile/live/0002_1.m3u8?key=txiptv&playlive=0&authid=0",
+    "ok": true,
+    "code": 206,
+    "ms": 129
+   },
+   {
+    "url": "http://221.7.175.154:8445/tsfile/live/1018_1.m3u8?key=txiptv&playlive=1&authid=0",
+    "ok": true,
+    "code": 206,
+    "ms": 101
+   },
+   {
+    "url": "http://218.206.193.218:8888/hls/66/index.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 78
+   },
+   {
+    "url": "http://112.123.243.37:50085/tsfile/live/0141_1.m3u8?key=txiptv&playlive=0&authid=0",
+    "ok": true,
+    "code": 206,
+    "ms": 126
+   },
+   {
+    "url": "http://183.237.95.108:9901/tsfile/live/1103_1.m3u8?key=txiptv&playlive=0&authid=0",
+    "ok": true,
+    "code": 206,
+    "ms": 105
+   },
+   {
+    "url": "http://zmgd.zyrnet.com:8888/hls/109/index.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 57
+   },
+   {
+    "url": "http://120.198.95.220:9901/tsfile/live/1037_1.m3u8?key=txiptv&playlive=1&down=1",
+    "ok": true,
+    "code": 206,
+    "ms": 123
+   },
+   {
+    "url": "https://hkstv.tv/api/m3u8-proxy?url=http%3A%2F%2Fwebcast.hkstv.tv%2Flivestream%2Fmutfysrq%2Fplaylist.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 624
+   },
+   {
+    "url": "http://38.75.136.137:98/gslb/dsdqbv/cctv16hd.m3u8?auth=test20251009",
+    "ok": true,
+    "code": 206,
+    "ms": 941
+   },
+   {
+    "url": "http://198.204.228.26/live/hnwshd.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 949
+   },
+   {
+    "url": "http://63.141.230.178:82/gslb/zbdq5.m3u8?id=cctv3hd",
+    "ok": true,
+    "code": 206,
+    "ms": 1410
+   },
+   {
+    "url": "http://104.152.209.49:8181/720p/cctv9.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 1448
+   },
+   {
+    "url": "http://38.75.136.137:98/gslb/dsdqpub/nmgws.m3u8?auth=testpub",
+    "ok": true,
+    "code": 206,
+    "ms": 1899
+   },
+   {
+    "url": "http://101.66.199.252:9901/tsfile/live/1000_1.m3u8?key=txiptv&playlive=0&authid=0",
+    "ok": true,
+    "code": 206,
+    "ms": 1857
+   },
+   {
+    "url": "http://104.152.209.49:8181/720p/hnws.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 2328
+   }
+  ]
+ },
+ "bestfan_cn_cctv.m3u8": {
+  "sampled": 5,
+  "alive": 5,
+  "rate": 100.0,
+  "detail": [
+   {
+    "url": "http://112.123.243.37:50085/tsfile/live/0002_1.m3u8?key=txiptv&playlive=0&authid=0",
+    "ok": true,
+    "code": 206,
+    "ms": 103
+   },
+   {
+    "url": "http://221.7.175.154:8445/tsfile/live/1018_1.m3u8?key=txiptv&playlive=1&authid=0",
+    "ok": true,
+    "code": 206,
+    "ms": 75
+   },
+   {
+    "url": "http://38.75.136.137:98/gslb/dsdqbv/cctv16hd.m3u8?auth=test20251009",
+    "ok": true,
+    "code": 206,
+    "ms": 867
+   },
+   {
+    "url": "http://63.141.230.178:82/gslb/zbdq5.m3u8?id=cctv3hd",
+    "ok": true,
+    "code": 206,
+    "ms": 1397
+   },
+   {
+    "url": "http://104.152.209.49:8181/720p/cctv9.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 2106
+   }
+  ]
+ },
+ "bestfan_cn_province.m3u8": {
+  "sampled": 5,
+  "alive": 5,
+  "rate": 100.0,
+  "detail": [
+   {
+    "url": "http://153.0.171.163:9901/tsfile/live/0131_1.m3u8?key=txiptv&playlive=1&authid=0",
+    "ok": true,
+    "code": 206,
+    "ms": 102
+   },
+   {
+    "url": "http://38.75.136.137:98/gslb/dsdqpub/tjwshd.m3u8?auth=testpub",
+    "ok": true,
+    "code": 206,
+    "ms": 872
+   },
+   {
+    "url": "http://204.12.221.218:8181/3m1080p/gdws.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 914
+   },
+   {
+    "url": "http://107.150.60.122/live/xjws.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 1263
+   },
+   {
+    "url": "http://101.66.199.252:9901/tsfile/live/0113_1.m3u8?key=txiptv&playlive=0&authid=0",
+    "ok": true,
+    "code": 206,
+    "ms": 1702
+   }
+  ]
+ },
+ "fanmingming_com_ipv6.m3u": {
+  "sampled": 13,
+  "alive": 3,
+  "rate": 23.1,
+  "detail": [
+   {
+    "url": "http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226894/1.m3u8?",
+    "ok": false,
+    "code": null,
+    "ms": 28,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226316/1.m3u8?",
+    "ok": false,
+    "code": null,
+    "ms": 90,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226333/1.m3u8?",
+    "ok": false,
+    "code": null,
+    "ms": 7,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221227027/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7EkHMvBpWz4rccMxNvSRekpQ%7EtP4-l0lmSfjwLWEfK_el1vH_mv-s1zo4AQJwdedaVwG9xkuFTDg8J26cwOrNJzn20BErrHdLhuZ9EzLUCD3PMW-OMx4MGteHV2vLeW6BqoY%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 46,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226966/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7E6qJH8Fd-zgCGx3P-Ce86cA%7EtP4-l0lmSfjwLWEfK_el1vH_mv-s1zo4AQJwdedaVwG9xkuFTDg8J26cwOrNJzn20BErrHdLhuZ9EzLUCD3PMW-OMx4MGteHV2vLeW6BqoY%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 110,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226963/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7EjTXsJprEx2nE38tdvu5lhA%7EtP4-l0lmSfjwLWEfK_el1vH_mv-s1zo4AQJwdedaVwG9xkuFTDg8J26cwOrNJzn20BErrHdLhuZ9EzLUCD3PMW-OMx4MGteHV2vLeW6BqoY%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 78,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226999/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7EsGLKaSqf0wDZMbAjeQtfyw%7EtP4-l0lmSfjwLWEfK_el1vH_mv-s1zo4AQJwdedaVwG9xkuFTDg8J26cwOrNJzn20BErrHdLhuZ9EzLUCD3PMW-OMx4MGteHV2vLeW6BqoY%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 33,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221227011/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7ExAUu61iVvo_xYbANWJhgXw%7EtP4-l0lmSfjwLWEfK_el1vH_mv-s1zo4AQJwdedaVwG9xkuFTDg8J26cwOrNJzn20BErrHdLhuZ9EzLUCD3PMW-OMx4MGteHV2vLeW6BqoY%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 34,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226494/1.m3u8?",
+    "ok": false,
+    "code": null,
+    "ms": 7,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "https://ali-m-l.cztv.com/channels/lantian/channel008/1080p.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 137
+   },
+   {
+    "url": "https://livestream-bt.nmtv.cn/nmtv/2317general.m3u8?txSecret=112b2c4c872de52b0f37aff6ead63ef0&txTime=771E8800",
+    "ok": false,
+    "code": null,
+    "ms": 211,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "https://0472.org/hls/cgtn.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 359
+   },
+   {
+    "url": "https://0472.org/hls/cgtna.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 377
+   }
+  ]
+ },
+ "hououinkami_china_v4.m3u": {
+  "sampled": 10,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://hms304nc1972679586.live.aikan.miguvideo.com/wh7f454c46tw3939139141_-877857276/wd_r2/cctv/cctv5hdnew/2500/01.m3u8?msisdn=guest&Channel_ID=0119_04102000-99000_400300000040002&client_ip=112.45.97.120&timestamp=20230208130523&ContentId=265667565&timezone=UTC&mtv_session=e95834282573288096f63eab8a028447&HlsSubType=1&HlsProfileId=1&nphaid=0&encrypt=12a070f46793605fdbff0e1132d2d0d8",
+    "ok": false,
+    "code": null,
+    "ms": 48,
+    "err": "[WinError 10053] 你的主机中的软件中止了一个已建立的连接。"
+   },
+   {
+    "url": "http://hms204nc1972679577.live.aikan.miguvideo.com/wh7f454c46tw1174495643_-1245391177/migu/kailu/20200324/cctv12hd/57/01.m3u8?msisdn=guest&Channel_ID=0119_04102000-99000_400300000040002&client_ip=59.49.185.88&timestamp=20230311020243&ContentId=265667607&timezone=UTC&mtv_session=7581c6271c0379b8ca8b268ff7804765&HlsSubType=1&HlsProfileId=1&nphaid=0&encrypt=3906a8574a42ff13aba3e255be4cd8e3",
+    "ok": false,
+    "code": null,
+    "ms": 55,
+    "err": "[WinError 10053] 你的主机中的软件中止了一个已建立的连接。"
+   },
+   {
+    "url": "http://hms184nc1972679575.live.aikan.miguvideo.com/wh7f454c46tw946205927_-649996709/envivo_x/2018/SD/cctv13/2000/01.m3u8?msisdn=guest&Channel_ID=0119_04102000-99000_400300000040002&client_ip=112.45.97.120&timestamp=20230208132705&ContentId=265667474&timezone=UTC&mtv_session=36bf599c0c4bc785fd46aaf0ba40ffe7&HlsSubType=1&HlsProfileId=1&nphaid=0&encrypt=91a8a1c4652526079a5b0e294d5bc18d",
+    "ok": false,
+    "code": null,
+    "ms": 92,
+    "err": "[WinError 10053] 你的主机中的软件中止了一个已建立的连接。"
+   },
+   {
+    "url": "http://hms444nc1972679601.live.aikan.miguvideo.com/wh7f454c46tw4260577431_-1084507862/migu/kailu/20200324/cctv9hd/57/01.m3u8?msisdn=guest&Channel_ID=0119_04102000-99000_400300000040002&client_ip=112.45.97.120&timestamp=20230208131044&ContentId=265667202&timezone=UTC&mtv_session=9444a4df4cb7524a1ec85c4d44200abc&HlsSubType=1&HlsProfileId=1&nphaid=0&encrypt=efdbccd2a72ff1ba2eabbf08f475f7c6",
+    "ok": false,
+    "code": null,
+    "ms": 79,
+    "err": "[WinError 10053] 你的主机中的软件中止了一个已建立的连接。"
+   },
+   {
+    "url": "http://hms184nc1972679574.live.aikan.miguvideo.com/wh7f454c46tw4035956330_-1197773273/wd_r2/cctv/cctv5plusnew/2500/01.m3u8?msisdn=guest&Channel_ID=0119_04102000-99000_400300000040002&client_ip=112.45.97.120&timestamp=20230208130700&ContentId=265106763&timezone=UTC&mtv_session=b1d7170ccd660150baa2e9435d787064&HlsSubType=1&HlsProfileId=1&nphaid=0&encrypt=dfe2cfbc447ddc224a226f33be3d0f39",
+    "ok": false,
+    "code": null,
+    "ms": 80,
+    "err": "[WinError 10053] 你的主机中的软件中止了一个已建立的连接。"
+   },
+   {
+    "url": "http://live.aptvapp.com/bestv.php?id=ahwshd8m/8000000",
+    "ok": false,
+    "code": null,
+    "ms": 5194,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://live.aptvapp.com/bestv.php?id=jxws8m/8000000",
+    "ok": false,
+    "code": null,
+    "ms": 5163,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://live.aptvapp.com/bestv.php?id=gdwshd8m/8000000",
+    "ok": false,
+    "code": null,
+    "ms": 5228,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://live.aptvapp.com/bestv.php?id=hbwshd8m/8000000",
+    "ok": false,
+    "code": null,
+    "ms": 5181,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://live.aptvapp.com/bestv.php?id=gxwshd8m/8000000",
+    "ok": false,
+    "code": null,
+    "ms": 5433,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "hujingguang_cnTV1.m3u8": {
+  "sampled": 15,
+  "alive": 1,
+  "rate": 6.7,
+  "detail": [
+   {
+    "url": "https://news.cgtn.com/resource/live/document/cgtn-doc.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 127
+   },
+   {
+    "url": "http://tvlive.ynradio.com/live/yunnandushi/chunks.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 153,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://hw-m-l.cztv.com/channels/lantian/channel04/1080p.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 163,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://lives.jnnews.tv/video/s10001-SDTV/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 281,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://120.196.232.43:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226727/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5010,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.24.162/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221225804/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5010,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://221.213.43.82:8888/newlive/live/hls/13/live.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5029,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://120.196.232.43:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226698/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5041,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.24.161/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226395/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5065,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://221.213.43.82:8888/newlive/live/hls/26/live.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5014,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://120.196.232.47:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226662/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5026,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://120.196.232.41:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226686/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5020,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://live.dxhmt.cn:9081/tv/10183-2.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5025,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://221.2.36.34:8888/newlive/live/hls/22/live.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5025,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://120.196.232.24:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226673/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5002,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "iptvorg_cn.m3u": {
+  "sampled": 15,
+  "alive": 4,
+  "rate": 26.7,
+  "detail": [
+   {
+    "url": "https://play-live-hls.jxtvcn.com.cn/live-city/tv_nanchang.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 165,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "https://xykt-fix.github.io/play/a02e/index.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 502
+   },
+   {
+    "url": "https://live.eac-news.com/CCTV/streams/cctv6.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 574,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "https://op-group1-swiftservesd-1.dens.tv/s/s29/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 153,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "http://38.75.136.137:98/gslb/dsdqpub/dyjc.m3u8?auth=testpub",
+    "ok": true,
+    "code": 206,
+    "ms": 879
+   },
+   {
+    "url": "http://74.91.26.218:82/live/cctv3hd.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 1117
+   },
+   {
+    "url": "http://192.151.150.154/live/cctv8k.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 1968
+   },
+   {
+    "url": "http://39.134.24.166/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226200/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5008,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225703/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5026,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225733/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5008,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://118.81.195.79:9003/hls/32/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5035,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://61.173.144.157:9901/tsfile/live/1000_1.m3u8?authid=0&key=txiptv&playlive=1",
+    "ok": false,
+    "code": null,
+    "ms": 5007,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://183.207.248.71/gitv/live1/G_GUIZHOU/G_GUIZHOU",
+    "ok": false,
+    "code": null,
+    "ms": 5132,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://223.166.234.114:7777/tsfile/live/1033_1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5002,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://183.207.248.71/gitv/live1/G_JSGG/G_JSGG",
+    "ok": false,
+    "code": null,
+    "ms": 5071,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "iptvorg_hk.m3u": {
+  "sampled": 5,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "https://hoytv-live-stream.hoy.tv/ch76/index-fhd.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 363,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "https://rthktv35-live.akamaized.net/hls/live/2101643/RTHKTV35/master.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 435,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "https://rthktv32-live.akamaized.net/hls/live/2036819/RTHKTV32/master.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 496,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "https://rthktv33-live.akamaized.net/hls/live/2101641/RTHKTV33/master.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 548,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://202.69.67.66:443/webcast/bshdlive-pc/playlist.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5183,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "iptvorg_mo.m3u": {
+  "sampled": 5,
+  "alive": 1,
+  "rate": 20.0,
+  "detail": [
+   {
+    "url": "https://cdn4.skygo.mn/live/disk1/Lotus/HLSv3-FTA/Lotus.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 631
+   },
+   {
+    "url": "https://live3.tdm.com.mo/ch3/ch3.live/playlist.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5177,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://live3.tdm.com.mo/ch4/sport_ch4.live/playlist.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5169,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://live3.tdm.com.mo/ch5/info_ch5.live/playlist.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5190,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://live3.tdm.com.mo/ch6/hd_ch6.live/playlist.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5216,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   }
+  ]
+ },
+ "iptvorg_tw.m3u": {
+  "sampled": 5,
+  "alive": 2,
+  "rate": 40.0,
+  "detail": [
+   {
+    "url": "https://live.ntdtv.com/aplive200/playlist.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 206,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://pulltv1.wanfudaluye.com/live/tv1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 202,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://streamipcf.akamaized.net/live/_definst_/smil:liveabr.smil/playlist.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 345,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "https://d3e05csss9c272.cloudfront.net/out/v1/f0bf71c57581470fb9379f603e8f5d83/CGNWebLiveCN.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 389
+   },
+   {
+    "url": "https://h5cul1yar48um3t.wcetv.com/hls/hakkatv.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 620
+   }
+  ]
+ },
+ "iptvorg_zho.m3u": {
+  "sampled": 15,
+  "alive": 7,
+  "rate": 46.7,
+  "detail": [
+   {
+    "url": "https://tencentplaybusiness.gztv.com/live/zonghes.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 324
+   },
+   {
+    "url": "https://myip.pdtvhd.com/Sports/streams/CCTV5pul.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 584
+   },
+   {
+    "url": "http://seb.sason.top/sc/dscjxw_fhd.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 161,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://play.kankanlive.com/live/1711956137852982.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 27
+   },
+   {
+    "url": "https://play-live-hls.jxtvcn.com.cn/live-city/tv_jxtv2.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 138,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://38.75.136.137:98/gslb/dsdqpub/nxss.m3u8?auth=testpub",
+    "ok": true,
+    "code": 206,
+    "ms": 900
+   },
+   {
+    "url": "http://198.204.240.250:82/live/cctv4k.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 935
+   },
+   {
+    "url": "http://74.91.26.218:82/live/cctv1hd.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 948
+   },
+   {
+    "url": "http://74.91.26.218:82/live/cctv17hd.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 1155
+   },
+   {
+    "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225698/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5047,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://118.81.195.79:9003/hls/34/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5046,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225726/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5020,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://118.81.195.79:9003/hls/25/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5030,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://118.81.195.79:9003/hls/30/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5030,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.19.153/dbiptv.sn.chinamobile.com/PLTV/88888888/224/3221226462/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5004,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "jk2024988_migu2.m3u": {
+  "sampled": 11,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/wd_r2/2018/ocn/cctv14hd/2000/index.m3u8?msisdn=20251118120104e39486dfdd2f4546b8155a8c7104e2bc&mdspid=&spid=699004&netType=0&sid=5500212875&pid=2028597139&timestamp=20251118120104&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=624878440&ParentNodeID=-99&assertID=5500212875&client_ip=106.13.250.90&SecurityKey=20251118120104&promotionId=&mvid=5100001697&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=eaf2b3b5da5351393a2a4abbddcebf41&ddCalcu=1e4aeff1b24eb0c3dbd5bdbaa543a521a339",
+    "ok": false,
+    "code": null,
+    "ms": 111,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/20200324/cctv9hd/51/index.m3u8?msisdn=20251118120104b253f2082ba74b4cb4c079d9e52bc21f&mdspid=&spid=699004&netType=0&sid=5501083624&pid=2028597139&timestamp=20251118120104&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=673168140&ParentNodeID=-99&assertID=5501083624&client_ip=106.13.250.90&SecurityKey=20251118120104&promotionId=&mvid=5102910384&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=698f62d8547620d076817e48ea8d2c2f&ddCalcu=f629ec812f3d6082ade88544e77612806d70",
+    "ok": false,
+    "code": null,
+    "ms": 111,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/envivo_x/2018/SD/cctv13/2000/index.m3u8?msisdn=2025111812010408a7ec23f95942b8bfdc5da3f45b2013&mdspid=&spid=699004&netType=0&sid=2202208864&pid=2028597139&timestamp=20251118120104&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=608807423&ParentNodeID=-99&assertID=2202208864&client_ip=106.13.250.90&SecurityKey=20251118120104&promotionId=&mvid=2202208864&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=6e5a131b88c1860be534b1e1c0b4a3b0&ddCalcu=06bee351aa8410b301cb18e81cb1483650eb",
+    "ok": false,
+    "code": null,
+    "ms": 112,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/wd_r2/cctv/cctv5hdnew/1200/index.m3u8?msisdn=20251118120103c5c48cb6380c4029a78c140c056920d3&mdspid=&spid=699004&netType=0&sid=5500516171&pid=2028597139&timestamp=20251118120103&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=641886683&ParentNodeID=-99&assertID=5500516171&client_ip=106.13.250.90&SecurityKey=20251118120103&promotionId=&mvid=5102048712&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=932a3a9f4e4067d379c70322a6ab11fe&ddCalcu=e9f3e1211a1b30aa69af242e340076c79d73",
+    "ok": false,
+    "code": null,
+    "ms": 125,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/wd_r2/2018/ocn/hubeiwshd/2000/index.m3u8?msisdn=20251118120106309a3685694e46ebbf134ff9210fb2ac&mdspid=&spid=600633&netType=0&sid=5910022163&pid=2028597139&timestamp=20251118120106&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=947472496&ParentNodeID=-99&assertID=5910022163&client_ip=106.13.250.90&SecurityKey=20251118120106&promotionId=&mvid=5900004355&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=cfe89bd7559a16d242a67980bd59efb7&ddCalcu=7cbfefe1e879905bddb70585997a61a62d42",
+    "ok": false,
+    "code": null,
+    "ms": 100,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/wd_r2/cctv/cctv5plusnew/1200/index.m3u8?msisdn=20251118120103015105c5d5654ced8087612ceabbabf8&mdspid=&spid=699004&netType=0&sid=5500516288&pid=2028597139&timestamp=20251118120103&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=641886773&ParentNodeID=-99&assertID=5500516288&client_ip=106.13.250.90&SecurityKey=20251118120103&promotionId=&mvid=5102048803&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=94a0811b9e51557617cbaedadb835a61&ddCalcu=1964eaa150138081b1dba9dee5a1b5c57716",
+    "ok": false,
+    "code": null,
+    "ms": 131,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/wd_r4/dfl/dongfangwshd/1200/index.m3u8?msisdn=202511181201069f1f23d8c2ec42c5b1f1e2fa7f19d9c8&mdspid=&spid=600697&netType=0&sid=5910022185&pid=2028597139&timestamp=20251118120106&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=651632648&ParentNodeID=-99&assertID=5910022185&client_ip=106.13.250.90&SecurityKey=20251118120106&promotionId=&mvid=5100043384&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=f86aa5572b3ea047ba09db9c61c5347e&ddCalcu=ef78e4613a15a0c51567c29bb3de9a00a4b7",
+    "ok": false,
+    "code": null,
+    "ms": 120,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/haixiaws/51/20230724/index.m3u8?msisdn=202511181201073f698c9cef5e4837b3c915d1345b9d58&mdspid=&spid=600717&netType=0&sid=5910022183&pid=2028597139&timestamp=20251118120107&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=849119120&ParentNodeID=-99&assertID=5910022183&client_ip=106.13.250.90&SecurityKey=20251118120107&promotionId=&mvid=5900006231&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=ce6150ddf986aadf694618885ad4432c&ddCalcu=cc2ee361419450d0ad5d8f8988166a4a9d6f",
+    "ok": false,
+    "code": null,
+    "ms": 143,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/shan3xiws/51/20220809/index.m3u8?msisdn=20251118120106251a6f6049b0432cbd8c4e436f29cd5f&mdspid=&spid=600633&netType=0&sid=5910020475&pid=2028597139&timestamp=20251118120106&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=738910838&ParentNodeID=-99&assertID=5910020475&client_ip=106.13.250.90&SecurityKey=20251118120106&promotionId=&mvid=5900004331&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=f1ce2b09eed3bef411bab5dcf922aae7&ddCalcu=7fe1eac1ae82202b90f9cede5db3abbe1f14",
+    "ok": false,
+    "code": null,
+    "ms": 77,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/ws_w/2018/gdws/gdws711/1000/index.m3u8?msisdn=20251118120106964f45421ef64f338e6ce2df28a18f04&mdspid=&spid=699054&netType=0&sid=2202428795&pid=2028597139&timestamp=20251118120106&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=608831231&ParentNodeID=-99&assertID=2202428795&client_ip=106.13.250.90&SecurityKey=20251118120106&promotionId=&mvid=2202428795&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=24afa61d90cc3596a5c6659bed34319a&ddCalcu=a294e1a13f84a036d1edb9905c6c63c559a6",
+    "ok": false,
+    "code": null,
+    "ms": 102,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/sxxwzx/51/20250804/index.m3u8?msisdn=2025111812010937c80357716c4c5ab9e563193ffe445f&mdspid=&spid=600572&netType=0&sid=5910022187&pid=2028597139&timestamp=20251118120109&Channel_ID=0116_2600000900-99000-201600010010027&ProgramID=956909289&ParentNodeID=-99&assertID=5910022187&client_ip=106.13.250.90&SecurityKey=20251118120109&promotionId=&mvid=5900006710&mcid=500020&playurlVersion=WX-A1-8.10.1-RELEASE&userid=&jmhm=&videocodec=h264&bean=mgspad&tid=android&conFee=0&puData=04d26e8214c4334c86a618c2fcaa882c&ddCalcu=c024e8d1826a60aec8f221c48c1463a3648c",
+    "ok": false,
+    "code": null,
+    "ms": 79,
+    "err": "HTTP Error 660: "
+   }
+  ]
+ },
+ "migu_sports.m3u": {
+  "sampled": 15,
+  "alive": 5,
+  "rate": 33.3,
+  "detail": [
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/envivo_v/2018/SD/cctv/eyu/1000/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=2200179332&pid=2028597139&timestamp=20260510083821&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=609006446&ParentNodeID=-99&assertID=2200179332&client_ip=175.15.177.58&SecurityKey=20260510083821&promotionId=&mvid=2200179332&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=dd61c93d2564f1f2f1e9d40b97a072b4&ddCalcu=4dbdv26a71y0caa9739db20546d49fe11ff2&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 122,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://hlsztemgsplive.miguvideo.com:8080/wd_r2/2018/ocn/cctv14hd/2000/index.m3u8?msisdn=f863b466d46e2ff46401579155d4a125&mdspid=&spid=699004&netType=4&sid=5500212875&pid=2028597139&timestamp=20260509111220&Channel_ID=0116_2600037000-99000-200300220103476&ProgramID=624878440&ParentNodeID=-99&assertID=5500212875&client_ip=36.133.80.68&SecurityKey=20260509111220&promotionId=&mvid=5100001697&mcid=500020&playurlVersion=ZQ-A1-9.4.2-RELEASE&userid=1834153345&jmhm=f863b466d46e2ff46401579155d4a125&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=0d5cf58191e2427ac2bf3c5b78821efb",
+    "ok": false,
+    "code": null,
+    "ms": 89,
+    "err": "HTTP Error 605: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/envivo_x/2018/SD/cctvnews/1000/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=2202196407&pid=2028597139&timestamp=20260510083822&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=609017205&ParentNodeID=-99&assertID=2202196407&client_ip=175.15.177.58&SecurityKey=20260510083822&promotionId=&mvid=2202196407&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=71ecc83161fcbd8016402f39f87f41ca&ddCalcu=a7c1v1ea4cafca7883f19631ff2c0b4d6810&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 115,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://hlsztemgsplive.miguvideo.com:8080/migu/kailu/dongnanws/51/20230724/index.m3u8?msisdn=f863b466d46e2ff46401579155d4a125&mdspid=&spid=600717&netType=4&sid=5910022182&pid=2028597139&timestamp=20260509120708&Channel_ID=0116_2600037000-99000-200300220103505&ProgramID=849116810&ParentNodeID=-99&assertID=5910022182&client_ip=220.196.48.53&SecurityKey=20260509120708&promotionId=&mvid=5900006229&mcid=500020&playurlVersion=ZQ-A1-9.4.2-RELEASE&userid=1834153345&jmhm=f863b466d46e2ff46401579155d4a125&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=040e941f5f7ed84d8024ca6ca39c7660",
+    "ok": false,
+    "code": null,
+    "ms": 86,
+    "err": "HTTP Error 605: "
+   },
+   {
+    "url": "http://hlsztemgsplive.miguvideo.com:8080/wd_r2/cctv/jiangsuhd/1200/index.m3u8?msisdn=f863b466d46e2ff46401579155d4a125&mdspid=&spid=699067&netType=4&sid=5500199408&pid=2028597139&timestamp=20260509110718&Channel_ID=0116_2600037000-99000-200300220103465&ProgramID=623899368&ParentNodeID=-99&assertID=5500199408&client_ip=36.133.82.237&SecurityKey=20260509110718&promotionId=&mvid=5100156802&mcid=500020&playurlVersion=ZQ-A1-9.4.2-RELEASE&userid=1834153345&jmhm=f863b466d46e2ff46401579155d4a125&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=ca3e7a4d9d5796ec1bf3d51847576bfe",
+    "ok": false,
+    "code": null,
+    "ms": 114,
+    "err": "HTTP Error 605: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/cctv10hd265/54/20200407/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=5500212874&pid=2028597139&timestamp=20260510080224&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=624878405&ParentNodeID=-99&assertID=5500212874&client_ip=175.15.177.58&SecurityKey=20260510080224&promotionId=&mvid=5100001696&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h265&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=e43d85c2c474303975357b3169032bc2&ddCalcu=2ec4vb3a2dy38a059c621c34b77453305379&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 154,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/envivo_v/2018/SD/cctv/xibanya/1000/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=2200179337&pid=2028597139&timestamp=20260510083821&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=609006450&ParentNodeID=-99&assertID=2200179337&client_ip=175.15.177.58&SecurityKey=20260510083821&promotionId=&mvid=2200179337&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=e01313310ce521de3f8455b5254c90d1&ddCalcu=1ed0v01a93yc1a43532150bc5e554281fd3e&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 166,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "https://hlsbkmgsplive.miguvideo.com/wd_r4/yg/shandongwshd/3000/01.m3u8?&HlsSubType=&encrypt=",
+    "ok": false,
+    "code": null,
+    "ms": 113,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://tvpull.dxhmt.cn:9081/tv/10883-1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 102,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "http://l.cztvcloud.com/channels/lantian/SXxiangshan1/720p.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 112
+   },
+   {
+    "url": "http://yixing-tv-ori-hls.jstv.com/yixing-tv-ori/yixing_xw.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 87,
+    "err": "HTTP Error 502: Bad Gateway"
+   },
+   {
+    "url": "http://ali-xwl.cztv.com/live/channel4k2160p.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 157
+   },
+   {
+    "url": "https://liveplay-srs.voc.com.cn/hls/tv/168_ce2a0c.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 136
+   },
+   {
+    "url": "http://ali-xwl.cztv.com/live/channel011080Plxw.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 259
+   },
+   {
+    "url": "https://masterpull.hljtv.com/live/iyoENgSP.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 310
+   }
+  ]
+ },
+ "vbskycn_iptv4.m3u": {
+  "sampled": 15,
+  "alive": 14,
+  "rate": 93.3,
+  "detail": [
+   {
+    "url": "http://221.225.162.96:9004/hls/10/index.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 134
+   },
+   {
+    "url": "http://221.225.162.96:9004/hls/16/index.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 147
+   },
+   {
+    "url": "http://l.cztvcloud.com/channels/lantian/SXxinchang2/720p.m3u8#",
+    "ok": true,
+    "code": 206,
+    "ms": 84
+   },
+   {
+    "url": "http://221.225.162.96:9004/hls/32/index.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 125
+   },
+   {
+    "url": "http://221.225.162.96:9004/hls/42/index.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 106
+   },
+   {
+    "url": "http://119.39.9.8:9901/tsfile/live/0118_1.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 129
+   },
+   {
+    "url": "http://stream8.jlntv.cn/shulan/sd/live.m3u8?zjild",
+    "ok": true,
+    "code": 206,
+    "ms": 114
+   },
+   {
+    "url": "http://221.225.162.96:9004/hls/25/index.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 149
+   },
+   {
+    "url": "http://ali-m-l.cztv.com/channels/lantian/channel03/1080p.m3u8#https://ali-m-l.cztv.com/channels/lantian/channel003/1080p.m3u8#http://ali-m-l.cztv.com/channels/lantian/channel003/1080p.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 125,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "https://test1.live.sdetv.com.cn/live/dianshizhibo/playlist.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 143
+   },
+   {
+    "url": "https://0472.org/hls/cgtne.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 402
+   },
+   {
+    "url": "https://0472.org/hls/cgtnd.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 377
+   },
+   {
+    "url": "https://liveout.xntv.tv/a65jur/96iln2.m3u8?zqinghd",
+    "ok": true,
+    "code": 206,
+    "ms": 265
+   },
+   {
+    "url": "https://live.264788.xyz/channel/huaijiujuchang?streamid=7e5d1abdddde08f588234f3f640f75ff&livekey=01WgOR41rriMmMkzNsd0UoaxJRwetZdxIvtVk",
+    "ok": true,
+    "code": 206,
+    "ms": 465
+   },
+   {
+    "url": "http://tencentplay.gztv.com/live/nanguodushi.m3u8?txSecret=140110ae3d6c936a77f94c4f4d85b0d3&txTime=18d57929bd4",
+    "ok": true,
+    "code": 200,
+    "ms": 280
+   }
+  ]
+ },
+ "vicjl_TV-IPV4.m3u": {
+  "sampled": 12,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226568/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5025,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226019/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5037,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226571/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5044,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225603/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5045,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225734/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5040,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225624/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5018,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226516/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5030,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226310/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5036,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225652/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5020,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226327/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5020,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226344/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5020,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221227018/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5040,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "zbds_iptv4.txt": {
+  "sampled": 15,
+  "alive": 14,
+  "rate": 93.3,
+  "detail": [
+   {
+    "url": "http://ali-m-l.cztv.com/channels/lantian/channel21/1080p.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 202
+   },
+   {
+    "url": "http://221.7.175.154:8445/tsfile/live/0115_1.m3u8?key=txiptv&playlive=1&authid=0",
+    "ok": true,
+    "code": 206,
+    "ms": 137
+   },
+   {
+    "url": "http://183.11.239.36:808/hls/20/index.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 153
+   },
+   {
+    "url": "http://l.cztvcloud.com/channels/lantian/SXlongquan1/720p.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 77
+   },
+   {
+    "url": "http://113.57.140.161:10081/newlive/live/hls/29/live.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 114
+   },
+   {
+    "url": "http://58.56.162.102:4466/newlive/live/hls/20/live.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 146
+   },
+   {
+    "url": "http://221.225.162.96:9004/hls/27/index.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 108
+   },
+   {
+    "url": "http://ali-m-l.cztv.com/channels/lantian/channel04/720p.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 127
+   },
+   {
+    "url": "http://live.spccmc.com:90/live/spxwzh.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 95
+   },
+   {
+    "url": "https://0472.org/hls/cgtnx.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 364
+   },
+   {
+    "url": "http://219.147.245.238:25480/newlive/live/hls/4/live.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 478
+   },
+   {
+    "url": "http://stream.thmz.com/wxtv3/playlist.m3u8?_upt=1758133b1706166861",
+    "ok": true,
+    "code": 206,
+    "ms": 640
+   },
+   {
+    "url": "http://124.116.183.146:9901/tsfile/live/0008_1.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 2190
+   },
+   {
+    "url": "https://vip.ffzy-online.com/20221015/722_e32c42bc/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 2075,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://123.130.84.106:8154/tsfile/live/0109_1.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 5237
+   }
+  ]
+ },
+ "anguszh_meroser.m3u": {
+  "sampled": 15,
+  "alive": 1,
+  "rate": 6.7,
+  "detail": [
+   {
+    "url": "http://[2409:8087:7000:20:1000::22]:6060/yinhe/2/ch00000090990000002826/index.m3u8?virtualDomain=yinhe.live_hls.zte.com",
+    "ok": false,
+    "code": null,
+    "ms": 90,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:1a01:df::4077]/PLTV/88888888/224/3221225669/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 106,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:2001:20:2800:0:df6e:eb17]:80/ott.mobaibox.com/PLTV/4/224/3221228112/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 70,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:2001:20:2800:0:df6e:eb13]:80/ott.mobaibox.com/PLTV/4/224/3221227614/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 90,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:2001:20:2800:0:df6e:eb03]/ott.mobaibox.com/PLTV/4/224/3221228165/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 74,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:2001:20:2800:0:df6e:eb16]:80/ott.mobaibox.com/PLTV/4/224/3221228221/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 94,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:7000:20:1000::22]:6060/yinhe/2/ch00000090990000001035/index.m3u8?virtualDomain=yinhe.live_hls.zte.com",
+    "ok": false,
+    "code": null,
+    "ms": 92,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:1a01:df::4077]/PLTV/88888888/224/3221225950/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 86,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:2001:20:2800:0:df6e:eb21]:80/ott.mobaibox.com/PLTV/4/224/3221228626/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 86,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:2001:20:2800:0:df6e:eb09]:80/ott.mobaibox.com/PLTV/4/224/3221228133/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 86,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:1a01:df::4017]/PLTV/88888888/224/3221225619/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 2,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:7001:20:2::3]:80/dbiptv.sn.chinamobile.com/PLTV/88888893/224/3221226978/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 8,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:7000:20:1000::22]:6060/yinhe/2/ch00000090990000001309/index.m3u8?virtualDomain=yinhe.live_hls.zte.com",
+    "ok": false,
+    "code": null,
+    "ms": 31,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "http://[2409:8087:2001:20:2800:0:df6e:eb22]:80/ott.mobaibox.com/PLTV/1/224/3221228530/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 2,
+    "err": "<urlopen error [WinError 10013] 以一种访问权限不允许的方式做了一个访问套接字的尝试。>"
+   },
+   {
+    "url": "https://ali-m-l.cztv.com/channels/lantian/channel006/1080p.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 168
+   }
+  ]
+ },
+ "aptv_bjyd.m3u": {
+  "sampled": 11,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://otttv.bj.chinamobile.com/PLTV/88888888/224/3221226454/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7ErKwB8Qqtvssoy-K7GEgesQ%7E_eNUbgU9sJGUcVVduOMKhafLvQUgE_zlz_7pvDimJNOIR_8g_qYRqpV5wTQqRILi%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 5044,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://otttv.bj.chinamobile.com/PLTV/88888888/224/3221226442/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7EtihRNVe_x2y1Lgi_XWYeNw%7E_eNUbgU9sJGUcVVduOMKhafLvQUgE_zlz_7pvDimJNOl8OnsD1vPD0mhNmo98J3J%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 5069,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://otttv.bj.chinamobile.com/PLTV/88888888/224/3221226335/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7EBFJ5gRpm8ntK8JEFPZOhLQ%7EtP4-l0lmSfjwLWEfK_el1vH_mv-s1zo4AQJwdedaVwG9xkuFTDg8J26cwOrNJzn20BErrHdLhuZ9EzLUCD3PMW-OMx4MGteHV2vLeW6BqoY%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 5035,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://otttv.bj.chinamobile.com/PLTV/88888888/224/3221226228/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7E2knJCFLHz_HqfBZXNGeA1A%7E_eNUbgU9sJGUcVVduOMKhafLvQUgE_zlz_7pvDimJNMIlZ5z7o_ym15iMooogSvj%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 5054,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://otttv.bj.chinamobile.com/PLTV/88888888/224/3221226946/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7E2bEV_zkW1hRnWmsZq6rlbw%7EtP4-l0lmSfjwLWEfK_el1vH_mv-s1zo4AQJwdedaVwG9xkuFTDg8J26cwOrNJzn20BErrHdLhuZ9EzLUCD3PMW-OMx4MGteHV2vLeW6BqoY%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 5035,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://otttv.bj.chinamobile.com/PLTV/88888888/224/3221226488/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7E0dsu8dOBmGQQO7fSrvySew%7E_eNUbgU9sJGUcVVduOMKhafLvQUgE_zlz_7pvDimJNN4l9PIxeExdzsncIMJiPZb%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 5051,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://otttv.bj.chinamobile.com/PLTV/88888888/224/3221226546/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7ETtoZKRqwsL9SQjr1A0iH5g%7E_eNUbgU9sJGUcVVduOMKhafLvQUgE_zlz_7pvDimJNMREPnBLSH3b8pR7cnmo9am%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 5050,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://otttv.bj.chinamobile.com/PLTV/88888888/224/3221226527/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7EmHuqUIe0F51C4h6xZanhig%7E_eNUbgU9sJGUcVVduOMKhafLvQUgE_zlz_7pvDimJNMi3qn27U9rBeXpVrJ8eLy7%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 5025,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://otttv.bj.chinamobile.com/PLTV/88888888/224/3221226532/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7E6sNSqmLCqLFl_AJPBXp1qA%7E_eNUbgU9sJGUcVVduOMKhafLvQUgE_zlz_7pvDimJNO6b4uKEI14SNy0LDiw52LH%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 5002,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://otttv.bj.chinamobile.com/PLTV/88888888/224/3221226543/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7EzQy9f4DIExLCs810r0Q6Kw%7E_eNUbgU9sJGUcVVduOMKhafLvQUgE_zlz_7pvDimJNO_hnHaWpTsMQwR98VJGduo%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 5036,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://otttv.bj.chinamobile.com/PLTV/88888888/224/3221226550/1.m3u8?GuardEncType=2&accountinfo=~~V2.0~e2qS8h6u-xp3gd50vNr1sw~_eNUbgU9sJGUcVVduOMKhafLvQUgE_zlz_7pvDimJNPPFD3HVWEytEVyliOxehfe%2CEND",
+    "ok": false,
+    "code": null,
+    "ms": 5003,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "aptv_hnyd.m3u": {
+  "sampled": 11,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221226978/1.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5029,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221226935/1.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5029,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221226952/1.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5040,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221226937/1.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5019,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221226524/1.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5008,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221227006/1.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5034,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221226987/1.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5028,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221227012/1.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5034,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221226979/1.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5033,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221226843/1.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5002,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221226961/1.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5009,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "aptv_jsyd.m3u": {
+  "sampled": 11,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221228176/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5055,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221228674/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5055,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221228668/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5030,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221227620/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5063,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221227723/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5035,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221227558/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5064,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221228130/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5035,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221227554/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5009,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221228527/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5009,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221227514/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5064,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221227533/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5002,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "aptv_zjyd.m3u": {
+  "sampled": 12,
+  "alive": 1,
+  "rate": 8.3,
+  "detail": [
+   {
+    "url": "https://ali-m-l.cztv.com/channels/lantian/channel006/1080p.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 141
+   },
+   {
+    "url": "http://hwltc.tv.cdn.zj.chinamobile.com/PLTV/88888888/224/3221236203/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5042,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://hwltc.tv.cdn.zj.chinamobile.com/PLTV/88888888/224/3221236211/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5027,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://hwltc.tv.cdn.zj.chinamobile.com/PLTV/88888888/224/3221236200/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5027,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://hwltc.tv.cdn.zj.chinamobile.com/PLTV/88888888/224/3221236288/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5029,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://hwltc.tv.cdn.zj.chinamobile.com/PLTV/88888888/224/3221236272/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5056,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://hwltc.tv.cdn.zj.chinamobile.com/PLTV/88888888/224/3221236229/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5030,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://hwltc.tv.cdn.zj.chinamobile.com/PLTV/88888888/224/3221236161/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5062,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://hwltc.tv.cdn.zj.chinamobile.com/PLTV/88888888/224/3221236292/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5062,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://hwltc.tv.cdn.zj.chinamobile.com/PLTV/88888888/224/3221236252/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5045,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://hwltc.tv.cdn.zj.chinamobile.com/PLTV/88888888/224/3221236221/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5036,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://hwltc.tv.cdn.zj.chinamobile.com/PLTV/88888888/224/3221229410/1/index.m3u8?fmt=ts2hls",
+    "ok": false,
+    "code": null,
+    "ms": 5008,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "burningc4_tvipv4.m3u": {
+  "sampled": 12,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226568/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5014,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226571/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5046,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225734/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5038,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225603/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5057,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226019/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5085,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226516/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5035,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225624/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5003,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226310/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5036,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226327/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5051,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225652/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5004,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221227018/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5004,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226344/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5005,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "ccsh_live.m3u": {
+  "sampled": 15,
+  "alive": 14,
+  "rate": 93.3,
+  "detail": [
+   {
+    "url": "https://stream1.freetv.fun/43229ec03f2ba5352c33770df9061aa26a5624068b51b1c1ed9ab98c9109acf6.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 589
+   },
+   {
+    "url": "https://t.freetv.fun/live/hai-xia-wei-shi.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 603
+   },
+   {
+    "url": "http://38.75.136.137:98/gslb/dsdqpub/cctv17hd.m3u8?auth=testpub",
+    "ok": true,
+    "code": 206,
+    "ms": 872
+   },
+   {
+    "url": "https://t.freetv.fun/live/shan-dong-wei-shi-5.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 804
+   },
+   {
+    "url": "http://stream.thmz.com/wxtv1/sd/live.m3u8?zjiangsd#http://stream.thmz.com/wxtv1/playlist.m3u8?_upt=156143371706166361#http://stream.thmz.com/wxtv1/sd/live.m3u8?_upt=4ba3ab191698644028#http://stream.thmz.com/wxtv1/playlist.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 260
+   },
+   {
+    "url": "https://t.freetv.fun/live/yan-dong-zhu-jiang-gao-qing-6.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 842
+   },
+   {
+    "url": "https://stream1.freetv.fun/san-sha-wei-shi-9.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 1410
+   },
+   {
+    "url": "https://stream1.freetv.fun/0eeff132651adc73a935c01f88939209db16d78d1dbc65ee6ca439d879d1a0f9.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 1474
+   },
+   {
+    "url": "https://stream1.freetv.fun/b6866815f985fb51d1a8c195ef73afbd858d740c62358e35b9f665896b40dd91.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 1638
+   },
+   {
+    "url": "https://aktv.top/AKTV/live/aktv/null-2/AKTV.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 957
+   },
+   {
+    "url": "https://stream1.freetv.fun/9350a599d0593a4eb692e9a5c26a4b0777dc9758db460b4e02a9ffa970765999.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 1770
+   },
+   {
+    "url": "https://stream1.freetv.fun/5335c88a9a7d8b74173b491f480d4f94e8d3bd596af54478106aa2399e6c7917.ctv",
+    "ok": true,
+    "code": 206,
+    "ms": 1737
+   },
+   {
+    "url": "https://stream1.freetv.fun/chcjia-ting-ying-yuan-5.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 2276
+   },
+   {
+    "url": "http://173.208.212.130:8181/720p/nxss.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 1904
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225731/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5052,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "ccsh_live_lite.m3u": {
+  "sampled": 15,
+  "alive": 13,
+  "rate": 86.7,
+  "detail": [
+   {
+    "url": "http://playtv-live.ifeng.com/live/06OLEEWQKN4_audio.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 97
+   },
+   {
+    "url": "http://122.152.202.33/s/81a8a44f/index.m3u8?id=fhhk TVB",
+    "ok": false,
+    "code": null,
+    "ms": 0,
+    "err": "URL can't contain control characters. '/s/81a8a44f/index.m3u8?id=fhhk TVB' (foun"
+   },
+   {
+    "url": "https://stream1.freetv.fun/9350a599d0593a4eb692e9a5c26a4b0777dc9758db460b4e02a9ffa970765999.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 332
+   },
+   {
+    "url": "https://stream1.freetv.fun/b6866815f985fb51d1a8c195ef73afbd858d740c62358e35b9f665896b40dd91.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 349
+   },
+   {
+    "url": "https://stream1.freetv.fun/43229ec03f2ba5352c33770df9061aa26a5624068b51b1c1ed9ab98c9109acf6.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 388
+   },
+   {
+    "url": "http://110.154.192.36:7788/956904896",
+    "ok": true,
+    "code": 200,
+    "ms": 402
+   },
+   {
+    "url": "https://stream1.freetv.fun/20f40a367147b3bddbe28b9ed01aee9f9490aad1dc12b5cdd17cbf233dadbe17.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 594
+   },
+   {
+    "url": "https://stream1.freetv.fun/b8050307a274e899dbed6c2d26362d78e3bc43289fa1c71af89278cd59d7c42d.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 569
+   },
+   {
+    "url": "https://t.freetv.fun/live/da-wan-qu-wei-shi-15.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 854
+   },
+   {
+    "url": "http://cdn.163189.xyz/live/fhzw/stream.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 810
+   },
+   {
+    "url": "http://38.75.136.137:98/gslb/dsdqpub/cctv17hd.m3u8?auth=testpub",
+    "ok": true,
+    "code": 206,
+    "ms": 1167
+   },
+   {
+    "url": "http://45.192.97.170:8880/play/1314.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 1294
+   },
+   {
+    "url": "https://t.freetv.fun/live/hai-nan-wei-shi-1.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 1835
+   },
+   {
+    "url": "http://63.141.230.178:82/gslb/zbdq5.m3u8?id=wsjk",
+    "ok": true,
+    "code": 206,
+    "ms": 2518
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225731/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5039,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "ccsh_live_platforms.m3u": {
+  "sampled": 5,
+  "alive": 5,
+  "rate": 100.0,
+  "detail": [
+   {
+    "url": "https://live.ottiptv.cc/huya/30080244",
+    "ok": true,
+    "code": 200,
+    "ms": 917
+   },
+   {
+    "url": "https://live.ottiptv.cc/douyu/9624581",
+    "ok": true,
+    "code": 200,
+    "ms": 1670
+   },
+   {
+    "url": "https://live.ottiptv.cc/huya/26355776",
+    "ok": true,
+    "code": 200,
+    "ms": 1821
+   },
+   {
+    "url": "https://live.ottiptv.cc/bilibili/12558682",
+    "ok": true,
+    "code": 200,
+    "ms": 6498
+   },
+   {
+    "url": "https://live.ottiptv.cc/bilibili/1753116990",
+    "ok": true,
+    "code": 200,
+    "ms": 6704
+   }
+  ]
+ },
+ "fanmingming_com_index.m3u": {
+  "sampled": 10,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://58.248.112.205:8006/GD_CUCC/G_CCTV-5PLUS-CQ.m3u8?Authinfo=3iRp8RZG1d3hGsaPmj%2FtHYdR%2FXUke9cnQAha7YFSVSdY6KJ0YlTSaKwh%2FkUorJB0&p=GITV&area=GD_CUCC&mac=d4:38:44:a5:72:8b",
+    "ok": false,
+    "code": null,
+    "ms": 132,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "http://jxcbn.ws-cdn.gitv.tv/hls/CCTV11HD/index.m3u8?gMac=unknown&livodToken=b7b4308467a66538e5a370fdfe90b3be8c54fa72c5cb958e5f43f4f56e036d2e_1720508128_604800&fromCDN=ws",
+    "ok": false,
+    "code": null,
+    "ms": 122,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://58.248.112.205:8006/GD_CUCC/G_CCTV-11-CQ.m3u8?Authinfo=3iRp8RZG1d3hGsaPmj%2FtHQtjk7PDi4fkN2nvO2gK27uVHtMQrYKMhXfF9Bgs%2FQgY&p=GITV&area=GD_CUCC&mac=d4:38:44:a5:72:8b",
+    "ok": false,
+    "code": null,
+    "ms": 121,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "http://jxcbn.ws-cdn.gitv.tv/hls/BEIJHD/index.m3u8?gMac=unknown&livodToken=43dbb4a601652fcaea2ddbd73cd2f2f488aff86faee350276951eadd10dfb441_1720508364_604800&fromCDN=ws",
+    "ok": false,
+    "code": null,
+    "ms": 49,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://jxcbn.ws-cdn.gitv.tv/hls/YUNNHD/index.m3u8?gMac=unknown&livodToken=bd74183e409c86a54debf6f2452fcadd940a4b90a2e1f981832970d2f916a945_1720509300_604800&fromCDN=ws",
+    "ok": false,
+    "code": null,
+    "ms": 67,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://jxcbn.ws-cdn.gitv.tv/hls/HAIBHD/index.m3u8?gMac=unknown&livodToken=e80bcd155eabf8e0dbe4c1fa52d05d048c86c1398334b5085f6c985eb88548ca_1720508762_604800&fromCDN=ws",
+    "ok": false,
+    "code": null,
+    "ms": 24,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://jxcbn.ws-cdn.gitv.tv/hls/CCTV10HD/index.m3u8?gMac=unknown&livodToken=3372eeac7f52075d36d0edd66eab703b95c8eb3ddf8502186f235a1d890717d9_1720508080_604800&fromCDN=ws",
+    "ok": false,
+    "code": null,
+    "ms": 99,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://58.248.112.205:8006/GD_CUCC/G_CCTV-16-CQ.m3u8?Authinfo=3iRp8RZG1d3hGsaPmj%2FtHVSIaGkZ%2BPhCYgvTlbbof9eVHtMQrYKMhXfF9Bgs%2FQgY&p=GITV&area=GD_CUCC&mac=d4:38:44:a5:72:8b",
+    "ok": false,
+    "code": null,
+    "ms": 109,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "http://58.248.112.205:8006/GD_CUCC/G_BEIJING-CQ.m3u8?Authinfo=3iRp8RZG1d3hGsaPmj%2FtHX6pFJlsKFX2elUkY7G9WuYMgMwyeTsEM4M617I3YR8P&p=GITV&area=GD_CUCC&mac=d4:38:44:a5:72:8b",
+    "ok": false,
+    "code": null,
+    "ms": 129,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "http://58.248.112.205:8006/GD_CUCC/G_DONGFANG-CQ.m3u8?Authinfo=3iRp8RZG1d3hGsaPmj%2FtHfFI8ayEeoekFD8P08%2F7EXF4NHMHVaPey3ntJx7niV8g&p=GITV&area=GD_CUCC&mac=d4:38:44:a5:72:8b",
+    "ok": false,
+    "code": null,
+    "ms": 78,
+    "err": "HTTP Error 404: Not Found"
+   }
+  ]
+ },
+ "fanmingming_index_raw.m3u": {
+  "sampled": 10,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://jxcbn.ws-cdn.gitv.tv/hls/CCTV11HD/index.m3u8?gMac=unknown&livodToken=b7b4308467a66538e5a370fdfe90b3be8c54fa72c5cb958e5f43f4f56e036d2e_1720508128_604800&fromCDN=ws",
+    "ok": false,
+    "code": null,
+    "ms": 94,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://jxcbn.ws-cdn.gitv.tv/hls/CCTV10HD/index.m3u8?gMac=unknown&livodToken=3372eeac7f52075d36d0edd66eab703b95c8eb3ddf8502186f235a1d890717d9_1720508080_604800&fromCDN=ws",
+    "ok": false,
+    "code": null,
+    "ms": 48,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://58.248.112.205:8006/GD_CUCC/G_CCTV-11-CQ.m3u8?Authinfo=3iRp8RZG1d3hGsaPmj%2FtHQtjk7PDi4fkN2nvO2gK27uVHtMQrYKMhXfF9Bgs%2FQgY&p=GITV&area=GD_CUCC&mac=d4:38:44:a5:72:8b",
+    "ok": false,
+    "code": null,
+    "ms": 104,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "http://58.248.112.205:8006/GD_CUCC/G_BEIJING-CQ.m3u8?Authinfo=3iRp8RZG1d3hGsaPmj%2FtHX6pFJlsKFX2elUkY7G9WuYMgMwyeTsEM4M617I3YR8P&p=GITV&area=GD_CUCC&mac=d4:38:44:a5:72:8b",
+    "ok": false,
+    "code": null,
+    "ms": 72,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "http://58.248.112.205:8006/GD_CUCC/G_CCTV-16-CQ.m3u8?Authinfo=3iRp8RZG1d3hGsaPmj%2FtHVSIaGkZ%2BPhCYgvTlbbof9eVHtMQrYKMhXfF9Bgs%2FQgY&p=GITV&area=GD_CUCC&mac=d4:38:44:a5:72:8b",
+    "ok": false,
+    "code": null,
+    "ms": 98,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "http://58.248.112.205:8006/GD_CUCC/G_CCTV-5PLUS-CQ.m3u8?Authinfo=3iRp8RZG1d3hGsaPmj%2FtHYdR%2FXUke9cnQAha7YFSVSdY6KJ0YlTSaKwh%2FkUorJB0&p=GITV&area=GD_CUCC&mac=d4:38:44:a5:72:8b",
+    "ok": false,
+    "code": null,
+    "ms": 142,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "http://jxcbn.ws-cdn.gitv.tv/hls/YUNNHD/index.m3u8?gMac=unknown&livodToken=bd74183e409c86a54debf6f2452fcadd940a4b90a2e1f981832970d2f916a945_1720509300_604800&fromCDN=ws",
+    "ok": false,
+    "code": null,
+    "ms": 74,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://jxcbn.ws-cdn.gitv.tv/hls/BEIJHD/index.m3u8?gMac=unknown&livodToken=43dbb4a601652fcaea2ddbd73cd2f2f488aff86faee350276951eadd10dfb441_1720508364_604800&fromCDN=ws",
+    "ok": false,
+    "code": null,
+    "ms": 44,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://jxcbn.ws-cdn.gitv.tv/hls/HAIBHD/index.m3u8?gMac=unknown&livodToken=e80bcd155eabf8e0dbe4c1fa52d05d048c86c1398334b5085f6c985eb88548ca_1720508762_604800&fromCDN=ws",
+    "ok": false,
+    "code": null,
+    "ms": 26,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://58.248.112.205:8006/GD_CUCC/G_DONGFANG-CQ.m3u8?Authinfo=3iRp8RZG1d3hGsaPmj%2FtHfFI8ayEeoekFD8P08%2F7EXF4NHMHVaPey3ntJx7niV8g&p=GITV&area=GD_CUCC&mac=d4:38:44:a5:72:8b",
+    "ok": false,
+    "code": null,
+    "ms": 81,
+    "err": "HTTP Error 404: Not Found"
+   }
+  ]
+ },
+ "freetv_china.m3u8": {
+  "sampled": 10,
+  "alive": 1,
+  "rate": 10.0,
+  "detail": [
+   {
+    "url": "http://txycsbl.centv.cn/zb/0628cetv1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 46,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://txycsbl.centv.cn/zb/0822cetv2.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 108,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://txycsbl.centv.cn/zb/0822cetv3.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 79,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://txycsbl.centv.cn/zb/0822cetv4.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 79,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "https://www.youtube.com/channel/UC4K_LI-Tn3-LshNgG0-YypQ/live",
+    "ok": true,
+    "code": 200,
+    "ms": 728
+   },
+   {
+    "url": "https://brics.bonus-tv.ru/cdn/brics/chinese/playlist.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 1830,
+    "err": "HTTP Error 404: Not Found"
+   },
+   {
+    "url": "https://node1.olelive.com:6443/live/CCTV9HD/hls.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5169,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://node1.olelive.com:6443/live/CCTV5PHD/hls.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5197,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://node1.olelive.com:6443/live/CCTV10HD/hls.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5172,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://node1.olelive.com:6443/live/CCTV8HD/hls.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 6054,
+    "err": "<urlopen error _ssl.c:1063: The handshake operation timed out>"
+   }
+  ]
+ },
+ "hououinkami_gather.m3u": {
+  "sampled": 5,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "https://cdn-3.ttvb.eu.org/bilibili/23138275",
+    "ok": false,
+    "code": null,
+    "ms": 405,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://cdn-3.ttvb.eu.org/bilibili/22021983",
+    "ok": false,
+    "code": null,
+    "ms": 440,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://cdn-3.ttvb.eu.org/douyu/5388537",
+    "ok": false,
+    "code": null,
+    "ms": 721,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://cdn-3.ttvb.eu.org/huya/11437",
+    "ok": false,
+    "code": null,
+    "ms": 1371,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://cdn-3.ttvb.eu.org/douyu/9223245",
+    "ok": false,
+    "code": null,
+    "ms": 2396,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   }
+  ]
+ },
+ "hououinkami_v6.m3u": {
+  "sampled": 0,
+  "alive": 0,
+  "detail": []
+ },
+ "hujingguang_guonei.m3u8": {
+  "sampled": 15,
+  "alive": 2,
+  "rate": 13.3,
+  "detail": [
+   {
+    "url": "https://ythls.armelin.one/channel/UCiWRSesvSYmY7YOyz0tv_zQ.m3u8",
+    "ok": true,
+    "code": 204,
+    "ms": 1563
+   },
+   {
+    "url": "http://39.134.24.162/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226012/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5036,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.24.162/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226921/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5020,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.24.162/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226197/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5054,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://120.196.232.25:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226699/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5075,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://120.196.232.55:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226714/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5101,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://120.196.232.36:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226688/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5035,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://221.2.36.34:8888/newlive/live/hls/46/live.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5008,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://120.196.232.43:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226698/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5035,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.24.162/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226214/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5003,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://120.196.232.24:8088/rrs03.hw.gmcc.net/PLTV/651/224/3221226673/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5003,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://221.213.43.82:8888/newlive/live/hls/40/live.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5053,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "https://raw.githubusercontent.com/ChiSheng9/iptv/master/TV28.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 389
+   },
+   {
+    "url": "http://202.69.67.66:443/webcast/bshdlive-pc/playlist.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5165,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://210.210.155.37/qwr9ew/s/s34/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5159,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "iill_cn.bin": {
+  "sampled": 1,
+  "alive": 1,
+  "rate": 100.0,
+  "detail": [
+   {
+    "url": "https://router.parklogic.com/m3u/CN\",e).then()}function",
+    "ok": true,
+    "code": 200,
+    "ms": 1893
+   }
+  ]
+ },
+ "iill_gather.bin": {
+  "sampled": 1,
+  "alive": 1,
+  "rate": 100.0,
+  "detail": [
+   {
+    "url": "https://router.parklogic.com/m3u/Gather\",e).then()}function",
+    "ok": true,
+    "code": 200,
+    "ms": 878
+   }
+  ]
+ },
+ "meroser_demo.m3u": {
+  "sampled": 15,
+  "alive": 4,
+  "rate": 26.7,
+  "detail": [
+   {
+    "url": "https://arabic-liveali.cgtn.com/hls/LSveq57bErWLinBnxosqjisZ220802LSTefTAS9zc9mpU08y3np9TH220802cd/playlist.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 208
+   },
+   {
+    "url": "https://ali-m-l.cztv.com/channels/lantian/channel007/1080p.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 146
+   },
+   {
+    "url": "https://cdn.jsdelivr.net/gh/Meroser/Media_Coll@main/Meroser.mp4",
+    "ok": true,
+    "code": 206,
+    "ms": 2368
+   },
+   {
+    "url": "https://cdn.jsdelivr.net/gh/Meroser/Media_Coll@main/video/CCTV-8K.mp4",
+    "ok": true,
+    "code": 206,
+    "ms": 3692
+   },
+   {
+    "url": "http://10.10.10.100/IPTV/hnlt.php?id=004bce98acf940309188520b827b49e7",
+    "ok": false,
+    "code": null,
+    "ms": 5020,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://10.10.10.100/IPTV/hnlt.php?id=207ebab70a6b435c84ca2fe7f3283022",
+    "ok": false,
+    "code": null,
+    "ms": 5041,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://10.10.10.100/IPTV/hnlt.php?id=45076d4050d0475093890b80bb432a36",
+    "ok": false,
+    "code": null,
+    "ms": 5064,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://10.10.10.100/IPTV/hnlt.php?id=cd6755a7c4334117be4db5ad3284fda6",
+    "ok": false,
+    "code": null,
+    "ms": 5057,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://10.10.10.100/IPTV/hnlt.php?id=e266450b5f77496994c2f7eeeaacbd38",
+    "ok": false,
+    "code": null,
+    "ms": 5036,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://10.10.10.100/IPTV/hnlt.php?id=53b7f08aa1744854929565a6748ecc84",
+    "ok": false,
+    "code": null,
+    "ms": 5002,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225666/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5004,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://10.10.10.100/IPTV/hnlt.php?id=3bb9cc76b4c544ca810c8cc3bfd6cd2e",
+    "ok": false,
+    "code": null,
+    "ms": 6058,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://10.10.10.100/IPTV/hnlt.php?id=9714a08910ef4dffa59906f66411083d",
+    "ok": false,
+    "code": null,
+    "ms": 6059,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "https://rt-glb.rttv.com/dvr/rtnews/playlist_4500Kb.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 6001,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://ali.hlspull.yximgs.com/live/awei_cwjd.flv",
+    "ok": false,
+    "code": null,
+    "ms": 6002,
+    "err": "<urlopen error timed out>"
+   }
+  ]
+ },
+ "migu_cctv.m3u": {
+  "sampled": 8,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/20200324/cctv17hd/51/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=5501083631&pid=2028597139&timestamp=20260510083820&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=673168256&ParentNodeID=-99&assertID=5501083631&client_ip=175.15.177.58&SecurityKey=20260510083820&promotionId=&mvid=5102910396&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=ac63760b1c6687a96dcc630630a6aa27&ddCalcu=7a2cva6aa3a67aa6003b610c3666c8c7da69&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 115,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/20200324/cctv12hd/51/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=5501083627&pid=2028597139&timestamp=20260510080224&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=673168185&ParentNodeID=-99&assertID=5501083627&client_ip=175.15.177.58&SecurityKey=20260510080224&promotionId=&mvid=5102910389&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=9cf931f14e745089c2dd3fc9e4b5fc92&ddCalcu=299cvcfaf9d53ab14fe194cef734d5d028c9&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 109,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/20200324/cctv4meihd/51/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=2200179344&pid=2028597139&timestamp=20260510083821&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=608807416&ParentNodeID=-99&assertID=2200179344&client_ip=175.15.177.58&SecurityKey=20260510083821&promotionId=&mvid=2200179344&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=abcf6d806eabef6fb08dcdbedaeff426&ddCalcu=6a2bv4caffyf6aeda8d0e6bedacbde8f06bf&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 98,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/cctvlaogushi/50/20231109/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=5910022002&pid=2028597139&timestamp=20260510083821&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=884121956&ParentNodeID=-99&assertID=5910022002&client_ip=175.15.177.58&SecurityKey=20260510083821&promotionId=&mvid=5900006372&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=a396d5844f6a4b8291d2263e8e4cc740&ddCalcu=0a43v79ac6lcda45e884e43f662a24db1892&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 98,
+    "err": "HTTP Error 660: "
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/20200324/cctv9hd/51/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=5501083624&pid=2028597139&timestamp=20260510080223&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=673168140&ParentNodeID=-99&assertID=5501083624&client_ip=175.15.177.58&SecurityKey=20260510080223&promotionId=&mvid=5102910384&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=7c6a393ef8112cc18dfaa12375925bd3&ddCalcu=37dcvb6a5ad23a99537e3f2811a1a2fcdc81&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 6026,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/envivo_v/2018/SD/cctv/doc/1000/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=2200179356&pid=2028597139&timestamp=20260510083821&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=609006487&ParentNodeID=-99&assertID=2200179356&client_ip=175.15.177.58&SecurityKey=20260510083821&promotionId=&mvid=2200179356&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=bfbdbbec2330cf22c0ffbc24d40df942&ddCalcu=2b4fv9bafdydba0b4edc4223c3b0fcff02c2&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 6038,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/migu/kailu/20210415/cctvzhongxuesheng/51/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=5910019355&pid=2028597139&timestamp=20260510083822&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=708869532&ParentNodeID=-99&assertID=5910019355&client_ip=175.15.177.58&SecurityKey=20260510083822&promotionId=&mvid=5900002149&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=cb73552c10c92db803a78ce7665c04d1&ddCalcu=1cdbv47a03zc5a55626c71e0cc8972ad3b08&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 6000,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://gslbmgsplive.miguvideo.com/wd_r3/cnr/faxianzhilv/2000/index.m3u8?msisdn=5a4bfcf06a696b610df73f2312cb167f&mdspid=&spid=699004&netType=0&sid=5500212893&pid=2028597139&timestamp=20260510083822&Channel_ID=0116_2600034600-99000-201600010010028&ProgramID=624878970&ParentNodeID=-99&assertID=5500212893&client_ip=175.15.177.58&SecurityKey=20260510083822&promotionId=&mvid=5100001701&mcid=500020&playurlVersion=WX-A1-9.4.2-RELEASE&userid=&jmhm=&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&puData=013bf67a21a088dea613d54effa8a241&ddCalcu=1041v23aabl8faa6f7fae2415ad038186dae&sv=10004&ct=android",
+    "ok": false,
+    "code": null,
+    "ms": 6017,
+    "err": "<urlopen error timed out>"
+   }
+  ]
+ },
+ "migu_tv.m3u": {
+  "sampled": 11,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://192.168.0.103:1234/673168185",
+    "ok": false,
+    "code": null,
+    "ms": 5084,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.0.103:1234/609006487",
+    "ok": false,
+    "code": null,
+    "ms": 5060,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.0.103:1234/673168140",
+    "ok": false,
+    "code": null,
+    "ms": 5082,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.0.103:1234/956923145",
+    "ok": false,
+    "code": null,
+    "ms": 5041,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.0.103:1234/629942219",
+    "ok": false,
+    "code": null,
+    "ms": 5002,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.0.103:1234/738910914",
+    "ok": false,
+    "code": null,
+    "ms": 5035,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.0.103:1234/790187291",
+    "ok": false,
+    "code": null,
+    "ms": 5058,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.0.103:1234/608807416",
+    "ok": false,
+    "code": null,
+    "ms": 6042,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://192.168.0.103:1234/673168256",
+    "ok": false,
+    "code": null,
+    "ms": 6125,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://192.168.0.103:1234/947472500",
+    "ok": false,
+    "code": null,
+    "ms": 6034,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://192.168.0.103:1234/630291707",
+    "ok": false,
+    "code": null,
+    "ms": 6006,
+    "err": "<urlopen error timed out>"
+   }
+  ]
+ },
+ "ngo5_ipv4.m3u": {
+  "sampled": 12,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226591/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5056,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226019/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5052,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226516/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5031,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226477/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5071,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226480/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5035,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ott.mobaibox.com/PLTV/3/224/3221227018/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5009,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226571/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 6071,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225734/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 6035,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225603/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 6040,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225632/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 6007,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226425/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 6001,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225624/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 6033,
+    "err": "<urlopen error timed out>"
+   }
+  ]
+ },
+ "qwerttvv_mobile.m3u": {
+  "sampled": 11,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://192.168.123.1:23234/rtp/228.1.1.26:8104",
+    "ok": false,
+    "code": null,
+    "ms": 5029,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/228.1.1.29:8116",
+    "ok": false,
+    "code": null,
+    "ms": 5033,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/228.1.1.244:8212",
+    "ok": false,
+    "code": null,
+    "ms": 5033,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/228.1.1.46:3006",
+    "ok": false,
+    "code": null,
+    "ms": 5042,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/228.1.1.187:8072",
+    "ok": false,
+    "code": null,
+    "ms": 5008,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/228.1.1.31:8132",
+    "ok": false,
+    "code": null,
+    "ms": 6071,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/228.1.1.209:4220",
+    "ok": false,
+    "code": null,
+    "ms": 6043,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/228.1.1.181:8144",
+    "ok": false,
+    "code": null,
+    "ms": 6048,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/228.1.1.245:8188",
+    "ok": false,
+    "code": null,
+    "ms": 6026,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/228.1.1.123:8001",
+    "ok": false,
+    "code": null,
+    "ms": 6001,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/228.1.1.243:8196",
+    "ok": false,
+    "code": null,
+    "ms": 6016,
+    "err": "<urlopen error timed out>"
+   }
+  ]
+ },
+ "qwerttvv_unicom.m3u": {
+  "sampled": 11,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://192.168.123.1:23234/rtp/239.3.1.61:8104",
+    "ok": false,
+    "code": null,
+    "ms": 5007,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/239.3.1.65:8132",
+    "ok": false,
+    "code": null,
+    "ms": 5027,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/239.3.1.220:4220",
+    "ok": false,
+    "code": null,
+    "ms": 5018,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/239.3.1.151:8144",
+    "ok": false,
+    "code": null,
+    "ms": 5036,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/239.3.1.169:8212",
+    "ok": false,
+    "code": null,
+    "ms": 5049,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/239.3.1.144:3005",
+    "ok": false,
+    "code": null,
+    "ms": 5047,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/239.3.1.249:8001",
+    "ok": false,
+    "code": null,
+    "ms": 5002,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/239.3.1.63:8116",
+    "ok": false,
+    "code": null,
+    "ms": 6028,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/239.3.1.148:8072",
+    "ok": false,
+    "code": null,
+    "ms": 6017,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/239.3.1.168:8196",
+    "ok": false,
+    "code": null,
+    "ms": 6017,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://192.168.123.1:23234/rtp/239.3.1.166:8188",
+    "ok": false,
+    "code": null,
+    "ms": 6064,
+    "err": "<urlopen error timed out>"
+   }
+  ]
+ },
+ "suxuang_gd.txt": {
+  "sampled": 11,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://113.95.138.226:8888/rtp/239.77.1.160:5146$1920×1080",
+    "ok": false,
+    "code": null,
+    "ms": 17,
+    "err": "'ascii' codec can't encode character '\\xd7' in position 31: ordinal not in range"
+   },
+   {
+    "url": "http://113.95.138.226:8888/rtp/239.77.1.158:5146$1920×1080",
+    "ok": false,
+    "code": null,
+    "ms": 18,
+    "err": "'ascii' codec can't encode character '\\xd7' in position 31: ordinal not in range"
+   },
+   {
+    "url": "http://113.95.138.226:8888/rtp/239.77.1.10:5146$1920×1080",
+    "ok": false,
+    "code": null,
+    "ms": 65,
+    "err": "'ascii' codec can't encode character '\\xd7' in position 30: ordinal not in range"
+   },
+   {
+    "url": "http://113.95.138.226:8888/rtp/239.77.0.43:5146$720×576",
+    "ok": false,
+    "code": null,
+    "ms": 7,
+    "err": "'ascii' codec can't encode character '\\xd7' in position 29: ordinal not in range"
+   },
+   {
+    "url": "http://113.95.138.226:8888/rtp/239.77.1.215:5146$1920×1080",
+    "ok": false,
+    "code": null,
+    "ms": 20,
+    "err": "'ascii' codec can't encode character '\\xd7' in position 31: ordinal not in range"
+   },
+   {
+    "url": "http://113.95.138.226:8888/rtp/239.77.0.60:5146$3840×2160",
+    "ok": false,
+    "code": null,
+    "ms": 16,
+    "err": "'ascii' codec can't encode character '\\xd7' in position 30: ordinal not in range"
+   },
+   {
+    "url": "http://113.95.138.226:8888/rtp/239.77.0.2:5146$3840×2160",
+    "ok": false,
+    "code": null,
+    "ms": 16,
+    "err": "'ascii' codec can't encode character '\\xd7' in position 29: ordinal not in range"
+   },
+   {
+    "url": "http://113.95.138.226:8888/rtp/239.77.0.188:5146$1920×1080",
+    "ok": false,
+    "code": null,
+    "ms": 17,
+    "err": "'ascii' codec can't encode character '\\xd7' in position 31: ordinal not in range"
+   },
+   {
+    "url": "http://113.95.138.226:8888/rtp/239.77.0.57:5146$3840×2160",
+    "ok": false,
+    "code": null,
+    "ms": 17,
+    "err": "'ascii' codec can't encode character '\\xd7' in position 30: ordinal not in range"
+   },
+   {
+    "url": "http://113.95.138.226:8888/rtp/239.77.1.74:5146$720×576",
+    "ok": false,
+    "code": null,
+    "ms": 1,
+    "err": "'ascii' codec can't encode character '\\xd7' in position 29: ordinal not in range"
+   },
+   {
+    "url": "http://113.95.138.226:8888/rtp/239.77.1.124:5146$1920×1080",
+    "ok": false,
+    "code": null,
+    "ms": 1,
+    "err": "'ascii' codec can't encode character '\\xd7' in position 31: ordinal not in range"
+   }
+  ]
+ },
+ "suxuang_ipv4.m3u": {
+  "sampled": 15,
+  "alive": 3,
+  "rate": 20.0,
+  "detail": [
+   {
+    "url": "http://148.135.93.213/live.php?id=海南卫视",
+    "ok": false,
+    "code": null,
+    "ms": 1,
+    "err": "'ascii' codec can't encode characters in position 17-20: ordinal not in range(12"
+   },
+   {
+    "url": "http://dassby.qqff.top:99/live/辽宁经济/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 1,
+    "err": "'ascii' codec can't encode characters in position 10-13: ordinal not in range(12"
+   },
+   {
+    "url": "http://112.27.235.94:8000/hls/44/index.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 257
+   },
+   {
+    "url": "http://112.27.235.94:8000/hls/38/index.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 211
+   },
+   {
+    "url": "https://0472.org/hls/cgtnd.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 401
+   },
+   {
+    "url": "https://zby.130519.xyz/PLTV/11/224/3221226120/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 684,
+    "err": "<urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failur"
+   },
+   {
+    "url": "http://175.8.28.207:9999/tsfile/live/0008_1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5034,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://iptv.huuc.edu.cn/hls/lnhd.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5042,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://www.lizhinas.top:1009/rtp/239.252.219.89:5140",
+    "ok": false,
+    "code": null,
+    "ms": 6048,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://101.35.240.114:88/live.php?id=CCTV8",
+    "ok": false,
+    "code": null,
+    "ms": 6032,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "https://zby.130519.xyz/PLTV/11/224/3221225728/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 6064,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://58.48.37.158:1111/tsfile/live/1001_1.m3u8?key=txiptv&playlive=1&authid=0",
+    "ok": false,
+    "code": null,
+    "ms": 6002,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "https://hls.gstv.com.cn/49048r/3t5xyc.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 6037,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "http://wouu.net:9977/udp/239.93.0.47:5140",
+    "ok": false,
+    "code": null,
+    "ms": 6002,
+    "err": "<urlopen error timed out>"
+   },
+   {
+    "url": "https://i.mjh.nz/SamsungTVPlus/USBD12000255B.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 6003,
+    "err": "<urlopen error timed out>"
+   }
+  ]
+ },
+ "suxuang_migu.txt": {
+  "sampled": 12,
+  "alive": 10,
+  "rate": 83.3,
+  "detail": [
+   {
+    "url": "http://8.138.7.223/tv/migu666.php?id=zxs",
+    "ok": true,
+    "code": 200,
+    "ms": 5122
+   },
+   {
+    "url": "http://8.138.7.223/tv/migu666.php?id=cctv8",
+    "ok": true,
+    "code": 200,
+    "ms": 5145
+   },
+   {
+    "url": "http://8.138.7.223/tv/migu666.php?id=cgtnr",
+    "ok": true,
+    "code": 200,
+    "ms": 5126
+   },
+   {
+    "url": "http://8.138.7.223/tv/migu666.php?id=cctv14",
+    "ok": true,
+    "code": 200,
+    "ms": 5198
+   },
+   {
+    "url": "http://8.138.7.223/tv/migu666.php?id=hunws",
+    "ok": true,
+    "code": 200,
+    "ms": 5160
+   },
+   {
+    "url": "http://8.138.7.223/tv/migu666.php?id=fztd",
+    "ok": true,
+    "code": 200,
+    "ms": 5127
+   },
+   {
+    "url": "http://8.138.7.223/tv/migu666.php?id=qhws",
+    "ok": true,
+    "code": 200,
+    "ms": 5164
+   },
+   {
+    "url": "http://8.138.7.223/tv/migu666.php?id=cctv17",
+    "ok": true,
+    "code": 200,
+    "ms": 5346
+   },
+   {
+    "url": "http://8.138.7.223/tv/migu666.php?id=jlws",
+    "ok": true,
+    "code": 200,
+    "ms": 5323
+   },
+   {
+    "url": "http://vip.lqcc.xyz:35455/itv/3000000010000006077.m3u8?cdn=FifastbLive",
+    "ok": false,
+    "code": null,
+    "ms": 5412,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://8.138.7.223/tv/migu666.php?id=hinws",
+    "ok": true,
+    "code": 200,
+    "ms": 5501
+   },
+   {
+    "url": "http://8.138.7.223/tv/migu666.php?id=hubws",
+    "ok": false,
+    "code": null,
+    "ms": 6041,
+    "err": "timed out"
+   }
+  ]
+ },
+ "suxuang_yd.m3u": {
+  "sampled": 15,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://39.134.65.106/PLTV/88888888/224/3221225676/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5014,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.65.106/PLTV/88888888/224/3221225507/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5025,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.135.135.38/ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225734/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5044,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.65.106/PLTV/88888888/224/3221225669/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5044,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.135.133.178/ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226439/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5019,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.135.133.180/ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226406/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5009,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.135.133.173/ottrrs.hl.chinamobile.com/TVOD/88888888/224/3221225732/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5051,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.65.106/PLTV/88888888/224/3221225672/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5003,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.65.106/PLTV/88888888/224/3221225975/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5025,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.65.4/ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225714/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5003,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.65.106/PLTV/88888888/224/3221225678/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5005,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.65.106/PLTV/88888888/224/3221225713/1.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5010,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.65.62/ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225681/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5003,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.65.89/ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225665/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5002,
+    "err": "Remote end closed connection without response"
+   },
+   {
+    "url": "http://39.134.65.64/ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225680/index.m3u8",
+    "ok": false,
+    "code": null,
+    "ms": 5018,
+    "err": "Remote end closed connection without response"
+   }
+  ]
+ },
+ "yang1989_gather.m3u": {
+  "sampled": 5,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "https://cdn-3.ttvb.eu.org/huya/11213191",
+    "ok": false,
+    "code": null,
+    "ms": 182,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://cdn-3.ttvb.eu.org/huya/660679",
+    "ok": false,
+    "code": null,
+    "ms": 199,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://cdn-3.ttvb.eu.org/douyu/488743",
+    "ok": false,
+    "code": null,
+    "ms": 169,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "https://cdn-3.ttvb.eu.org/douyu/1997723",
+    "ok": false,
+    "code": null,
+    "ms": 449,
+    "err": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of "
+   },
+   {
+    "url": "http://gslbserv.itv.cmvideo.cn:80/3000000001000008001/index.m3u8?channel-id=FifastbLive&Contentid=3000000001000008001&livemode=1&stbId=YanG-1989",
+    "ok": false,
+    "code": null,
+    "ms": 687,
+    "err": "HTTP Error 403: Forbidden"
+   }
+  ]
+ },
+ "yang1989_migu.m3u": {
+  "sampled": 5,
+  "alive": 0,
+  "rate": 0.0,
+  "detail": [
+   {
+    "url": "http://gslbserv.itv.cmvideo.cn:80/3000000001000008001/index.m3u8?channel-id=FifastbLive&Contentid=3000000001000008001&livemode=1&stbId=YanG-1989",
+    "ok": false,
+    "code": null,
+    "ms": 571,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://gslbserv.itv.cmvideo.cn:80/3000000010000002019/index.m3u8?channel-id=FifastbLive&Contentid=3000000010000002019&livemode=1&stbId=YanG-1989",
+    "ok": false,
+    "code": null,
+    "ms": 572,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://gslbserv.itv.cmvideo.cn:80/3000000010000023434/index.m3u8?channel-id=FifastbLive&Contentid=3000000010000023434&livemode=1&stbId=YanG-1989",
+    "ok": false,
+    "code": null,
+    "ms": 581,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://gslbserv.itv.cmvideo.cn:80/3000000010000004193/index.m3u8?channel-id=FifastbLive&Contentid=3000000010000004193&livemode=1&stbId=YanG-1989",
+    "ok": false,
+    "code": null,
+    "ms": 611,
+    "err": "HTTP Error 403: Forbidden"
+   },
+   {
+    "url": "http://gslbserv.itv.cmvideo.cn:80/3000000010000006077/index.m3u8?channel-id=FifastbLive&Contentid=3000000010000006077&livemode=1&stbId=YanG-1989",
+    "ok": false,
+    "code": null,
+    "ms": 1520,
+    "err": "HTTP Error 403: Forbidden"
+   }
+  ]
+ },
+ "yuechan_cutv.txt": {
+  "sampled": 0,
+  "alive": 0,
+  "detail": []
+ },
+ "yuechan_gntv.m3u": {
+  "sampled": 7,
+  "alive": 7,
+  "rate": 100.0,
+  "detail": [
+   {
+    "url": "http://hls.nntv.cn/nnlive/YSYL_244.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 91
+   },
+   {
+    "url": "https://hls.nntv.cn/nnlive/XWZH_24.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 105
+   },
+   {
+    "url": "http://english-livebkali.cgtn.com/live/doccgtn_0.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 151
+   },
+   {
+    "url": "https://english-livebkali.cgtn.com/live/encgtn_0.m3u8",
+    "ok": true,
+    "code": 206,
+    "ms": 203
+   },
+   {
+    "url": "http://ali-xwl.cztv.com/live/channel121080Pnew.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 345
+   },
+   {
+    "url": "http://220.135.241.47:8317/0.ts",
+    "ok": true,
+    "code": 200,
+    "ms": 331
+   },
+   {
+    "url": "https://live-auth.51kandianshi.com/szgd/csztv4k_4k.m3u8",
+    "ok": true,
+    "code": 200,
+    "ms": 356
+   }
+  ]
+ },
+ "yuechan_iptv.m3u": {
+  "sampled": 0,
+  "alive": 0,
+  "detail": []
+ }
+}

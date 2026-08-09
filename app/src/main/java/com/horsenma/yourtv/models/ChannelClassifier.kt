@@ -25,7 +25,8 @@ object ChannelClassifier {
             CAT_CCTV -> CAT_CCTV
             CAT_WEISHI -> CAT_WEISHI
             CAT_LOCAL, CAT_OVERSEAS -> c.region.ifEmpty { CAT_OTHER }
-            else -> localizeOther(groupHint).ifEmpty { CAT_OTHER }
+            // 标题级分类（如"发现之旅"→纪录）优先于分组提示，分组提示为空时不再落"其他-其他"
+            else -> c.region.ifEmpty { localizeOther(groupHint) }.ifEmpty { CAT_OTHER }
         }
     }
 
@@ -60,7 +61,7 @@ object ChannelClassifier {
             CAT_CCTV -> "央视||" + cctvCanonicalId(title)
             CAT_WEISHI -> "卫视||" + normalizeName(effective)
             CAT_LOCAL, CAT_OVERSEAS -> c.category + "|" + c.region + "|" + normalizeName(effective)
-            else -> CAT_OTHER + "|" + localizeOther(groupHint) + "|" + normalizeName(effective)
+            else -> CAT_OTHER + "|" + (c.region.ifEmpty { localizeOther(groupHint) }) + "|" + normalizeName(effective)
         }
     }
 
@@ -229,6 +230,10 @@ object ChannelClassifier {
         val lower = name.lowercase()
         val hintLower = hint.lowercase()
 
+        // 0. 央视品牌（重温经典 = CCTV 怀旧频道，2024 年开播）
+        if (name.contains("重温经典")) {
+            return Classification(CAT_CCTV, "")
+        }
         // 1. 央视：CCTV / CGTN / CETV / 央视 / 中央 / 中国教育
         if (lower.contains("cctv") || lower.contains("cgtn") || lower.contains("cetv") ||
             name.contains("央视") || name.contains("中央") || name.contains("中国教育")
@@ -238,6 +243,19 @@ object ChannelClassifier {
         // 分组提示兜底：标题无关键词但源分组是央视频道/央视IPV4 等
         if (hint.contains("央视") || hint.contains("中央") || hintLower.contains("cctv")) {
             return Classification(CAT_CCTV, "")
+        }
+
+        // 1.5 咪咕体育每日轮换分组（"体育-今天05-10"）：先于国家/省份匹配，
+        // 否则标题里的球队名（广东/日本/法国…）会把赛事误分为地方/海外频道
+        if (Regex("^体育-[今明后昨]天\\d{1,2}-\\d{1,2}$").containsMatchIn(hint)) {
+            return Classification(CAT_OTHER, "体育")
+        }
+
+        // 1.6 已知中文品牌 → 省份/央视（纠正"卫视IPV4/卫视频道"分组提示的误判：
+        // 五星体育是上海台、山东教育/苏州不是卫视、苏州4K 是江苏地方台）
+        BRAND_REGION[normalizeName(title)]?.let { brand ->
+            if (brand == CAT_CCTV) return Classification(CAT_CCTV, "")
+            return Classification(CAT_LOCAL, brand)
         }
 
         // 2. 港澳台（先于卫视规则：凤凰卫视/香港卫视/澳门卫视等归入港澳台）
@@ -264,8 +282,71 @@ object ChannelClassifier {
             return Classification(CAT_LOCAL, "未分类")
         }
 
+        // 7. 已知无分组专题/付费频道 → 其他-具体分类（不再落"其他-其他"）
+        TITLE_CATEGORY[normalizeName(title)]?.let { return Classification(CAT_OTHER, it) }
+
         return Classification(CAT_OTHER, "")
     }
+
+    /**
+     * 关键词匹配：短英文关键词（纯字母 <5 或易误命中英文单词者）要求词边界，
+     * 避免 inter→International、ary→documentary、n tv→Dragon TV、ert→Entertainment 等
+     * 子串误匹配；数字后缀品牌（BBC1/KBS1/ORF1）保留兼容；中文关键词保持子串匹配。
+     */
+    private fun containsKeyword(text: String, keyword: String): Boolean {
+        if (keyword.isEmpty()) return false
+        val lower = text.lowercase()
+        val kw = keyword.lowercase()
+        // 中文关键词：直接子串（中文无词边界问题）
+        if (kw.any { it.code in 0x4E00..0x9FFF }) return lower.contains(kw)
+        if (kw !in GENERIC_SHORT_EN) return lower.contains(kw)
+        // 多词关键词：首 token 左边界 + 尾 token 右边界
+        if (kw.contains(' ')) {
+            val first = kw.substringBefore(' ')
+            val last = kw.substringAfterLast(' ')
+            val idx = lower.indexOf(kw)
+            if (idx < 0) return false
+            val leftOk = idx == 0 || !lower[idx - 1].isLetterOrDigit()
+            val end = idx + kw.length
+            val rightOk = end == lower.length || !lower[end - 1].isLetterOrDigit() || !lower[end].isLetterOrDigit()
+            return leftOk && rightOk
+        }
+        // 单 token：数字结尾的关键词（1tv/8tv）允许数字后缀，只要求左边界
+        if (kw.last().isDigit()) {
+            return Regex("(^|[^a-z0-9])${Regex.escape(kw)}").containsMatchIn(lower)
+        }
+        // 纯字母短词：两侧词边界；右边界允许数字后缀（BBC1/KBS1 等真实频道）
+        return Regex("(^|[^a-z0-9])${Regex.escape(kw)}(?=\$|[^a-z0-9]|\\d(?=\$|[^a-z0-9]))").containsMatchIn(lower)
+    }
+
+    /** 需要词边界匹配的短英文关键词（其余短品牌缩写如 bbc/itv/kbs 保持子串兼容数字后缀） */
+    private val GENERIC_SHORT_EN = setOf(
+        "inter", "ary", "n tv", "1tv", "true", "mega", "ert", "rts", "stv", "ltv",
+        "tvr", "hrt", "bnt", "tvm", "lrt", "err", "ctn", "lnb", "ptv", "gma",
+        "rtm", "vtv", "vtc", "cna", "cbc", "rcn", "ona", "dmc", "chv", "tvn",
+        "ntv", "orf", "trt", "rtr", "rai", "tve", "rtp", "npo", "srf", "rsi",
+        "svt", "nrk", "tvp", "m1"
+    )
+
+    /** 中文品牌 → 省份/央视（键为 normalizeName 后的紧凑小写形式） */
+    private val BRAND_REGION: Map<String, String> = mapOf(
+        "五星体育" to "上海",
+        "山东教育" to "山东",
+        "苏州" to "江苏",
+        "重温经典" to CAT_CCTV
+    )
+
+    /** 无分组专题/付费频道 → 其他-分类 */
+    private val TITLE_CATEGORY: Map<String, String> = mapOf(
+        "发现之旅" to "纪录",
+        "中学生" to "教育",
+        "财富天下" to "财经",
+        "环球旅游" to "旅游",
+        "中华特产" to "生活",
+        "中国天气" to "天气",
+        "都市剧场" to "电影",
+        "数码时代" to "数字电视"
+    )
 
     private fun matchHkTwMo(name: String, hint: String): String? {
         val twBrands = listOf(
@@ -273,15 +354,18 @@ object ChannelClassifier {
             "纬来", "非凡", "壹电视", "寰宇", "台湾", "台北", "高雄", "台中", "台南", "新北",
             "大爱", "客家", "大立", "ntd", "good tv", "daai", "hakka", "ftv", "ebc", "cts"
         )
-        if (twBrands.any { name.contains(it, ignoreCase = true) }) return "台湾"
+        if (twBrands.any { containsKeyword(name, it) }) return "台湾"
         val hkBrands = listOf(
             "凤凰", "香港", "无线", "明珠台", "翡翠台", "viu", "开电视", "有线新闻",
             "亚洲电视", "atv", "now新闻", "now财经", "港台",
-            "hoy", "面包台", "美亚", "美亞", "耀才", "celestial", "天映", "龙华", "龍華"
+            "hoy", "面包台", "美亚", "美亞", "耀才", "celestial", "天映", "龙华", "龍華",
+            "channel u"
         )
-        if (hkBrands.any { name.contains(it, ignoreCase = true) }) return "香港"
+        if (hkBrands.any { containsKeyword(name, it) }) return "香港"
         val moBrands = listOf("澳门", "澳亚", "澳视")
-        if (moBrands.any { name.contains(it, ignoreCase = true) }) return "澳门"
+        if (moBrands.any { containsKeyword(name, it) }) return "澳门"
+        // TDM = 澳门广播电视（澳广视），英文名
+        if (containsKeyword(name, "tdm")) return "澳门"
         // 英文写法兜底：Hong Kong / Taiwan / Macau
         if (name.contains("hong kong", ignoreCase = true) || name.contains("rthk", ignoreCase = true)) return "香港"
         if (name.contains("taiwan", ignoreCase = true) || name.contains("taipei", ignoreCase = true) ||
@@ -350,10 +434,10 @@ object ChannelClassifier {
 
     private fun matchCountry(name: String, hint: String): String? {
         for ((country, keys) in COUNTRY_KEYWORDS) {
-            if (keys.any { name.contains(it, ignoreCase = true) }) return country
+            if (keys.any { containsKeyword(name, it) }) return country
         }
         for ((country, keys) in COUNTRY_KEYWORDS) {
-            if (keys.any { hint.contains(it, ignoreCase = true) }) return country
+            if (keys.any { containsKeyword(hint, it) }) return country
         }
         return null
     }
@@ -529,7 +613,10 @@ object ChannelClassifier {
         "易门" to "云南", "通海" to "云南",
         "第一财经" to "上海", "上视" to "上海",
         "金鹰卡通" to "湖南", "江夏" to "湖北",
-        "双河" to "新疆", "可克达拉" to "新疆", "奎屯" to "新疆", "玛纳斯" to "新疆"
+        "双河" to "新疆", "可克达拉" to "新疆", "奎屯" to "新疆", "玛纳斯" to "新疆",
+        // v3.3.0 数据驱动补充（真实源数据扫描发现的县/市/区）
+        "灌阳" to "广西", "高台" to "甘肃", "和政" to "甘肃", "房山" to "北京",
+        "白城" to "吉林", "珲春" to "吉林", "江津" to "重庆"
     )
 
     /** 国家/地区关键词（中文 + 英文 + 常见海外频道品牌），顺序即分组排序 */
@@ -563,9 +650,9 @@ object ChannelClassifier {
         "乌克兰" to listOf("乌克兰", "ukraine", "inter", "1+1", "ukraine 24"),
         "日本" to listOf("日本", "japan", "nhk", "tokyo", "东京", "大阪", "fuji", "tv asahi", "tv tokyo",
             "nippon", "ntv", "bs日", "wowow", "朝日", "日本テレビ"),
-        "韩国" to listOf("韩国", "korea", "kbs", "mbc", "sbs", "arirang", "tvn", "jtbc", "ebs", "首尔",
+        "韩国" to listOf("韩国", "korea", "kbs", "mbc", "sbs", "arirang", "tvn", "jtbc", "ebs", "cgntv", "首尔",
             "kbs1", "kbs2", "mbc", "연합"),
-        "新加坡" to listOf("新加坡", "singapore", "channel newsasia", "cna", "mediacorp", "starhub", "新传媒"),
+        "新加坡" to listOf("新加坡", "singapore", "channel newsasia", "cna", "mediacorp", "starhub", "新传媒", "mewatch"),
         "马来西亚" to listOf("马来西亚", "malaysia", "astro", "rtm", "8tv", "tv3"),
         "泰国" to listOf("泰国", "thailand", "true", "channel 3", "thai", "曼谷", "bbtv", "workpoint"),
         "越南" to listOf("越南", "vietnam", "vtv", "vtc", "htv"),
@@ -667,7 +754,18 @@ object ChannelClassifier {
             "Xiamen TV" to "厦门卫视",
             "TVB Jade" to "翡翠台", "Jade Channel" to "翡翠台",
             "TVB Pearl" to "明珠台", "Pearl Channel" to "明珠台",
-            "TVB News" to "无线新闻", "Cable News HK" to "有线新闻"
+            "TVB News" to "无线新闻", "Cable News HK" to "有线新闻",
+            // 中国卫视国际版（v3.3.0：解决 "TV International" 被国家关键词误分）
+            "Zhejiang TV International" to "浙江卫视",
+            "Dragon TV International" to "东方卫视",
+            "Hunan TV International" to "湖南卫视",
+            "Jiangsu TV International" to "江苏卫视",
+            "Beijing TV International" to "北京卫视",
+            "Shanghai TV International" to "东方卫视",
+            "Shenzhen TV International" to "深圳卫视",
+            "Guangdong TV International" to "广东卫视",
+            "Southeast TV International" to "东南卫视",
+            "Shandong TV International" to "山东卫视"
         ).mapKeys { (k, _) -> normalizeName(k) }
     }
 }

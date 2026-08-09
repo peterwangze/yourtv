@@ -164,21 +164,14 @@ object Utils {
     fun getUrls(url: String): List<String> {
         return if (url.startsWith("https://raw.githubusercontent.com") || url.startsWith("https://github.com")) {
             listOf(
-                // 国内可直连的 GitHub 加速镜像（按可用性排序；失效镜像已移除）
-                "https://github.moeyy.xyz/",
-                "https://ghfast.top/",
-                "https://gh-proxy.llyke.com/",
-                "https://cf.ghproxy.cc/",
-                "https://gh.llkk.cc/",
-                "https://ghproxy.cn/",
-                "https://www.ghproxy.cc/",
-                "https://github.horsenma.top/",
-                "https://ghp.ci/",
-                "https://ghproxy.click/",
+                // 2026-08-09 实测（67 组探测）可用镜像，按耗时排序；
+                // 原 11 个镜像中 7 个已失效（SSL EOF/证书过期/假 200/429/封禁）已移除
                 "https://gh-proxy.com/",
-            ).map {
-                "$it$url"
-            }
+                "https://github.horsenma.top/",
+                "https://gh.llkk.cc/",
+                "https://ghfast.top/",
+                "https://ghproxy.net/",
+            ).map { "$it$url" } + listOf(url) // 直连 raw 作最后兜底（国内通常不可达但无害）
         } else {
             listOf(url)
         }

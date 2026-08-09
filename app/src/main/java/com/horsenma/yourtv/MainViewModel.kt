@@ -63,6 +63,7 @@ class MainViewModel : ViewModel() {
     private val parsingToastShown = java.util.concurrent.atomic.AtomicBoolean(false)
     // 多源聚合：apply=false 静默解析时收集各源频道，聚合完成后一次性替换界面列表
     private val aggregateBuffer = mutableListOf<List<TV>>()
+    private val aggregating = java.util.concurrent.atomic.AtomicBoolean(false)
     @Volatile private var aggregateStarted = false
 
     // 解析结果缓存：启动秒出列表，避免每次启动重新解析/下载
@@ -184,6 +185,13 @@ class MainViewModel : ViewModel() {
                 viewModelScope.launch(Dispatchers.IO) {
                     // 已有合并缓存（含配置源频道）时静默刷新，避免每次启动用单源覆盖多源合并结果
                     importFromUrl(it, "", apply = !channelsCacheFile().exists())
+                    // v3.3.0：静默导入完成后若聚合已过期，立即合并（原逻辑只入 buffer 永不合并，
+                    // 导致二次启动列表停留在旧快照/单源——"启动看不到央视分类"根因之一）
+                    if (aggregateBuffer.isNotEmpty() &&
+                        System.currentTimeMillis() - SP.lastAggregationMs >= REFRESH_AGGREGATION_INTERVAL_MS
+                    ) {
+                        aggregateAllSources()
+                    }
                     updateEPG()
                 }
             }
@@ -279,17 +287,35 @@ class MainViewModel : ViewModel() {
             }.awaitAll()
         }
         aggregateAllSources()
+        // 完整聚合（全部预置源）完成才刷新 24h 闸门；
+        // updateConfig 的局部聚合（仅激活源）不置位，避免完整聚合被跳过
+        SP.lastAggregationMs = System.currentTimeMillis()
     }
 
     /** 将 aggregateBuffer 中收集的各源频道按分类+规范名合并，线路按清晰度/稳定度排序后应用 */
     private suspend fun aggregateAllSources() {
-        if (aggregateBuffer.isEmpty()) {
+        // 防重入：首装并行导入路径与 updateConfig/refreshSourcesIfStale 路径可能并发触发
+        if (!aggregating.compareAndSet(false, true)) {
+            Log.d(TAG, "aggregateAllSources: already running, skip")
+            return
+        }
+        try {
+            aggregateAllSourcesLocked()
+        } finally {
+            aggregating.set(false)
+        }
+    }
+
+    private suspend fun aggregateAllSourcesLocked() {
+        // 快照 buffer（写入方持 parseMutex，避免并发 add 的 CME）
+        val lists = parseMutex.withLock { aggregateBuffer.toList() }
+        if (lists.isEmpty()) {
             Log.w(TAG, "aggregateAllSources: nothing collected, skip")
             return
         }
-        Log.i(TAG, "aggregateAllSources: merging ${aggregateBuffer.size} source lists")
+        Log.i(TAG, "aggregateAllSources: merging ${lists.size} source lists")
         val mergedMap = LinkedHashMap<String, TV>()
-        for (list in aggregateBuffer) {
+        for (list in lists) {
             for (tv in list) {
                 val key = com.horsenma.yourtv.models.ChannelClassifier.mergeKey(tv.title, tv.group)
                 val existing = mergedMap[key]
@@ -303,7 +329,8 @@ class MainViewModel : ViewModel() {
                     mergedMap[key] = existing.copy(
                         logo = if (existing.logo.isNullOrEmpty()) tv.logo else existing.logo,
                         name = if (existing.name.isNullOrEmpty()) tv.name else existing.name,
-                        uriHeaders = existing.uriHeaders + incomingHeaders
+                        uriHeaders = existing.uriHeaders + incomingHeaders,
+                        uriSources = existing.uriSources + tv.uriSources
                     )
                 }
                 // 同名但类型不同（IPTV vs WEBVIEW）不合并线路，保留先到者
@@ -342,7 +369,8 @@ class MainViewModel : ViewModel() {
             applyChannelList(ordered, restoreTitle, null)
         }
         saveChannelsCache(ordered)
-        aggregateBuffer.clear()
+        // 只移除本次已消费的源列表（期间新导入的列表保留给下一轮聚合）
+        parseMutex.withLock { aggregateBuffer.removeAll(lists) }
         aggregateStarted = false
     }
 
@@ -358,6 +386,8 @@ class MainViewModel : ViewModel() {
         this.context = context
         val application = context.applicationContext as YourTVApplication
         imageHelper = application.imageHelper
+        // v3.3.0：恢复跨会话线路健康（死线/延迟），切台/选线跳过已知坏线
+        LineHealth.loadPersisted()
 
         if (groupModel.getAllList() == null || groupModel.getAllList()!!.tvList.value.isNullOrEmpty()) {
             groupModel.addTVListModel(TVListModel(context.getString(R.string.my_favorites), 0))
@@ -457,6 +487,19 @@ class MainViewModel : ViewModel() {
             }
 
             if (!channelsLoaded) {
+                // v3.3.0 内置预载快照：安装后开箱即用（零网络依赖），
+                // 完整分类（央视/卫视/地方/海外/其他）立即可见
+                val bundled = loadBundledChannels()
+                if (!bundled.isNullOrEmpty()) {
+                    applyChannelList(bundled, null) {
+                        _channelsOk.value = true
+                    }
+                    channelsLoaded = true
+                    Log.d(TAG, "Channels loaded from bundled_channels: ${bundled.size}")
+                }
+            }
+
+            if (!channelsLoaded) {
                 val filename = context.getSharedPreferences("SourceCache", Context.MODE_PRIVATE).getString("active_source", null)
                 if (filename != null) {
                     // 激活源（缓存内容变化时替换列表，不变则跳过）
@@ -514,6 +557,9 @@ class MainViewModel : ViewModel() {
 
             // 界面就绪后再后台导入预置源，避免首屏卡顿
             importDefaultsIfNeeded()
+            // v3.3.0：二次启动也保证聚合列表新鲜（24h 节流），
+            // 修复"启动看不到央视分类/列表长期停留在旧快照"问题
+            refreshSourcesIfStale()
         }
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -726,7 +772,8 @@ class MainViewModel : ViewModel() {
                     if (skipHistory) "" else url,
                     id,
                     apply,
-                    applyGate = applyGate
+                    applyGate = applyGate,
+                    sourceLabel = url
                 )
             }
             return
@@ -768,7 +815,8 @@ class MainViewModel : ViewModel() {
                         if (skipHistory) "" else url,
                         id,
                         apply,
-                        applyGate = applyGate
+                        applyGate = applyGate,
+                        sourceLabel = url
                     )
                     SP.lastDownloadTime = System.currentTimeMillis()
                     with(prefs.edit()) {
@@ -911,7 +959,8 @@ class MainViewModel : ViewModel() {
         id: String = "",
         apply: Boolean = true,
         onApplied: (suspend () -> Unit)? = null,
-        applyGate: java.util.concurrent.atomic.AtomicBoolean? = null
+        applyGate: java.util.concurrent.atomic.AtomicBoolean? = null,
+        sourceLabel: String = ""
     ): Boolean {
         return parseMutex.withLock {
             try {
@@ -931,7 +980,7 @@ class MainViewModel : ViewModel() {
                 // 内执行，无并发竞态；仅解析成功后才占用名额，失败源不消耗 gate），
                 // 其余成功源只进 aggregateBuffer，避免列表被反复整体替换
                 val effectiveApply = if (applyGate != null) !applyGate.get() else apply
-                val ok = str2Channels(str, effectiveApply) {
+                val ok = str2Channels(str, effectiveApply, sourceLabel) {
                     withContext(Dispatchers.Main) {
                         _channelsOk.value = true
                     }
@@ -1025,6 +1074,7 @@ class MainViewModel : ViewModel() {
     private fun str2Channels(
         str: String,
         apply: Boolean = true,
+        sourceLabel: String = "",
         onApplied: (suspend () -> Unit)? = null
     ): Boolean {
         if (apply && initialized && str == cacheChannels) {
@@ -1216,13 +1266,17 @@ class MainViewModel : ViewModel() {
                         val key = ChannelClassifier.mergeKey(tv.title, tv.group)
                         val previous = tvMap[key]
                         tvMap[key] = if (previous == null) {
-                            tv.copy(uriHeaders = tv.uris.associateWith { tv.headers.orEmpty() })
+                            tv.copy(
+                                uriHeaders = tv.uris.associateWith { tv.headers.orEmpty() },
+                                uriSources = tv.uris.associateWith { sourceLabel }
+                            )
                         } else {
                             previous.copy(
                                 uris = (previous.uris + tv.uris).distinct(),
                                 logo = previous.logo.ifBlank { tv.logo },
                                 headers = previous.headers?.takeIf { it.isNotEmpty() } ?: tv.headers,
-                                uriHeaders = previous.uriHeaders + tv.uris.associateWith { tv.headers.orEmpty() }
+                                uriHeaders = previous.uriHeaders + tv.uris.associateWith { tv.headers.orEmpty() },
+                                uriSources = previous.uriSources + tv.uris.associateWith { sourceLabel }
                             )
                         }
                     }
@@ -1282,6 +1336,7 @@ class MainViewModel : ViewModel() {
                             videoIndex = 0,
                             headers = tv.headers,
                             uriHeaders = tv.uriHeaders,
+                            uriSources = tv.uriSources,
                             group = tv.group,
                             sourceType = SourceType.UNKNOWN,
                             number = tv.number,
@@ -1348,11 +1403,33 @@ class MainViewModel : ViewModel() {
             .toSet()
         return tv.uris.distinct().sortedWith(
             compareByDescending<String> { if (LineHealth.isDead(it)) 0 else 1 }
+                // 稳定源线路（上次真实播放 30s+）优先于源分层：实测成功 > URL 启发式
                 .thenByDescending { if (it in stableUrls) 1 else 0 }
+                // 源质量分层（v3.3.0）：实测稳定的国内源优先，iptv-org/aptv/退化源靠后，
+                // 避免"高清晰度但 0% 存活"的线路排在最前（实测 CCTV1-17 首选均为 aptv 死链）
+                .thenByDescending { sourceWeightOf(tv, it) }
                 .thenByDescending { SourceQuality.scoreWithResolution(it, SP.getResolutionCache(it), tv.title) }
                 .thenBy { LineHealth.latency(it) ?: Long.MAX_VALUE }
                 .thenBy { it }
         )
+    }
+
+    /** 源质量分层分（按 uriSources 中的源名/域名判定；无标注时给中性分） */
+    private fun sourceWeightOf(tv: TV, url: String): Int {
+        val src = tv.uriSources[url].orEmpty().lowercase()
+        return when {
+            "zbds.top" in src -> 90
+            "vbskycn" in src -> 88
+            "ccsh" in src -> 85
+            "best-fan" in src -> 80
+            "yuechan" in src -> 80
+            "yangg-1989" in src -> 78
+            "migu" in src -> 75
+            "iptv-org" in src -> 55
+            "aptv" in src -> 45
+            "jk2024988" in src || "hujingguang" in src -> 35
+            else -> 60
+        }
     }
 
     fun clearCacheChannels() {
@@ -1384,6 +1461,35 @@ class MainViewModel : ViewModel() {
         } catch (e: Exception) {
             Log.e(TAG, "loadChannelsCache failed: ${e.message}")
             null
+        }
+    }
+
+    /** 读取内置预载快照（assets/bundled_channels.json，发布时由 tools/build_bundled.py 生成） */
+    private fun loadBundledChannels(): List<TV>? {
+        return try {
+            val json = context.assets.open("bundled_channels.json").bufferedReader().use { it.readText() }
+            val list: List<TV> = gson.fromJson(json, typeTvList)
+            list.takeIf { it.isNotEmpty() }
+        } catch (e: Exception) {
+            Log.w(TAG, "loadBundledChannels failed: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * 启动后后台刷新聚合（24h 节流）：重新导入全部预置源（内部有 24h 下载缓存，
+     * 多数源走缓存几乎零成本），合并后整体替换列表，保证分类/线路不陈旧。
+     */
+    private fun refreshSourcesIfStale() {
+        if (SP.configUrl.isNullOrEmpty()) return // 首装路径由 importDefaultsIfNeeded 处理
+        val now = System.currentTimeMillis()
+        if (now - SP.lastAggregationMs < REFRESH_AGGREGATION_INTERVAL_MS) {
+            Log.d(TAG, "refreshSourcesIfStale: last aggregation ${(now - SP.lastAggregationMs) / 1000}s ago, skip")
+            return
+        }
+        if (aggregateStarted) return
+        viewModelScope.launch(Dispatchers.IO) {
+            aggregateRemainingSources()
         }
     }
 
@@ -1493,7 +1599,18 @@ class MainViewModel : ViewModel() {
             val key = com.horsenma.yourtv.models.ChannelClassifier.mergeKey(tvModel.tv.title, tvModel.tv.group)
             val existing = modelMap[key]
             if (existing != null && existing.tv.playerType == tvModel.tv.playerType) {
-                modelMap[key]?.tv?.uris = (modelMap[key]?.tv?.uris.orEmpty() + tvModel.tv.uris).distinct()
+                // 合并线路 + 逐线路 HTTP 头 + 逐线路源标注（v3.3.0）
+                modelMap[key] = TVModel(
+                    existing.tv.copy(
+                        uris = (existing.tv.uris + tvModel.tv.uris).distinct(),
+                        uriHeaders = existing.tv.uriHeaders + tvModel.tv.uriHeaders,
+                        uriSources = existing.tv.uriSources + tvModel.tv.uriSources
+                    )
+                ).apply {
+                    setLike(SP.getLike(existing.tv.id))
+                    setGroupIndex(existing.groupIndex)
+                    listIndex = existing.listIndex
+                }
             } else if (existing == null) {
                 modelMap[key] = tvModel
             }
@@ -1719,6 +1836,7 @@ class MainViewModel : ViewModel() {
         const val CACHE_FILE_NAME = "codechannels.txt"
         const val CACHE_EPG = "epg.xml"
         private const val DEFAULTS_RETRY_INTERVAL_MS = 24L * 3600 * 1000
+        private const val REFRESH_AGGREGATION_INTERVAL_MS = 24L * 3600 * 1000
         val DEFAULT_CHANNELS_FILE = R.raw.channels
         val DEFAULT_WEBCHANNELS_FILE = R.raw.webchannelsiniptv
         // 首启降载：全量线路探测只探前 N 个频道，logo 预热只预热前 M 个频道
