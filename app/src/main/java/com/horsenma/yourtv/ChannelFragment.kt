@@ -75,7 +75,15 @@ class ChannelFragment : Fragment() {
 
     fun show(channel: Int) {
         Log.i(TAG, "input $channel ${this.channel}")
-        val tv = viewModel.groupModel.getCurrent()!!.tv
+        val current = viewModel.groupModel.getCurrent()
+        if (current == null) {
+            // 数据未就绪（解析中/聚合失败）时提示而非崩溃
+            Log.w(TAG, "show: groupModel current is null, channel input ignored")
+            YourTVApplication.getInstance().toast(context?.getString(R.string.loading) ?: "加载中...")
+            hideSelf()
+            return
+        }
+        val tv = current.tv
         if (tv.id > 10 && tv.id == this.channel - 1) {
             this.channel = 0
             channelCount = 0

@@ -29,6 +29,29 @@ object ChannelClassifier {
         }
     }
 
+    // 分类结果缓存：applyChannelList 排序比较器会对同一频道重复调用 classify
+    // 数十次（每次含数十次字符串匹配），上千频道 × 反复调用在主线程会阻塞输入
+    // 导致 ANR。classify 对 (title, groupHint) 是纯函数，缓存语义安全。
+    // LRU 上限 4096，覆盖聚合后全部频道且不无限增长。
+    private val classifyCache = object : LinkedHashMap<String, Classification>(1024, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Classification>?): Boolean {
+            return size > 4096
+        }
+    }
+    private val classifyLock = Any()
+
+    fun classify(title: String, groupHint: String?): Classification {
+        val key = "$title\u0001${groupHint.orEmpty()}"
+        synchronized(classifyLock) {
+            classifyCache[key]?.let { return it }
+        }
+        val result = classifyUncached(title, groupHint)
+        synchronized(classifyLock) {
+            classifyCache[key] = result
+        }
+        return result
+    }
+
     /** 跨源合并键：分类|地区|规范名（其他类再叠加原分组，避免不同地区"都市频道"误合并） */
     fun mergeKey(title: String, groupHint: String?): String {
         val effective = canonicalAlias(title) ?: title
@@ -199,7 +222,7 @@ object ChannelClassifier {
         return s
     }
 
-    fun classify(title: String, groupHint: String?): Classification {
+    private fun classifyUncached(title: String, groupHint: String?): Classification {
         // 繁体写法先转简体（"北京衛視/東森/萍鄉"等），否则关键词匹配全部失效
         val name = canonicalAlias(title) ?: simplifyTraditional(title.trim())
         val hint = groupHint?.trim().orEmpty()

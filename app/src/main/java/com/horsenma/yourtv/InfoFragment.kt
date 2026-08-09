@@ -3,6 +3,7 @@ package com.horsenma.yourtv
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -24,6 +25,10 @@ class InfoFragment : Fragment() {
 
     private val handler = Handler()
     private val delay: Long = 5000
+    // 位图复用：切台不再每次新建 Bitmap/Canvas，避免内存抖动
+    private var logoBitmap: Bitmap? = null
+    private var logoCanvas: Canvas? = null
+    private val logoPaint = Paint()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -89,8 +94,14 @@ class InfoFragment : Fragment() {
             else -> {
                 val width = 300
                 val height = 180
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                val canvas = Canvas(bitmap)
+                val bitmap = logoBitmap ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also {
+                    logoBitmap = it
+                }
+                val canvas = logoCanvas ?: Canvas(bitmap).also {
+                    logoCanvas = it
+                }
+                // 清空上一频道的数字残留
+                canvas.drawColor(android.graphics.Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
 
                 val channelNum = if (tv.number == -1) tv.id.plus(1) else tv.number
                 var size = 150f
@@ -100,25 +111,36 @@ class InfoFragment : Fragment() {
                 if (channelNum > 999) {
                     size = 75f
                 }
-                val paint = Paint().apply {
+                logoPaint.apply {
                     color = ContextCompat.getColor(context, R.color.title_blur)
                     textSize = size
                     textAlign = Paint.Align.CENTER
                 }
                 val x = width / 2f
-                val y = height / 2f - (paint.descent() + paint.ascent()) / 2
-                canvas.drawText(channelNum.toString(), x, y, paint)
+                val y = height / 2f - (logoPaint.descent() + logoPaint.ascent()) / 2
+                canvas.drawText(channelNum.toString(), x, y, logoPaint)
 
                 val name = if (tv.name.isNotEmpty()) { tv.name } else { tv.title }
                 imageHelper.loadImage(name, binding.logo, bitmap, tv.logo)
             }
         }
 
-        val epg = tvModel.epg.value?.filter { it.beginTime < Utils.getDateTimestamp() }
-        if (!epg.isNullOrEmpty()) {
-            binding.desc.text = epg.last().title
+        val now = Utils.getDateTimestamp()
+        val epg = tvModel.epg.value
+        // 只显示"进行中"节目；无进行中节目时回退最近一个已结束节目（带时间标注）
+        val displayEpg = epg
+            ?.filter { it.beginTime < now && it.endTime > now }
+            ?.lastOrNull()
+            ?: epg?.filter { it.beginTime < now }?.maxByOrNull { it.endTime }
+        if (displayEpg != null) {
+            binding.desc.text = context.getString(
+                R.string.epg_program_with_time,
+                Utils.getDateFormat("HH:mm", displayEpg.beginTime),
+                Utils.getDateFormat("HH:mm", displayEpg.endTime),
+                displayEpg.title
+            )
         } else {
-            binding.desc.text = "精彩節目"
+            binding.desc.text = context.getString(R.string.wonderful_program)
         }
 
         handler.removeCallbacks(removeRunnable)

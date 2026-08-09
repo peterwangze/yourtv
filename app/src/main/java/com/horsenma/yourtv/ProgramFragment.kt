@@ -55,26 +55,39 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
 
     fun onVisible() {
         val context = requireActivity()
+        val tvModel = viewModel.groupModel.getCurrent() ?: return
+        val epgList = tvModel.epgValue
+        val now = Utils.getDateTimestamp()
+        val index = epgList.indexOfFirst { it.endTime > now }
 
-        viewModel.groupModel.getCurrent()?.let {
-            val index = it.epgValue.indexOfFirst { it.endTime > Utils.getDateTimestamp() }
+        // adapter/layoutManager 懒初始化一次，避免每次显示重建导致闪烁/滚动丢失
+        if (!this::programAdapter.isInitialized) {
             programAdapter = ProgramAdapter(
                 context,
                 binding.list,
-                it.epgValue,
+                epgList,
                 index,
             )
             binding.list.adapter = programAdapter
             binding.list.layoutManager = LinearLayoutManager(context)
-
             programAdapter.setItemListener(this)
+        } else {
+            programAdapter.updateData(epgList, index)
+        }
 
+        if (epgList.isEmpty()) {
+            binding.list.visibility = View.GONE
+            binding.empty.visibility = View.VISIBLE
+        } else {
+            binding.list.visibility = View.VISIBLE
+            binding.empty.visibility = View.GONE
             if (index > -1) {
                 programAdapter.scrollToPositionAndSelect(index)
             }
-
-            handler.postDelayed(hideRunnable, delay)
         }
+
+        handler.removeCallbacks(hideRunnable)
+        handler.postDelayed(hideRunnable, delay)
     }
 
     fun onHidden() {

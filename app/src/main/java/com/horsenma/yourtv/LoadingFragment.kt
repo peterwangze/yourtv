@@ -1,21 +1,15 @@
 package com.horsenma.yourtv
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.horsenma.yourtv.databinding.LoadingBinding
 
-interface LoadingFragmentCallback {
-    fun onLoadingCompleted()
-}
-
 class LoadingFragment : Fragment() {
     private var _binding: LoadingBinding? = null
     private val binding get() = _binding!!
-    private var callback: LoadingFragmentCallback? = null
     private val TAG = "LoadingFragment"
 
     override fun onCreateView(
@@ -33,9 +27,14 @@ class LoadingFragment : Fragment() {
             binding.bar.layoutParams.height = (20 * resources.displayMetrics.density).toInt()
         }
 
+        if (application != null) {
+            binding.logo.layoutParams.width = application.px2Px(binding.logo.layoutParams.width)
+            binding.logo.layoutParams.height = application.px2Px(binding.logo.layoutParams.height)
+            binding.message.textSize = application.px2PxFont(binding.message.textSize)
+        }
+
         binding.bar.visibility = View.VISIBLE
         (requireActivity() as MainActivity).ready()
-        Log.d(TAG, "LoadingFragment created with bar only")
         return binding.root
     }
 
@@ -54,24 +53,8 @@ class LoadingFragment : Fragment() {
         }
     }
 
-    fun setCallback(callback: LoadingFragmentCallback) {
-        this.callback = callback
-    }
-
-    private fun removeFragment() {
-        try {
-            requireActivity().supportFragmentManager.beginTransaction()
-                .remove(this)
-                .commitAllowingStateLoss()
-            callback?.onLoadingCompleted()
-        } catch (e: Exception) {
-            Log.e(TAG, "removeFragment error: ${e.message}", e)
-        }
-    }
-
     override fun onDestroyView() {
         _binding = null
-        callback = null
         super.onDestroyView()
         stopMusicAndSwitchToLive()
     }

@@ -103,42 +103,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var updateManager: UpdateManager
     private val sharedPrefs by lazy { getSharedPreferences("UpdatePrefs", MODE_PRIVATE) }
 
-    private var menuPressCount = 0
-    private var lastMenuPressTime = 0L
-    private val MENU_PRESS_INTERVAL = 300L
-    private val MENU_TAP_INTERVAL = 500L
-    private val REQUIRED_MENU_PRESSES = 4
     private var lastSwitchTime = 0L
     private val DEBOUNCE_INTERVAL = 2000L
     private var lastBackPressTime = 0L
     private val BACK_PRESS_INTERVAL = 2000L
     private val watchedLikes = java.util.Collections.newSetFromMap(java.util.WeakHashMap<TVModel, Boolean>())
-
-    private val handleRightRunnable = Runnable {
-        if (menuPressCount == 1) { // 仅单次按右键触发 sourceUp
-            sourceUp()
-        }
-        menuPressCount = 0 // 重置计数
-    }
-
-    private val handleEnterRunnable = Runnable {
-        if (menuPressCount == 1) { // 仅单次按键触发 menuFragment
-            showFragment(menuFragment)
-            menuActive()
-        }
-        menuPressCount = 0 // 重置计数
-    }
-
-    private val handleTapRunnable = Runnable {
-        if (menuPressCount >= REQUIRED_MENU_PRESSES) {
-            showSetting()
-            menuPressCount = 0
-        } else if (menuPressCount == 2) {
-            showFragment(menuFragment)
-            menuActive()
-        }
-        menuPressCount = 0 // 重置计数
-    }
 
     internal lateinit var viewModel: MainViewModel
 
@@ -205,13 +174,14 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             try {
                 supportFragmentManager.beginTransaction()
-                    .add(R.id.main_browse_fragment, loadingFragment, fragmentTag(loadingFragment))
                     .add(R.id.main_browse_fragment, playerFragment, fragmentTag(playerFragment))
                     .add(R.id.main_browse_fragment, infoFragment, fragmentTag(infoFragment))
                     .add(R.id.main_browse_fragment, channelFragment, fragmentTag(channelFragment))
                     .add(R.id.main_browse_fragment, menuFragment, fragmentTag(menuFragment))
                     .add(R.id.main_browse_fragment, settingFragment, fragmentTag(settingFragment))
                     .add(R.id.main_browse_fragment, sourceSelectFragment, fragmentTag(sourceSelectFragment))
+                    // 加载页最后 add 置于最上层：解析期间不被播放器黑面遮挡
+                    .add(R.id.main_browse_fragment, loadingFragment, fragmentTag(loadingFragment))
                     .hide(infoFragment)
                     .hide(channelFragment)
                     .hide(menuFragment)
@@ -221,13 +191,13 @@ class MainActivity : AppCompatActivity() {
             } catch (e: IllegalStateException) {
                 Log.e(TAG, "Failed to add fragments: ${e.message}")
                 supportFragmentManager.beginTransaction()
-                    .add(R.id.main_browse_fragment, loadingFragment, fragmentTag(loadingFragment))
                     .add(R.id.main_browse_fragment, playerFragment, fragmentTag(playerFragment))
                     .add(R.id.main_browse_fragment, infoFragment, fragmentTag(infoFragment))
                     .add(R.id.main_browse_fragment, channelFragment, fragmentTag(channelFragment))
                     .add(R.id.main_browse_fragment, menuFragment, fragmentTag(menuFragment))
                     .add(R.id.main_browse_fragment, settingFragment, fragmentTag(settingFragment))
                     .add(R.id.main_browse_fragment, sourceSelectFragment, fragmentTag(sourceSelectFragment))
+                    .add(R.id.main_browse_fragment, loadingFragment, fragmentTag(loadingFragment))
                     .hide(infoFragment)
                     .hide(channelFragment)
                     .hide(menuFragment)
@@ -239,6 +209,11 @@ class MainActivity : AppCompatActivity() {
             // 进程重建：FragmentManager 已恢复旧实例，字段必须重新绑定，否则所有
             // show/hide/play 都作用在游离实例上（重进黑屏根因）。
             rebindRestoredFragments()
+        }
+
+        // 错误页重试入口：OK/点击"重试"按钮重新播放当前频道
+        errorFragment.setRetryListener {
+            retryCurrentPlayback()
         }
 
         // 注入 ViewModel（备用播放器预加载等需要访问频道列表）
@@ -651,7 +626,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-            return handleTapCount(1) // 单击记 1 次
+            // 单击：显示/隐藏当前频道信息卡（简单可预期）
+            val infoView = infoFragment.view
+            if (infoView != null && infoView.visibility == View.VISIBLE) {
+                infoView.visibility = View.GONE
+            } else {
+                viewModel.groupModel.getCurrent()?.let { infoFragment.show(it) }
+            }
+            return true
         }
 
         override fun onDoubleTap(e: MotionEvent): Boolean {
@@ -665,20 +647,13 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            // 记录双击
-            val currentTime = System.currentTimeMillis()
-            val timeSinceLastTap = currentTime - lastMenuPressTime
-            if (timeSinceLastTap <= MENU_TAP_INTERVAL) {
-                menuPressCount += 2
+            // 双击：打开/关闭频道菜单（与遥控器 MENU 心智一致）
+            if (menuFragment.isAdded && !menuFragment.isHidden) {
+                hideFragment(menuFragment)
             } else {
-                menuPressCount = 2
+                showFragment(menuFragment)
+                menuActive()
             }
-            lastMenuPressTime = currentTime
-
-            // 延迟处理，等待可能的后续双击
-            handler.removeCallbacks(handleTapRunnable)
-            handler.postDelayed(handleTapRunnable, MENU_TAP_INTERVAL)
-
             return true
         }
 
@@ -1141,7 +1116,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showSetting() {
+    fun showSetting() {
         lifecycleScope.launch(Dispatchers.Main) {
             if (programFragment.isAdded && !programFragment.isHidden) {
                 hideFragment(programFragment)
@@ -1152,6 +1127,17 @@ class MainActivity : AppCompatActivity() {
             showFragment(settingFragment)
             settingActive()
         }
+    }
+
+    // 错误页重试：重新触发当前频道播放（内部会跳过坏线、选健康线路）
+    fun retryCurrentPlayback() {
+        val tvModel = viewModel.groupModel.getCurrent() ?: return
+        if (isSafeToPerformFragmentTransactions) {
+            hideFragment(errorFragment)
+            showFragment(playerFragment)
+        }
+        playerFragment.play(tvModel)
+        Log.d(TAG, "retryCurrentPlayback: ${tvModel.tv.title}")
     }
 
     private fun showProgram() {
@@ -1211,39 +1197,6 @@ class MainActivity : AppCompatActivity() {
         binding.close.setOnClickListener {
             popupWindow.dismiss()
         }
-    }
-
-    private fun handleTapCount(tapCount: Int): Boolean {
-        val currentTime = System.currentTimeMillis()
-        val timeSinceLastTap = currentTime - lastMenuPressTime
-
-        if (timeSinceLastTap <= MENU_TAP_INTERVAL) {
-            menuPressCount += tapCount
-        } else {
-            menuPressCount = tapCount
-        }
-        lastMenuPressTime = currentTime
-
-        // 延迟处理，等待可能的后续点击
-        handler.removeCallbacks(handleTapRunnable)
-        handler.postDelayed(handleTapRunnable, MENU_TAP_INTERVAL)
-        return true
-    }
-
-    private fun handleSettingsKeyPress(): Boolean {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastMenuPressTime <= MENU_PRESS_INTERVAL) {
-            menuPressCount++
-            if (menuPressCount >= REQUIRED_MENU_PRESSES) {
-                showSetting()
-                menuPressCount = 0
-                return true
-            }
-        } else {
-            menuPressCount = 1
-        }
-        lastMenuPressTime = currentTime
-        return true
     }
 
     @SuppressLint("GestureBackNavigation")
@@ -1319,17 +1272,34 @@ class MainActivity : AppCompatActivity() {
             }
             KEYCODE_0, KEYCODE_1, KEYCODE_2, KEYCODE_3, KEYCODE_4,
             KEYCODE_5, KEYCODE_6, KEYCODE_7, KEYCODE_8, KEYCODE_9 -> {
+                // 数字直拨守卫：数据未就绪时不崩溃，给出加载提示
+                if (viewModel.groupModel.tvGroupValue.size < 3 ||
+                    viewModel.groupModel.getAllList()?.size() == 0
+                ) {
+                    R.string.loading.showToast()
+                    return true
+                }
                 showChannel(keyCode - 7)
                 return true
             }
             KEYCODE_BOOKMARK, KEYCODE_UNKNOWN, KEYCODE_HELP,
-            KEYCODE_SETTINGS, KEYCODE_MENU -> {
-                // 新增：优先检查 MenuFragment 是否可见
+            KEYCODE_MENU -> {
+                // 单按 MENU 直达频道菜单（主流遥控器心智）
                 if (menuFragment.isAdded && !menuFragment.isHidden) {
                     // 直接返回 false，让 MenuFragment 的 onKeyListener 处理
                     return false
                 }
-                return handleSettingsKeyPress()
+                showFragment(menuFragment)
+                menuActive()
+                return true
+            }
+            KEYCODE_SETTINGS -> {
+                // 单按 SETTINGS 直达设置（主流遥控器心智）
+                if (settingFragment.isAdded && !settingFragment.isHidden) {
+                    return false
+                }
+                showSetting()
+                return true
             }
             KEYCODE_DPAD_UP, KEYCODE_CHANNEL_UP -> {
                 if (isLoadingInputVisible) {
@@ -1390,26 +1360,20 @@ class MainActivity : AppCompatActivity() {
                     channelFragment.playNow()
                     return true
                 }
-                // 新增：处理连续按确认键逻辑
-                val currentTime = System.currentTimeMillis()
-                val timeSinceLastPress = currentTime - lastMenuPressTime
-
-                if (timeSinceLastPress <= 400) { // 400ms 内连续按
-                    menuPressCount++
-                    if (menuPressCount >= 4) { // 连续按4次，显示 settingFragment
-                        showFragment(sourceSelectFragment)
-                        menuPressCount = 0
-                        handler.removeCallbacks(handleEnterRunnable) // 取消可能的 menuFragment 显示
-                        return true
-                    }
-                } else {
-                    menuPressCount = 1 // 重置计数
+                // EPG 打开时 OK = 关闭节目单（不再弹出频道菜单）
+                if (programFragment.isAdded && !programFragment.isHidden) {
+                    hideFragment(programFragment)
+                    return true
                 }
-                lastMenuPressTime = currentTime
-
-                // 延迟600ms检查是否显示 menuFragment
-                handler.removeCallbacks(handleEnterRunnable)
-                handler.postDelayed(handleEnterRunnable, 600)
+                if (menuFragment.isAdded && !menuFragment.isHidden) {
+                    return false
+                }
+                if (settingFragment.isAdded && !settingFragment.isHidden) {
+                    return false
+                }
+                // 播放界面单按 OK = 打开频道菜单
+                showFragment(menuFragment)
+                menuActive()
                 return true
             }
 
@@ -1455,26 +1419,8 @@ class MainActivity : AppCompatActivity() {
                     programFragment.isAdded && !programFragment.isHidden) {
                     return false
                 }
-                // 新增：处理连续按右键逻辑
-                val currentTime = System.currentTimeMillis()
-                val timeSinceLastPress = currentTime - lastMenuPressTime
-
-                if (timeSinceLastPress <= 400) { // 400ms 内连续按
-                    menuPressCount++
-                    if (menuPressCount >= 4) { // 连续按4次，显示 settingFragment
-                        showSetting()
-                        menuPressCount = 0
-                        handler.removeCallbacks(handleRightRunnable) // 取消 sourceUp 触发
-                        return true
-                    }
-                } else {
-                    menuPressCount = 1 // 重置计数
-                }
-                lastMenuPressTime = currentTime
-
-                // 延迟600ms检查是否触发 sourceUp
-                handler.removeCallbacks(handleRightRunnable)
-                handler.postDelayed(handleRightRunnable, 600)
+                // 单按右键 = 切换线路（sourceUp 内部自带 2s 防抖）
+                sourceUp()
                 return true
             }
         }

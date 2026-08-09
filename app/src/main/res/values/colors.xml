@@ -1,5 +1,7 @@
 <resources>
     <color name="focus">#0096A6</color>
+    <color name="focus_10">#1A0096A6</color>
+    <color name="focus_30">#4D0096A6</color>
     <color name="blur">#FF263238</color>
     <color name="black">#000</color>
     <color name="white">#FFF</color>

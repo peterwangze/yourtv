@@ -100,6 +100,10 @@ class GroupAdapter(
 
         view.setOnKeyListener { _, keyCode, event: KeyEvent? ->
             if (event?.action == KeyEvent.ACTION_DOWN) {
+                if (keyCode == KeyEvent.KEYCODE_DPAD_UP && position == 0) {
+                    // 不消费：让焦点自然上移到菜单头部（设置按钮）
+                    return@setOnKeyListener false
+                }
                 if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && position == getItemCount() - 1) {
                     val p = 0
                     (recyclerView.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(p, 0)
@@ -116,6 +120,12 @@ class GroupAdapter(
         }
 
         viewHolder.bindTitle(entry.name)
+        // 当前正在播放的频道所在分组显示小圆点
+        val currentList = tvGroupModel.getCurrentList()
+        viewHolder.bindPlaying(
+            listTVModel === currentList &&
+                listTVModel.positionPlayingValue in 0 until listTVModel.size()
+        )
     }
 
     override fun getItemCount() = tvGroupModel.navEntries().size
@@ -134,11 +144,15 @@ class GroupAdapter(
         fun focus(hasFocus: Boolean) {
             if (hasFocus) {
                 binding.title.setTextColor(ContextCompat.getColor(context, R.color.white))
-                binding.root.setBackgroundResource(R.color.focus) // 添加焦点背景
+                binding.root.setBackgroundResource(R.drawable.focus_item_background) // 统一焦点背景
             } else {
                 binding.title.setTextColor(ContextCompat.getColor(context, R.color.title_blur))
                 binding.root.setBackgroundResource(R.color.transparent) // 设置透明背景
             }
+        }
+
+        fun bindPlaying(playing: Boolean) {
+            binding.playingDot.visibility = if (playing) View.VISIBLE else View.GONE
         }
     }
 

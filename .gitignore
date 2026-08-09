@@ -21,3 +21,5 @@ app/release/
 keystore/
 keystore.properties
 dist/
+
+screenshots/uiux/

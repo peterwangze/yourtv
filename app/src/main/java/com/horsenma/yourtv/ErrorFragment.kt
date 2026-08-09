@@ -1,6 +1,7 @@
 package com.horsenma.yourtv
 
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +12,7 @@ import com.horsenma.yourtv.databinding.ErrorBinding
 class ErrorFragment : Fragment() {
     private var _binding: ErrorBinding? = null
     private val binding get() = _binding!!
+    private var retryListener: (() -> Unit)? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,18 +31,39 @@ class ErrorFragment : Fragment() {
 
         binding.msg.textSize = application.px2PxFont(binding.msg.textSize)
 
-        _binding = ErrorBinding.inflate(inflater, container, false)
+        binding.retryButton.layoutParams.width = application.px2Px(binding.retryButton.layoutParams.width)
+        binding.retryButton.textSize = application.px2PxFont(binding.retryButton.textSize)
+        binding.hint.textSize = application.px2PxFont(binding.hint.textSize)
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.retryButton.setOnClickListener {
+            retryListener?.invoke()
+        }
+        // OK/确认键在错误页任意位置均可触发重试
+        binding.root.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN &&
+                (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER)
+            ) {
+                retryListener?.invoke()
+                true
+            } else {
+                false
+            }
+        }
     }
 
     fun setMsg(msg: String) {
         if (_binding != null) {
             binding.msg.text = msg
         }
+    }
+
+    fun setRetryListener(listener: () -> Unit) {
+        retryListener = listener
     }
 
     override fun onDestroyView() {

@@ -70,7 +70,6 @@ class YourTVApplication : Application() {
 
         // 在 SP.init 后安全地访问 SP 属性
         updateDisplayMetrics(SP.fullScreenMode)
-        SP.compactMenu = true
 
         initX5()
 

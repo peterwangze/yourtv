@@ -80,7 +80,7 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
         binding.group.layoutManager = LinearLayoutManager(context)
         groupWidth = application.px2Px(binding.group.layoutParams.width)
         binding.group.layoutParams.width = if (SP.compactMenu) {
-            groupWidth * 2 / 3
+            groupWidth * 4 / 5 // 统一为 4/5，避免与 updateSize 不一致导致布局跳动
         } else {
             groupWidth
         }
@@ -107,6 +107,20 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
             (activity as? MainActivity)?.menuActive()
         }
 
+        // 菜单头部"设置"入口：SETTINGS 键被系统拦截的设备（如 Google TV）仍可进入设置
+        binding.settingsButton.setOnClickListener {
+            (activity as? MainActivity)?.showSetting()
+        }
+        binding.settingsButton.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                // 下键回到分组列表
+                binding.group.requestFocus()
+                true
+            } else {
+                false
+            }
+        }
+
         groupAdapter.focusable(true)
         listAdapter.focusable(true)
 
@@ -114,26 +128,9 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
         view.isFocusableInTouchMode = true
         view.post { requestFocus() }
 
-        // 根视图按键监听
+        // 根视图按键监听（顶部 UP 环绕由 GroupAdapter 处理，不再聚焦 GONE 控件）
         binding.root.isFocusable = true
         binding.root.isFocusableInTouchMode = true
-        binding.group.setOnKeyListener { _, keyCode, event ->
-            if (event.action == KeyEvent.ACTION_DOWN && isVisible && isAdded) {
-                when (keyCode) {
-                    KeyEvent.KEYCODE_DPAD_UP -> {
-                        val layoutManager = binding.group.layoutManager as? LinearLayoutManager
-                        val firstVisiblePosition = layoutManager?.findFirstCompletelyVisibleItemPosition() ?: -1
-                        if (firstVisiblePosition == 0) {
-                            binding.sourceSwitcherPrev.requestFocus()
-                            //Log.d(TAG, "Group: Key DPAD_UP pressed at top, focus to source_switcher_prev")
-                            return@setOnKeyListener true
-                        }
-                        return@setOnKeyListener false
-                    }
-                }
-            }
-            false
-        }
 
         val scrollListener = object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -824,7 +821,9 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastSwitchSourceTime < 10000) {
             context?.let {
-                Toast.makeText(it, R.string.wait_10_seconds, Toast.LENGTH_SHORT).show()
+                (it.applicationContext as YourTVApplication).toast(
+                    it.getString(R.string.wait_10_seconds)
+                )
             }
             return
         }
@@ -851,7 +850,9 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
         if (selectedFilename == activeFilename) {
             Log.d(TAG, "Selected source is already active: $selectedFilename, skipping switch")
             context?.let {
-                Toast.makeText(it, it.getString(R.string.aready_current_source, selectedSourceName), Toast.LENGTH_SHORT).show()
+                (it.applicationContext as YourTVApplication).toast(
+                    it.getString(R.string.aready_current_source, selectedSourceName)
+                )
             }
             return
         }
@@ -872,14 +873,20 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
                     Log.d(TAG, "Switched to resource: $selectedFilename")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to load resource $selectedFilename: ${e.message}", e)
-                    context?.let { Toast.makeText(it, it.getString(R.string.load_failed, selectedSourceName), Toast.LENGTH_SHORT).show() }
+                    context?.let {
+                        (it.applicationContext as YourTVApplication).toast(
+                            it.getString(R.string.load_failed, selectedSourceName)
+                        )
+                    }
                 }
             } else {
                 (activity as? MainActivity)?.switchSource(selectedFilename, selectedUrl)
             }
             updateSourceText()
             context?.let {
-                Toast.makeText(it, it.getString(R.string.switched_to, selectedSourceName), Toast.LENGTH_SHORT).show()
+                (it.applicationContext as YourTVApplication).toast(
+                    it.getString(R.string.switched_to, selectedSourceName)
+                )
             }
         }
     }

@@ -1368,49 +1368,10 @@ class MainViewModel : ViewModel() {
                     TVListModel(context.getString(R.string.all_channels), 1)
                 )
             )
-            val iptvModels = tvs.mapIndexed { index, tv ->
-                val canonicalTitle = ChannelClassifier.displayName(tv.title)
-                // 频道 id 用"分类+规范名"哈希而非列表下标：聚合/刷新后顺序变化
-                // 也不会让收藏、稳定源、当前频道对不上号（收藏丢失/侧边栏漂移根因）
-                val stableId = ChannelClassifier.mergeKey(tv.title, tv.group).hashCode()
-                TVModel(tv.copy(id = stableId, title = canonicalTitle, name = canonicalTitle)).apply {
-                    setLike(SP.getLike(stableId))
-                    setGroupIndex(2)
-                    listIndex = index
-                }
-            }
-            val modelMap = mutableMapOf<String, TVModel>()
-            iptvModels.forEach { tvModel ->
-                val key = com.horsenma.yourtv.models.ChannelClassifier.mergeKey(tvModel.tv.title, tvModel.tv.group)
-                val existing = modelMap[key]
-                if (existing != null && existing.tv.playerType == tvModel.tv.playerType) {
-                    modelMap[key]?.tv?.uris = (modelMap[key]?.tv?.uris.orEmpty() + tvModel.tv.uris).distinct()
-                } else if (existing == null) {
-                    modelMap[key] = tvModel
-                }
-                // 同名但类型不同（IPTV vs WEBVIEW）：不合并线路，保留先到者。
-                // 避免 webview:// 地址混入 IPTV 线路导致"播放失败/黑屏"
-            }
-            // Cached lists are intentionally accepted for instant startup, but
-            // they must use the same deterministic order as a fresh aggregate.
-            // Otherwise a v2.7-era source order puts CCTV10 before CCTV3 until
-            // the next full refresh completes.
-            val listModelNew = modelMap.values.sortedWith(
-                compareBy<TVModel>(
-                    { ChannelClassifier.rankOfGroup(ChannelClassifier.displayGroup(it.tv.title, it.tv.group)) },
-                    { ChannelClassifier.channelSortOrder(it.tv.title, it.tv.group) },
-                    { ChannelClassifier.displayGroup(it.tv.title, it.tv.group) },
-                    { ChannelClassifier.normalizeName(it.tv.title) },
-                    { it.tv.title.lowercase() },
-                    { it.listIndex }
-                )
-            ).toMutableList()
-            val groupMap = mutableMapOf<String, MutableList<TVModel>>()
-            listModelNew.forEach { tvModel ->
-                val group = com.horsenma.yourtv.models.ChannelClassifier
-                    .displayGroup(tvModel.tv.title, tvModel.tv.group)
-                    .ifEmpty { context.getString(R.string.unknown) }
-            groupMap.computeIfAbsent(group) { mutableListOf() }.add(tvModel)
+            // 纯计算（模型构建/合并/排序/分组）移到后台线程：上千频道 × 数十次
+            // 关键词匹配在主线程执行会阻塞输入分发导致 ANR（聚合窗口内按任意键必现）
+            val (listModelNew, groupMap) = withContext(Dispatchers.Default) {
+                buildChannelModel(tvs)
             }
             Log.d(TAG, "applyChannelList: groups=" + groupMap.entries.sortedBy { it.key }.joinToString(",") { "${it.key}:${it.value.size}" })
             // 分组固定顺序：央视 → 卫视 → 地方(省份) → 海外(国家) → 其他
@@ -1476,6 +1437,61 @@ class MainViewModel : ViewModel() {
             // 列表应用完成：通知等待方（channelsOk 置位、自动起播等）
             onApplied?.invoke()
         }
+    }
+
+    /**
+     * 纯计算：构建频道模型、跨源合并、确定性排序与分组。
+     * 必须在后台线程执行（ChannelClassifier 分类为密集字符串匹配）。
+     * 返回 Pair(排序后的全部频道, 分组名 → 频道列表)。
+     */
+    private suspend fun buildChannelModel(
+        tvs: List<TV>
+    ): Pair<MutableList<TVModel>, Map<String, MutableList<TVModel>>> {
+        val iptvModels = tvs.mapIndexed { index, tv ->
+            val canonicalTitle = ChannelClassifier.displayName(tv.title)
+            // 频道 id 用"分类+规范名"哈希而非列表下标：聚合/刷新后顺序变化
+            // 也不会让收藏、稳定源、当前频道对不上号（收藏丢失/侧边栏漂移根因）
+            val stableId = ChannelClassifier.mergeKey(tv.title, tv.group).hashCode()
+            TVModel(tv.copy(id = stableId, title = canonicalTitle, name = canonicalTitle)).apply {
+                setLike(SP.getLike(stableId))
+                setGroupIndex(2)
+                listIndex = index
+            }
+        }
+        val modelMap = mutableMapOf<String, TVModel>()
+        iptvModels.forEach { tvModel ->
+            val key = com.horsenma.yourtv.models.ChannelClassifier.mergeKey(tvModel.tv.title, tvModel.tv.group)
+            val existing = modelMap[key]
+            if (existing != null && existing.tv.playerType == tvModel.tv.playerType) {
+                modelMap[key]?.tv?.uris = (modelMap[key]?.tv?.uris.orEmpty() + tvModel.tv.uris).distinct()
+            } else if (existing == null) {
+                modelMap[key] = tvModel
+            }
+            // 同名但类型不同（IPTV vs WEBVIEW）：不合并线路，保留先到者。
+            // 避免 webview:// 地址混入 IPTV 线路导致"播放失败/黑屏"
+        }
+        // Cached lists are intentionally accepted for instant startup, but
+        // they must use the same deterministic order as a fresh aggregate.
+        // Otherwise a v2.7-era source order puts CCTV10 before CCTV3 until
+        // the next full refresh completes.
+        val listModelNew = modelMap.values.sortedWith(
+            compareBy<TVModel>(
+                { ChannelClassifier.rankOfGroup(ChannelClassifier.displayGroup(it.tv.title, it.tv.group)) },
+                { ChannelClassifier.channelSortOrder(it.tv.title, it.tv.group) },
+                { ChannelClassifier.displayGroup(it.tv.title, it.tv.group) },
+                { ChannelClassifier.normalizeName(it.tv.title) },
+                { it.tv.title.lowercase() },
+                { it.listIndex }
+            )
+        ).toMutableList()
+        val groupMap = mutableMapOf<String, MutableList<TVModel>>()
+        listModelNew.forEach { tvModel ->
+            val group = com.horsenma.yourtv.models.ChannelClassifier
+                .displayGroup(tvModel.tv.title, tvModel.tv.group)
+                .ifEmpty { context.getString(R.string.unknown) }
+            groupMap.computeIfAbsent(group) { mutableListOf() }.add(tvModel)
+        }
+        return listModelNew to groupMap
     }
 
     /**

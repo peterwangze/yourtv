@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="resolution_-293282406">720x576</string>
+    <string name="resolution_-360315561">1920x1080</string>
+    <string name="resolution_-1356994388">1280x720</string>
+    <long name="resolution_timestamp_-479760260" value="1786260486227" />
+    <boolean name="enable_webview_type" value="true" />
+    <string name="resolution_-1791635134">1920x1080</string>
+    <long name="resolution_timestamp_1387049314" value="1786259765314" />
+    <string name="resolution_1515909822">1920x1080</string>
+    <long name="resolution_timestamp_-1791635134" value="1786259480522" />
+    <long name="resolution_timestamp_291162533" value="1786260808011" />
+    <boolean name="soft_decode" value="false" />
+    <long name="resolution_timestamp_-2134229018" value="1786261054310" />
+    <long name="resolution_timestamp_-1356994388" value="1786259453432" />
+    <long name="resolution_timestamp_1591172986" value="1786258468014" />
+    <string name="resolution_1483554335">1920x1080</string>
+    <long name="resolution_timestamp_1005831433" value="1786260041128" />
+    <long name="resolution_timestamp_-824891107" value="1786258995569" />
+    <set name="like">
+        <string>-1060187975</string>
+    </set>
+    <string name="resolution_2034798371">720x576</string>
+    <long name="resolution_timestamp_-2058714491" value="1786260659322" />
+    <string name="resolution_291162533">1920x1080</string>
+    <string name="resolution_1005831433">1920x1080</string>
+    <int name="position_group" value="2" />
+    <long name="resolution_timestamp_-220658143" value="1786260385889" />
+    <long name="resolution_timestamp_1515909822" value="1786260850399" />
+    <long name="lastDownloadTime" value="1786261285312" />
+    <int name="position" value="0" />
+    <string name="resolution_2088113892">1920x1080</string>
+    <string name="sources">[{&quot;checked&quot;:false,&quot;id&quot;:&quot;dead_test4&quot;,&quot;uri&quot;:&quot;http://10.0.2.2:34570/dead2.txt&quot;},{&quot;checked&quot;:false,&quot;id&quot;:&quot;dead_test2&quot;,&quot;uri&quot;:&quot;http://10.0.2.2:34570/dead.txt&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://live.zbds.top/tv/iptv4.txt&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://live.fanmingming.cn/tv/m3u/ipv6.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://live.fanmingming.com/tv/m3u/ipv6.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://live.fanmingming.cn/tv/m3u/ipv4.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://raw.githubusercontent.com/jk2024988/TV2024/main/%E5%92%AA%E5%92%952.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://raw.githubusercontent.com/hououinkami/AppleTV/main/Source/China_v4.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://raw.githubusercontent.com/zhmzjj310144/migu-sports/main/%E4%B8%89%E6%BA%90%E5%90%88%E5%B9%B6_%E5%A4%AE%E8%A7%86%E4%BD%93%E8%82%B2%E5%9C%B0%E6%96%B9%E7%BB%BC%E5%90%88%E6%BA%90.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV1_ALL.m3u8&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://raw.githubusercontent.com/vicjl/myIPTV/main/TV-IPV4.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://iptv-org.github.io/iptv/countries/cn.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_all.m3u8&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_province.m3u8&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_cctv.m3u8&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://iptv-org.github.io/iptv/languages/zho.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://iptv-org.github.io/iptv/countries/hk.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://iptv-org.github.io/iptv/countries/tw.m3u&quot;},{&quot;checked&quot;:false,&quot;uri&quot;:&quot;https://iptv-org.github.io/iptv/countries/mo.m3u&quot;}]</string>
+    <boolean name="show_source_button" value="true" />
+    <long name="resolution_timestamp_-360315561" value="1786258505398" />
+    <string name="resolution_-479760260">1920x1080</string>
+    <string name="resolution_-2058714491">720x576</string>
+    <long name="resolution_timestamp_1483554335" value="1786261643664" />
+    <string name="stable_sources">[{&quot;block&quot;:[],&quot;child&quot;:[],&quot;group&quot;:&quot;央视频道&quot;,&quot;headers&quot;:{},&quot;id&quot;:-1060187977,&quot;logo&quot;:&quot;&quot;,&quot;name&quot;:&quot;CCTV1&quot;,&quot;number&quot;:-1,&quot;playerType&quot;:&quot;IPTV&quot;,&quot;sourceType&quot;:&quot;HLS&quot;,&quot;timestamp&quot;:1786261499886,&quot;title&quot;:&quot;CCTV1&quot;,&quot;uris&quot;:[&quot;http://116.113.36.219:9901/tsfile/live/1024_1.m3u8?key\u003dtxiptv\u0026playlive\u003d1\u0026authid\u003d0&quot;],&quot;videoIndex&quot;:0},{&quot;block&quot;:[],&quot;child&quot;:[],&quot;group&quot;:&quot;央视频道&quot;,&quot;headers&quot;:{},&quot;id&quot;:-1060187972,&quot;logo&quot;:&quot;&quot;,&quot;name&quot;:&quot;CCTV6&quot;,&quot;number&quot;:-1,&quot;playerType&quot;:&quot;IPTV&quot;,&quot;sourceType&quot;:&quot;HLS&quot;,&quot;timestamp&quot;:1786261031384,&quot;title&quot;:&quot;CCTV6&quot;,&quot;uris&quot;:[&quot;http://120.7.86.96:808/hls/6/index.m3u8&quot;],&quot;videoIndex&quot;:2},{&quot;block&quot;:[],&quot;child&quot;:[],&quot;group&quot;:&quot;央视频道&quot;,&quot;headers&quot;:{},&quot;id&quot;:661031125,&quot;logo&quot;:&quot;&quot;,&quot;name&quot;:&quot;CCTV5+&quot;,&quot;number&quot;:-1,&quot;playerType&quot;:&quot;IPTV&quot;,&quot;sourceType&quot;:&quot;HLS&quot;,&quot;timestamp&quot;:1786260892419,&quot;title&quot;:&quot;CCTV5+&quot;,&quot;uris&quot;:[&quot;http://120.40.39.246:352/newlive/live/hls/6/live.m3u8&quot;],&quot;videoIndex&quot;:1},{&quot;block&quot;:[],&quot;child&quot;:[],&quot;group&quot;:&quot;卫视频道&quot;,&quot;headers&quot;:{},&quot;id&quot;:-1925839997,&quot;logo&quot;:&quot;&quot;,&quot;name&quot;:&quot;兵团卫视&quot;,&quot;number&quot;:-1,&quot;playerType&quot;:&quot;IPTV&quot;,&quot;sourceType&quot;:&quot;HLS&quot;,&quot;timestamp&quot;:1786260701221,&quot;title&quot;:&quot;兵团卫视&quot;,&quot;uris&quot;:[&quot;http://112.123.243.37:50085/tsfile/live/0112_1.m3u8?key\u003dtxiptv\u0026playlive\u003d0\u0026authid\u003d0&quot;],&quot;videoIndex&quot;:1},{&quot;block&quot;:[],&quot;child&quot;:[],&quot;group&quot;:&quot;央视频道&quot;,&quot;headers&quot;:{},&quot;id&quot;:-1060187970,&quot;logo&quot;:&quot;&quot;,&quot;name&quot;:&quot;CCTV8&quot;,&quot;number&quot;:-1,&quot;playerType&quot;:&quot;IPTV&quot;,&quot;sourceType&quot;:&quot;HLS&quot;,&quot;timestamp&quot;:1786260584883,&quot;title&quot;:&quot;CCTV8&quot;,&quot;uris&quot;:[&quot;http://124.116.183.146:9901/tsfile/live/0008_1.m3u8&quot;],&quot;videoIndex&quot;:2},{&quot;block&quot;:[],&quot;child&quot;:[],&quot;group&quot;:&quot;央视频道&quot;,&quot;headers&quot;:{},&quot;id&quot;:1493911130,&quot;logo&quot;:&quot;&quot;,&quot;name&quot;:&quot;CCTV11&quot;,&quot;number&quot;:-1,&quot;playerType&quot;:&quot;IPTV&quot;,&quot;sourceType&quot;:&quot;HLS&quot;,&quot;timestamp&quot;:1786260297466,&quot;title&quot;:&quot;CCTV11&quot;,&quot;uris&quot;:[&quot;http://113.101.119.74:8090/hls/123/index.m3u8&quot;],&quot;videoIndex&quot;:0},{&quot;block&quot;:[],&quot;child&quot;:[],&quot;group&quot;:&quot;央视频道&quot;,&quot;headers&quot;:{},&quot;id&quot;:1493911129,&quot;logo&quot;:&quot;&quot;,&quot;name&quot;:&quot;CCTV10&quot;,&quot;number&quot;:-1,&quot;playerType&quot;:&quot;IPTV&quot;,&quot;sourceType&quot;:&quot;HLS&quot;,&quot;timestamp&quot;:1786260099408,&quot;title&quot;:&quot;CCTV10&quot;,&quot;uris&quot;:[&quot;http://113.57.140.161:10081/newlive/live/hls/11/live.m3u8&quot;],&quot;videoIndex&quot;:0},{&quot;block&quot;:[],&quot;child&quot;:[],&quot;group&quot;:&quot;央视频道&quot;,&quot;headers&quot;:{},&quot;id&quot;:-1060187975,&quot;logo&quot;:&quot;&quot;,&quot;name&quot;:&quot;CCTV3&quot;,&quot;number&quot;:-1,&quot;playerType&quot;:&quot;IPTV&quot;,&quot;sourceType&quot;:&quot;HLS&quot;,&quot;timestamp&quot;:1786259806911,&quot;title&quot;:&quot;CCTV3&quot;,&quot;uris&quot;:[&quot;http://113.57.140.161:10081/newlive/live/hls/3/live.m3u8&quot;],&quot;videoIndex&quot;:0}]</string>
+    <string name="resolution_1387049314">1920x1080</string>
+    <boolean name="defaults_imported" value="true" />
+    <string name="resolution_-220658143">720x576</string>
+    <long name="resolution_timestamp_-293282406" value="1786258826134" />
+    <long name="resolution_timestamp_2034798371" value="1786260314161" />
+    <long name="resolution_timestamp_-1492184504" value="1786260625710" />
+    <boolean name="display_seconds" value="true" />
+    <long name="resolution_timestamp_2088113892" value="1786260405906" />
+    <string name="resolution_-2134229018">1080p</string>
+    <string name="resolution_-824891107">720x576</string>
+    <string name="resolution_-1492184504">1920x1080</string>
+    <long name="defaults_last_attempt" value="1786258410526" />
+    <string name="config">https://live.zbds.top/tv/iptv4.txt</string>
+    <string name="resolution_1591172986">1920x1080</string>
+    <boolean name="compact_menu" value="false" />
+</map>

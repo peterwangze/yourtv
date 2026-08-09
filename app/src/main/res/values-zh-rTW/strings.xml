@@ -174,4 +174,19 @@
     <string name="no_video_source">暫無視頻源</string>
     <string name="soft_decode">軟解</string>
     <string name="epg_is_empty">節目單爲空</string>
+    <string name="playing_now">正在播放</string>
+    <string name="now_badge">現在</string>
+    <string name="retry">重試</string>
+    <string name="retry_hint">按 OK 重試 · 按返回退出</string>
+    <string name="favorited">已收藏 %1$s</string>
+    <string name="unfavorited">已取消收藏 %1$s</string>
+    <string name="confirm_exit_app">確定要退出聚源TV嗎？</string>
+    <string name="line_number_title">線路 %1$d · %2$s</string>
+    <string name="group_playback">播放與解碼</string>
+    <string name="group_display">顯示與導航</string>
+    <string name="group_favorite">收藏與啟動</string>
+    <string name="group_about">關於與退出</string>
+    <string name="loading_channel_list">正在加載頻道列表…</string>
+    <string name="epg_program_with_time">%1$s-%2$s %3$s</string>
+    <string name="settings">設置</string>
 </resources>

@@ -39,11 +39,11 @@ class ProgramAdapter(
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
         val epg = epgList[position]
+        val isCurrent = position == index
         val view = viewHolder.itemView
 
         view.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
             listener?.onItemFocusChange(epg, hasFocus)
-            val isCurrent = position == index
             if (hasFocus) {
                 viewHolder.focus(true, isCurrent)
                 focused = view
@@ -97,15 +97,21 @@ class ProgramAdapter(
             false
         }
 
-        viewHolder.bindTitle(epg)
+        viewHolder.bindTitle(epg, isCurrent)
     }
 
     override fun getItemCount() = epgList.size
 
+    fun updateData(epgList: List<EPG>, index: Int) {
+        this.epgList = epgList
+        this.index = index
+        notifyDataSetChanged()
+    }
+
     class ViewHolder(private val context: Context, private val binding: ProgramItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bindTitle(epg: EPG) {
+        fun bindTitle(epg: EPG, isCurrent: Boolean) {
             binding.title.text = "${Utils.getDateFormat("HH:mm", epg.beginTime)}-${
                 Utils.getDateFormat(
                     "HH:mm",
@@ -113,22 +119,32 @@ class ProgramAdapter(
                 )
             }"
             binding.description.text = epg.title
+            binding.badge.visibility = if (isCurrent) View.VISIBLE else View.GONE
+            if (!isCurrent) {
+                binding.root.setBackgroundResource(R.color.blur)
+                binding.title.setTextColor(ContextCompat.getColor(context, R.color.description_blur))
+                binding.description.setTextColor(ContextCompat.getColor(context, R.color.description_blur))
+            } else {
+                binding.root.setBackgroundResource(R.color.focus_10)
+                binding.title.setTextColor(ContextCompat.getColor(context, R.color.white))
+                binding.description.setTextColor(ContextCompat.getColor(context, R.color.white))
+            }
         }
 
         fun focus(hasFocus: Boolean, isCurrent: Boolean) {
             if (hasFocus) {
-                val color = ContextCompat.getColor(context, R.color.focus)
-                binding.title.setTextColor(color)
-                binding.description.setTextColor(color)
+                binding.root.setBackgroundResource(R.drawable.focus_item_background)
+                binding.title.setTextColor(ContextCompat.getColor(context, R.color.white))
+                binding.description.setTextColor(ContextCompat.getColor(context, R.color.white))
             } else {
                 if (isCurrent) {
-                    val color = ContextCompat.getColor(context, R.color.white)
-                    binding.title.setTextColor(color)
-                    binding.description.setTextColor(color)
+                    binding.root.setBackgroundResource(R.color.focus_10)
+                    binding.title.setTextColor(ContextCompat.getColor(context, R.color.white))
+                    binding.description.setTextColor(ContextCompat.getColor(context, R.color.white))
                 } else {
-                    val color = ContextCompat.getColor(context, R.color.description_blur)
-                    binding.title.setTextColor(color)
-                    binding.description.setTextColor(color)
+                    binding.root.setBackgroundResource(R.color.blur)
+                    binding.title.setTextColor(ContextCompat.getColor(context, R.color.description_blur))
+                    binding.description.setTextColor(ContextCompat.getColor(context, R.color.description_blur))
                 }
             }
         }
@@ -138,7 +154,10 @@ class ProgramAdapter(
         val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
         layoutManager?.let {
             recyclerView.postDelayed({
-                it.scrollToPositionWithOffset(position, 0)
+                // 当前节目居中显示，便于看到"现在"与接下来的节目
+                val rowHeight = application.px2Px(51)
+                val offset = ((recyclerView.height - rowHeight) / 2).coerceAtLeast(0)
+                it.scrollToPositionWithOffset(position, offset)
 
                 val viewHolder = recyclerView.findViewHolderForAdapterPosition(position)
                 viewHolder?.itemView?.apply {

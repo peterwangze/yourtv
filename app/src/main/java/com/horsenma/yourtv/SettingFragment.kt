@@ -237,13 +237,18 @@ class SettingFragment : Fragment() {
             }
         }
 
-        val switchExit = _binding?.switchExit
-        switchExit?.isChecked = false // Default state for exit switch
-        switchExit?.visibility = View.VISIBLE
-        switchExit?.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                requireActivity().finishAffinity()
-            }
+        // 退出改为按钮 + 二次确认（避免方向键+OK 误触直接退出）
+        val btnExit = _binding?.btnExit
+        btnExit?.setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.exit_app)
+                .setMessage(R.string.confirm_exit_app)
+                .setPositiveButton(R.string.confirm) { _, _ ->
+                    requireActivity().finishAffinity()
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+            mainActivity.settingActive()
         }
 
         binding.remoteSettings.setOnClickListener {
@@ -371,6 +376,8 @@ class SettingFragment : Fragment() {
             binding.checkVersion,
             binding.verifyUser,
             binding.appreciate,
+            binding.updateEpg,
+            binding.refreshSource,
         )) {
             i.layoutParams.width = btnWidth
             i.textSize = txtTextSize
@@ -409,7 +416,6 @@ class SettingFragment : Fragment() {
             binding.switchShowSourceButton,
             binding.switchEnableScreenOffAudio,
             binding.switchFullScreenMode,
-            binding.switchExit,
         )) {
             i.textSize = textSizeSwitch
             i.layoutParams = layoutParamsSwitch
@@ -429,6 +435,16 @@ class SettingFragment : Fragment() {
                         )
                     )
                 }
+            }
+        }
+
+        // 退出按钮：全宽 + 统一字号/焦点反馈
+        binding.btnExit.textSize = txtTextSize
+        binding.btnExit.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                binding.btnExit.setTextColor(ContextCompat.getColor(context, R.color.white))
+            } else {
+                binding.btnExit.setTextColor(ContextCompat.getColor(context, R.color.title_blur))
             }
         }
 

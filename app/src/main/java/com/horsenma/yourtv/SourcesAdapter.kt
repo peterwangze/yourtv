@@ -35,6 +35,7 @@ class SourcesAdapter(
         binding.title.layoutParams.width = application.px2Px(binding.title.layoutParams.width)
         binding.title.layoutParams.height = application.px2Px(binding.title.layoutParams.height)
         binding.title.textSize = application.px2PxFont(binding.title.textSize)
+        binding.subtitle.textSize = application.px2PxFont(binding.subtitle.textSize)
 
         binding.heart.layoutParams.width = application.px2Px(binding.heart.layoutParams.width)
         binding.heart.layoutParams.height = application.px2Px(binding.heart.layoutParams.height)
@@ -122,8 +123,21 @@ class SourcesAdapter(
                 false
             }
 
-            viewHolder.bindNum("%02d".format(position))
-            viewHolder.bindTitle(source.uri)
+            // 编号从 1 起；标题显示"线路 N · 域名"摘要，完整 URL 单独一行（中段省略）
+            val uri = source.uri
+            val host = try {
+                java.net.URI(uri).host
+            } catch (e: Exception) {
+                null
+            }
+            val summary = context.getString(
+                R.string.line_number_title,
+                position + 1,
+                host?.takeIf { it.isNotEmpty() } ?: uri.take(32)
+            )
+            viewHolder.bindNum((position + 1).toString())
+            viewHolder.bindTitle(summary)
+            viewHolder.bindSubtitle(uri)
         }
     }
 
@@ -137,6 +151,10 @@ class SourcesAdapter(
 
         fun bindTitle(text: String) {
             binding.title.text = text
+        }
+
+        fun bindSubtitle(text: String) {
+            binding.subtitle.text = text
         }
 
         fun focus(hasFocus: Boolean) {

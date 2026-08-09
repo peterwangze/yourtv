@@ -31,6 +31,7 @@ class TVListAdapter(
     private var focused: View? = null
     private var focusRunnable: Runnable? = null
     private var focusRetryCount = 0
+    private var playingPosition = -1
     private val application = context.applicationContext as YourTVApplication
 
     companion object {
@@ -56,10 +57,18 @@ class TVListAdapter(
             view.isFocusableInTouchMode = true
 
             like(tvModel.like.value as Boolean)
+            bindPlaying(adapterPosition == playingPosition)
 
             binding.heart.setOnClickListener {
-                tvModel.setLike(!(tvModel.like.value as Boolean))
-                like(tvModel.like.value as Boolean)
+                val liked = !(tvModel.like.value as Boolean)
+                tvModel.setLike(liked)
+                like(liked)
+                application.toast(
+                    context.getString(
+                        if (liked) R.string.favorited else R.string.unfavorited,
+                        tvModel.tv.title
+                    )
+                )
             }
 
             view.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
@@ -129,9 +138,9 @@ class TVListAdapter(
                             }, 0)
                             true
                         } else false
+                        // 右键 = 前进到本行的收藏按钮（可聚焦、有反馈，不再静默收藏）
                         KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                            tvModel.setLike(!(tvModel.like.value as Boolean))
-                            like(tvModel.like.value as Boolean)
+                            binding.heart.requestFocus()
                             true
                         }
                         else -> listener.onKey(this@TVListAdapter, keyCode)
@@ -141,6 +150,14 @@ class TVListAdapter(
 
             bindTitle(tvModel.tv.title)
             bindImage(tvModel)
+        }
+
+        fun bindPlaying(playing: Boolean) {
+            binding.playingIndicator.visibility = if (playing) View.VISIBLE else View.GONE
+            binding.title.setTypeface(
+                binding.title.typeface,
+                if (playing) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL
+            )
         }
 
         fun bindTitle(text: String) {
@@ -180,7 +197,7 @@ class TVListAdapter(
         fun focus(hasFocus: Boolean) {
             if (hasFocus) {
                 binding.title.setTextColor(ContextCompat.getColor(context, R.color.white))
-                binding.root.setBackgroundResource(R.color.focus)
+                binding.root.setBackgroundResource(R.drawable.focus_item_background)
             } else {
                 binding.title.setTextColor(ContextCompat.getColor(context, R.color.title_blur))
                 binding.root.setBackgroundResource(R.color.listcolor)
@@ -213,10 +230,18 @@ class TVListAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(getItem(position))
+        holder.bindPlaying(position == playingPosition)
     }
 
     fun update(listModel: TVListModel) {
+        val newPlaying = listModel.positionPlayingValue
+        val playingChanged = newPlaying != playingPosition
+        playingPosition = newPlaying
         submitList(listModel.tvList.value?.toList() ?: emptyList())
+        if (playingChanged) {
+            // "正在播放"标识跟随当前频道刷新（全量刷新仅发生在播放位置变化时）
+            recyclerView.post { notifyDataSetChanged() }
+        }
     }
 
     fun toPosition(position: Int) {

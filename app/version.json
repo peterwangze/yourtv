@@ -1,7 +1,7 @@
 {
-  "version_code": 300,
-  "version_name": "3.0.0",
-  "apk_url": "https://github.com/peterwangze/yourtv/releases/download/v3.0.0/juyuan_tv_v3.0.0.apk",
-  "apk_name": "juyuan_tv_v3.0.0.apk",
-  "description": "多播放器快速加载：电视启用备用播放器预加载下一频道、切台无缝接管、播放器复用、启动坏线快速恢复"
+  "version_code": 310,
+  "version_name": "3.1.0",
+  "apk_url": "https://github.com/peterwangze/yourtv/releases/download/v3.1.0/juyuan_tv_v3.1.0.apk",
+  "apk_name": "juyuan_tv_v3.1.0.apk",
+  "description": "主流电视 App 体验演进：MENU/SETTINGS 单按直达、正在播放标识、收藏反馈、EPG 现在徽标、错误页重试、设置分组与退出确认、启动聚合 ANR 修复"
 }

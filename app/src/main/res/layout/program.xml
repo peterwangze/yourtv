@@ -13,6 +13,16 @@
             android:layout_height="match_parent"
             android:padding="10dp"
             android:background="@color/blur"
-            >
-        </androidx.recyclerview.widget.RecyclerView>
+            android:visibility="gone" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/empty"
+            android:layout_width="450dp"
+            android:layout_height="match_parent"
+            android:background="@color/blur"
+            android:gravity="center"
+            android:text="@string/epg_is_empty"
+            android:textColor="@color/description_blur"
+            android:textSize="18sp"
+            android:visibility="gone" />
 </RelativeLayout>
