@@ -99,6 +99,36 @@ class ChannelMetadataParserTest {
     }
 
     @Test
+    fun rejectsAdNetworkRadioAndVirtualLiveUris() {
+        // 广告网络投放（韩国电影1/2 实为广告流）
+        assertTrue(ChannelMetadataParser.isNoiseUri("https://stream.ads.ottera.tv/playlist.m3u8?network_id=595"))
+        // 蜻蜓FM 广播电台冒充电视（黑屏）
+        assertTrue(ChannelMetadataParser.isNoiseUri("https://ls.qingting.fm/live/21303/64k.m3u8"))
+        // 咪咕点播虚拟直播
+        assertTrue(ChannelMetadataParser.isNoiseUri("http://gslbmgsplive.miguvideo.com/wd-virtuallive5100002089-150/index.m3u8"))
+        assertTrue(ChannelMetadataParser.isNoiseUri("http://gslbmgsplive.miguvideo.com/migu/virtuallive2/5900002409/51/20210706/index.m3u8"))
+        // 快手视频文件
+        assertTrue(ChannelMetadataParser.isNoiseUri("http://jsmov2.a.yximgs.com/bs3/video-hls/5250634317044855747_hlsb.m3u8"))
+    }
+
+    @Test
+    fun rejectsStaleSportsAndUndefinedTitles() {
+        // 昨天的体育赛事（过期回放）
+        assertTrue(ChannelMetadataParser.isNoise("德甲 汉堡VS弗赖堡 王子睿 21:15", "体育-昨天05-09"))
+        // 图文直播（比分牌，无视频）
+        assertTrue(ChannelMetadataParser.isNoise("CBA 山西汾酒VS浙江浙商证券 图文直播 19:35", "体育-今天05-10"))
+        // 重映/点播栏目
+        assertTrue(ChannelMetadataParser.isNoise("BWF 汤杯经典重映-中国 vs 印度 经典重映 12:00", "体育-今天05-10"))
+        assertTrue(ChannelMetadataParser.isNoise("经典动画大集合", "儿童频道"))
+        // 正常直播不受影响
+        assertFalse(ChannelMetadataParser.isNoise("德甲 汉堡VS弗赖堡 王子睿 21:15", "体育-今天05-10"))
+        // "Undefined" 分组是 iptv-org 的合法兜底归类，不能当作噪音（VOA 等）
+        assertFalse(ChannelMetadataParser.isNoise("VOA美国之音 (1080p)", "Undefined"))
+        assertFalse(ChannelMetadataParser.isNoise("咪咕体育日报 undefined 咪咕体育日报 第105期 08:00", "体育-今天05-10"))
+        assertFalse(ChannelMetadataParser.isNoise("CCTV1", "央视频道"))
+    }
+
+    @Test
     fun rejectsYearPrefixedChunwanTitles() {
         assertTrue(ChannelMetadataParser.isNoise("1987年春晚", "春晚频道"))
         assertTrue(ChannelMetadataParser.isNoise("2025年春晚", ""))

@@ -87,7 +87,7 @@ object ChannelClassifier {
         clean = clean.replace(Regex("[（(][^（）()]*[）)]"), "")
         clean = clean.replace(Regex("\\[[^\\]]*\\]"), "")
         clean = clean.replace(
-            Regex("(?i)(4k|8k|2160p|1440p|1080p|720p|480p|360p|fhd|hd|sd|uhd|超清|高清|标清|蓝光|流畅|极速|hdr|geo-blocked|geoblocked|not 24/7|24/7)\\s*$"),
+            Regex("(?i)(4k|8k|2160p|1440p|1080p|720p|480p|360p|fhd|hd|sd|uhd|超清|高清|标清|蓝光|流畅|极速|hdr|geo-blocked|geoblocked|not 24/7|24/7|频道|电视台)\\s*$"),
             ""
         )
         clean = clean.replace(Regex("[\\s\\-—–_.·,，、:：;；!！?？/\\\\|\\[\\]【】\"'‘’“”]+$"), "")
@@ -112,7 +112,17 @@ object ChannelClassifier {
         '觀' to '观', '賞' to '赏', '藝' to '艺', '術' to '术', '節' to '节',
         '氣' to '气', '報' to '报', '導' to '导', '題' to '题', '書' to '书',
         '單' to '单', '雙' to '双', '學' to '学', '習' to '习', '醫' to '医',
-        '療' to '疗', '優' to '优', '質' to '质', '傳' to '传', '統' to '统'
+        '療' to '疗', '優' to '优', '質' to '质', '傳' to '传', '統' to '统',
+        '鄉' to '乡', '縣' to '县', '區' to '区', '裡' to '里', '匯' to '汇',
+        '萬' to '万', '億' to '亿', '點' to '点', '況' to '况', '達' to '达',
+        '選' to '选', '舉' to '举', '辦' to '办', '師' to '师', '隊' to '队',
+        '員' to '员', '軍' to '军', '產' to '产', '營' to '营', '銀' to '银',
+        '飯' to '饭', '湯' to '汤', '陽' to '阳', '陰' to '阴', '雲' to '云',
+        '風' to '风', '飛' to '飞', '馬' to '马', '鳥' to '鸟', '魚' to '鱼',
+        '龍' to '龙', '鳳' to '凤', '雞' to '鸡', '鴨' to '鸭', '豬' to '猪',
+        '萬' to '万', '頭' to '头', '門' to '门', '關' to '关', '開' to '开',
+        '間' to '间', '問' to '问', '聞' to '闻', '閒' to '闲', '鬧' to '闹',
+        '長' to '长', '張' to '张', '強' to '强', '雖' to '虽', '難' to '难'
     )
 
     private fun cctvCanonicalId(name: String): String {
@@ -179,6 +189,8 @@ object ChannelClassifier {
         s = simplifyTraditional(s)
         s = s.replace(Regex("[（(][^（）()]*[）)]"), "")
         s = s.replace(Regex("\\[[^\\]]*\\]"), "")
+        // 同一电视台的"XX新闻综合"与"XX新闻综合频道"写法统一，跨源合并为一条
+        s = s.replace(Regex("(频道|电视台)$"), "")
         s = s.replace(
             Regex("(4k|8k|2160p|1440p|1080p|720p|480p|360p|fhd|hd|sd|uhd|超清|高清|标清|蓝光|流畅|极速|hdr)$"),
             ""
@@ -188,7 +200,8 @@ object ChannelClassifier {
     }
 
     fun classify(title: String, groupHint: String?): Classification {
-        val name = canonicalAlias(title) ?: title.trim()
+        // 繁体写法先转简体（"北京衛視/東森/萍鄉"等），否则关键词匹配全部失效
+        val name = canonicalAlias(title) ?: simplifyTraditional(title.trim())
         val hint = groupHint?.trim().orEmpty()
         val lower = name.lowercase()
         val hintLower = hint.lowercase()
@@ -207,8 +220,12 @@ object ChannelClassifier {
         // 2. 港澳台（先于卫视规则：凤凰卫视/香港卫视/澳门卫视等归入港澳台）
         matchHkTwMo(name, hint)?.let { return Classification(CAT_LOCAL, it) }
 
-        // 3. 地方卫视（含繁体"衛視"写法）
-        if (name.contains("卫视") || name.contains("衛視") || hint.contains("卫视")) {
+        // 3. 地方卫视（含繁体"衛視"与英文 satellite 写法）
+        if (name.contains("卫视") || name.contains("衛視") ||
+            name.contains("satellite", ignoreCase = true) ||
+            name.contains("satelital", ignoreCase = true) ||
+            hint.contains("卫视")
+        ) {
             return Classification(CAT_WEISHI, "")
         }
 
@@ -230,12 +247,14 @@ object ChannelClassifier {
     private fun matchHkTwMo(name: String, hint: String): String? {
         val twBrands = listOf(
             "台视", "中视", "华视", "民视", "三立", "东森", "中天", "tvbs", "八大", "年代",
-            "纬来", "非凡", "壹电视", "寰宇", "台湾", "台北", "高雄", "台中", "台南", "新北"
+            "纬来", "非凡", "壹电视", "寰宇", "台湾", "台北", "高雄", "台中", "台南", "新北",
+            "大爱", "客家", "大立", "ntd", "good tv", "daai", "hakka", "ftv", "ebc", "cts"
         )
         if (twBrands.any { name.contains(it, ignoreCase = true) }) return "台湾"
         val hkBrands = listOf(
             "凤凰", "香港", "无线", "明珠台", "翡翠台", "viu", "开电视", "有线新闻",
-            "亚洲电视", "atv", "now新闻", "now财经", "港台"
+            "亚洲电视", "atv", "now新闻", "now财经", "港台",
+            "hoy", "面包台", "美亚", "美亞", "耀才", "celestial", "天映", "龙华", "龍華"
         )
         if (hkBrands.any { name.contains(it, ignoreCase = true) }) return "香港"
         val moBrands = listOf("澳门", "澳亚", "澳视")
@@ -255,6 +274,10 @@ object ChannelClassifier {
     }
 
     private fun matchProvince(name: String, hint: String): String? {
+        // 英文地名/台名 → 省份（iptv-org 等源大量使用英文名）
+        for ((en, province) in ENGLISH_TO_PROVINCE) {
+            if (name.contains(en, ignoreCase = true)) return province
+        }
         for ((city, province) in CITY_TO_PROVINCE) {
             if (name.contains(city)) return province
         }
@@ -276,6 +299,31 @@ object ChannelClassifier {
         if (hint.contains("新疆")) return "新疆"
         return null
     }
+
+    /** 英文省市/台名关键词 → 省份（iptv-org 等源） */
+    private val ENGLISH_TO_PROVINCE: Map<String, String> = mapOf(
+        "nei monggol" to "内蒙古", "inner mongolia" to "内蒙古", "chifeng" to "内蒙古",
+        "xizang" to "西藏", "tibet" to "西藏",
+        "xinjiang" to "新疆",
+        "jiangxi" to "江西", "nanchang" to "江西", "pingxiang" to "江西",
+        "harbin" to "黑龙江", "heilongjiang" to "黑龙江",
+        "jilin" to "吉林", "siping" to "吉林", "tonghua" to "吉林", "baicheng" to "吉林",
+        "lanzhou" to "甘肃", "gansu" to "甘肃",
+        "shaanxi" to "陕西", "shanxi" to "山西",
+        "guangzhou" to "广东", "guangdong" to "广东",
+        "shanghai" to "上海",
+        "beijing" to "北京", "brtv" to "北京", "kaku" to "北京",
+        "shenzhen" to "广东", "suzhou" to "江苏", "wuxi" to "江苏",
+        "hangzhou" to "浙江", "ningbo" to "浙江", "wenzhou" to "浙江",
+        "anshun" to "贵州", "guiyang" to "贵州",
+        "liangshan" to "四川", "chengdu" to "四川",
+        "hebei" to "河北", "henan" to "河南", "hubei" to "湖北", "hunan" to "湖南",
+        "fujian" to "福建", "guangxi" to "广西", "hainan" to "海南",
+        "anhui" to "安徽", "shandong" to "山东", "qingdao" to "山东", "qtv" to "山东",
+        "liaoning" to "辽宁", "tianjin" to "天津", "chongqing" to "重庆",
+        "yunnan" to "云南", "guizhou" to "贵州", "gansu" to "甘肃",
+        "qinghai" to "青海", "ningxia" to "宁夏", "jiangsu" to "江苏"
+    )
 
     private fun matchCountry(name: String, hint: String): String? {
         for ((country, keys) in COUNTRY_KEYWORDS) {
@@ -427,7 +475,38 @@ object ChannelClassifier {
         "台北" to "台湾", "高雄" to "台湾", "台中" to "台湾", "台南" to "台湾", "新北" to "台湾",
         "基隆" to "台湾", "新竹" to "台湾", "嘉义" to "台湾", "彰化" to "台湾", "屏东" to "台湾",
         "花莲" to "台湾", "台东" to "台湾", "云林" to "台湾", "南投" to "台湾", "宜兰" to "台湾",
-        "香港" to "香港", "九龙" to "香港", "新界" to "香港", "澳门" to "澳门", "氹仔" to "澳门"
+        "香港" to "香港", "九龙" to "香港", "新界" to "香港", "澳门" to "澳门", "氹仔" to "澳门",
+        // ---- 县级台补充（v2.8 全量未分类清洗，源自 vbskycn/ChinaIPTV/migu 等源） ----
+        "余杭" to "浙江", "嵊泗" to "浙江", "平湖" to "浙江", "庆元" to "浙江",
+        "开化" to "浙江", "文成" to "浙江", "新昌" to "浙江", "普陀" to "浙江",
+        "松阳" to "浙江", "武义" to "浙江", "永嘉" to "浙江", "洞头" to "浙江",
+        "海宁" to "浙江", "缙云" to "浙江", "苍南" to "浙江", "萧山" to "浙江",
+        "衢江" to "浙江", "象山" to "浙江", "遂昌" to "浙江", "龙泉" to "浙江",
+        "龙游" to "浙江", "青田" to "浙江", "之江" to "浙江",
+        "句容" to "江苏", "新沂" to "江苏", "武进" to "江苏", "泗洪" to "江苏",
+        "涟水" to "江苏", "靖江" to "江苏", "优漫卡通" to "江苏",
+        "双辽" to "吉林", "德惠" to "吉林", "敦化" to "吉林", "柳河" to "吉林",
+        "桦甸" to "吉林", "汪清" to "吉林", "磐石" to "吉林", "舒兰" to "吉林",
+        "辉南" to "吉林", "靖宇" to "吉林", "龙井" to "吉林", "长白" to "吉林",
+        "长影" to "吉林",
+        "兴隆" to "河北", "平泉" to "河北", "昌黎" to "河北", "滦平" to "河北",
+        "清河" to "河北",
+        "古县" to "山西", "大宁" to "山西", "太谷" to "山西", "定襄" to "山西",
+        "怀仁" to "山西", "武乡" to "山西", "汾西" to "山西", "长子" to "山西",
+        "剑阁" to "四川", "名山" to "四川", "夹江" to "四川", "广元" to "四川",
+        "旺苍" to "四川", "朝天" to "四川", "松潘" to "四川", "汶川" to "四川",
+        "沐川" to "四川", "泸县" to "四川", "甘孜" to "四川", "荥经" to "四川",
+        "营山" to "四川", "青川" to "四川", "金川" to "四川",
+        "固镇" to "安徽", "广德" to "安徽", "祁门" to "安徽",
+        "天祝" to "甘肃", "渭源" to "甘肃", "永昌" to "甘肃", "西峰" to "甘肃",
+        "新野" to "河南", "荥阳" to "河南", "梨园" to "河南",
+        "璧山" to "重庆", "铜梁" to "重庆",
+        "津南" to "天津", "滨海" to "天津",
+        "番禺" to "广东", "南国都市" to "广东",
+        "易门" to "云南", "通海" to "云南",
+        "第一财经" to "上海", "上视" to "上海",
+        "金鹰卡通" to "湖南", "江夏" to "湖北",
+        "双河" to "新疆", "可克达拉" to "新疆", "奎屯" to "新疆", "玛纳斯" to "新疆"
     )
 
     /** 国家/地区关键词（中文 + 英文 + 常见海外频道品牌），顺序即分组排序 */
@@ -538,6 +617,11 @@ object ChannelClassifier {
             "Hubei TV" to "湖北卫视", "Hubei Satellite" to "湖北卫视",
             "Henan TV" to "河南卫视", "HNTV" to "河南卫视",
             "Shenzhen TV" to "深圳卫视",
+            "Shenzhen Satellite TV" to "深圳卫视",
+            "Shenzhen Satellite" to "深圳卫视",
+            "Shaanxi Satelital TV" to "陕西卫视",
+            "BRTV Kaku Childrens Channel" to "卡酷少儿",
+            "Guangdong TV America" to "广东卫视",
             "Tianjin TV" to "天津卫视",
             "Liaoning TV" to "辽宁卫视",
             "Heilongjiang TV" to "黑龙江卫视",

@@ -24,7 +24,7 @@
             android:screenOrientation="landscape"
             android:launchMode="singleTask"
             android:supportsPictureInPicture="true"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|uiMode|locale|layoutDirection|fontScale|density|keyboard|keyboardHidden|navigation|touchscreen|colorMode|mcc|mnc"
             tools:ignore="DiscouragedApi">
             <!-- 普通设备（手机、平板）启动 -->
             <intent-filter>

@@ -212,4 +212,57 @@ class ChannelClassifierTest {
         assertEquals("北京卫视", ChannelClassifier.normalizeName("北京衛視 (1080p) [Geo-blocked]"))
         assertEquals("香港有线新闻", ChannelClassifier.normalizeName("香港有線新聞"))
     }
+
+    @Test
+    fun `繁体与英文台名归类`() {
+        // 繁体地名：萍鄉 → 江西
+        val px = ChannelClassifier.classify("萍鄉新聞綜合 (576p) [Not 24/7]", "News")
+        assertEquals(ChannelClassifier.CAT_LOCAL, px.category)
+        assertEquals("江西", px.region)
+        // 繁体台湾台名：華視/東森 → 台湾
+        assertEquals("台湾", ChannelClassifier.classify("CTS News (華視新聞資訊) [Geo-blocked]", "News").region)
+        assertEquals("台湾", ChannelClassifier.classify("EBC News (東森新聞台) (1080p) [Not 24/7]", "News").region)
+        // 英文香港台：HOY TV
+        assertEquals("香港", ChannelClassifier.classify("HOY TV (1080p) [Geo-blocked]", "General").region)
+        // iptv-org 英文地方台
+        assertEquals("江西", ChannelClassifier.classify("Jiangxi City Channel", "General").region)
+        assertEquals("黑龙江", ChannelClassifier.classify("Harbin Movie Channel", "Movies").region)
+        assertEquals("山东", ChannelClassifier.classify("QTV-1", "News").region)
+        assertEquals("北京", ChannelClassifier.classify("BRTV Kaku Childrens Channel", "Kids").region)
+        assertEquals("吉林", ChannelClassifier.classify("Tonghua TV (1080p)", "News").region)
+        // 英文卫视写法
+        assertEquals(ChannelClassifier.CAT_WEISHI, ChannelClassifier.classify("Shenzhen Satellite TV (2160p)", "Undefined").category)
+        assertEquals(ChannelClassifier.CAT_WEISHI, ChannelClassifier.classify("Shaanxi Satelital TV", "General").category)
+        // 县级台与品牌台
+        assertEquals("浙江", ChannelClassifier.classify("平湖新闻综合", "地方频道").region)
+        assertEquals("广东", ChannelClassifier.classify("南国都市", "数字频道").region)
+        assertEquals("湖南", ChannelClassifier.classify("金鹰卡通", "儿童频道").region)
+        assertEquals("江苏", ChannelClassifier.classify("优漫卡通 (576p)", "Animation;Kids").region)
+        assertEquals("天津", ChannelClassifier.classify("滨海新闻综合", "地方频道").region)
+        assertEquals("四川", ChannelClassifier.classify("金川新闻综合", "地方频道").region)
+    }
+
+    @Test
+    fun `频道后缀归一合并`() {
+        // "XX新闻综合频道" 与 "XX新闻综合" 合并为同一频道
+        assertEquals(
+            ChannelClassifier.mergeKey("十堰新闻综合频道", "湖北台"),
+            ChannelClassifier.mergeKey("十堰新闻综合", "湖北地区")
+        )
+        assertEquals(
+            ChannelClassifier.mergeKey("浙江钱江都市频道", "浙江台"),
+            ChannelClassifier.mergeKey("浙江钱江都市", "浙江地区")
+        )
+        assertEquals("十堰新闻综合", ChannelClassifier.displayName("十堰新闻综合频道"))
+        assertEquals("十堰新闻综合", ChannelClassifier.normalizeName("十堰新闻综合频道"))
+        // 英文卫视与中文卫视合并
+        assertEquals(
+            ChannelClassifier.mergeKey("Shenzhen Satellite TV (2160p)", "Undefined"),
+            ChannelClassifier.mergeKey("深圳卫视", "卫视频道")
+        )
+        assertEquals(
+            ChannelClassifier.mergeKey("Guangdong TV America", "General"),
+            ChannelClassifier.mergeKey("广东卫视", "卫视频道")
+        )
+    }
 }

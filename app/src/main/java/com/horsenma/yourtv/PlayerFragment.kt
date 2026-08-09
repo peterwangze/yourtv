@@ -963,6 +963,12 @@ class PlayerFragment : Fragment() {
         }
         Log.d(TAG, "Playing tvModel: ${tvModel.tv.title}, playerType: ${tvModel.tv.playerType}, uris: ${tvModel.tv.uris.size}")
 
+        // 后台探测本频道全部线路：聚合源里大量坏线/过期线，提前标记后
+        // 自动换线/切台可直接跳过，避免"选 CCTV1 却反复播放死线"的体验
+        if (::viewModel.isInitialized) {
+            viewModel.probeChannelLines(tvModel)
+        }
+
         // 选择可用线路：跳过已探测失败的线路（稳定源线路优先保留）
         if (tvModel.tv.playerType != PlayerType.WEBVIEW && tvModel.tv.uris.size > 1) {
             val currentIdx = tvModel.videoIndexValue
@@ -1246,7 +1252,8 @@ class PlayerFragment : Fragment() {
         standbyTargetUrl = null
         standbyChannelId = -1
         standbyReady = false
-        binding.standbyView.player = null
+        // onDestroyView 之后 binding 已置空（配置变更销毁路径），必须判空
+        _binding?.standbyView?.player = null
     }
 
     /**
@@ -1489,8 +1496,13 @@ class PlayerFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         player?.release()
+        player = null
         releaseStandby()
-        requireActivity().unregisterReceiver(screenReceiver)
+        try {
+            requireActivity().unregisterReceiver(screenReceiver)
+        } catch (e: Exception) {
+            Log.w(TAG, "unregisterReceiver failed: ${e.message}")
+        }
     }
 
     override fun onDestroyView() {

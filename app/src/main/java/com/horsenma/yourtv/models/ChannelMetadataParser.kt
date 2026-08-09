@@ -25,7 +25,9 @@ object ChannelMetadataParser {
     private val metadataLabelPattern = Regex("(?i)^(?:tvg|group|radio|channel|logo)[-_].*")
     private val noisePattern = Regex(
         "(?i)(广告|购物|促销|招商|营销|热线|返利|点播|回放|预告|轮播|测试|样片|更新时间|历年春晚|" +
-            "\\d{4}年春晚|" +
+            "\\d{4}年春晚|图文直播|重映|大集合|放映厅|倩女幽魂|龙门飞甲|飞碟之谜|航拍中国|" +
+            "人与自然|地理中国|中国村庄|最强综艺趴|赛事最经典|经典动画|抗战经典影片|新片放映厅|" +
+            "体育-昨天|" +
             "advert|advertisement|promotion|promo|commercial|vod|timeshift|catchup|sample|test)"
     )
 
@@ -85,15 +87,23 @@ object ChannelMetadataParser {
             lower.contains("/vod/") ||
             lower.contains("/advert") ||
             lower.contains("/ad/") ||
+            // 广告网络投放域（stream.ads.ottera.tv 等，实际播放广告频道）
+            lower.contains("ottera.tv") ||
+            lower.contains("/ads.") ||
             // 点播资源站（影视资源站 ffzy 系）
             lower.contains("ffzy") ||
             // 斗鱼/虎牙 7x24 转播循环（动画/电影循环播放，非直播频道）
             lower.contains("metshop.top") ||
+            // 蜻蜓FM 广播电台（无视频画面，冒充电视）
+            lower.contains("qingting.fm") ||
+            // 咪咕点播虚拟直播（wd-virtuallive / virtuallive2）
+            lower.contains("virtuallive") ||
             // 央视/CNTV 点播片段（人与自然/地理中国/航拍中国 等纪录短片）
             lower.contains("newcntv.qcloudcdn.com") ||
             lower.contains("cntv.lxdns.com") ||
             // 快手视频文件（历年春晚/卫视录像缓存，非实时直播）
-            lower.contains("kwimgs.com")
+            lower.contains("kwimgs.com") ||
+            lower.contains("yximgs.com")
     }
 
     /** Reject an obvious cross-wired CCTV URL (CCTV1 label pointing to CCTV2). */

@@ -69,7 +69,7 @@ class MainViewModel : ViewModel() {
     // Bump the parsed-list cache when the metadata parser changes.  Reusing a
     // v2.7 cache would reintroduce the old `tvg-id=...` display names after an
     // upgrade even though all new source files are parsed correctly.
-    private val channelsCacheFileName = "channels_list_cache_v280.json"
+    private val channelsCacheFileName = "channels_list_cache_v290.json"
     private var lastChannelsHash = 0
 
     private val _playTrigger = MutableLiveData<TVModel?>()
@@ -288,7 +288,7 @@ class MainViewModel : ViewModel() {
                 val existing = mergedMap[key]
                 if (existing == null) {
                     mergedMap[key] = tv
-                } else {
+                } else if (existing.playerType == tv.playerType) {
                     existing.uris = (existing.uris + tv.uris).distinct()
                     val incomingHeaders = tv.uriHeaders.ifEmpty {
                         tv.uris.associateWith { tv.headers.orEmpty() }
@@ -299,6 +299,7 @@ class MainViewModel : ViewModel() {
                         uriHeaders = existing.uriHeaders + incomingHeaders
                     )
                 }
+                // 同名但类型不同（IPTV vs WEBVIEW）不合并线路，保留先到者
             }
         }
         val merged = mergedMap.values.toList()
@@ -1359,6 +1360,8 @@ class MainViewModel : ViewModel() {
     /** 将频道列表应用到界面（分组构建 + 默认频道恢复） */
     private fun applyChannelList(tvs: List<TV>, restoreTitle: String?, onApplied: (suspend () -> Unit)? = null) {
         viewModelScope.launch(Dispatchers.Main) {
+            // 先捕获旧收藏（聚合后对象会被整体替换，收藏映射需要旧对象信息）
+            val oldFavorites = groupModel.getFavoritesList()?.tvList?.value.orEmpty()
             groupModel.setTVListModelList(
                 listOf(
                     TVListModel(context.getString(R.string.my_favorites), 0),
@@ -1367,8 +1370,11 @@ class MainViewModel : ViewModel() {
             )
             val iptvModels = tvs.mapIndexed { index, tv ->
                 val canonicalTitle = ChannelClassifier.displayName(tv.title)
-                TVModel(tv.copy(id = index, title = canonicalTitle, name = canonicalTitle)).apply {
-                    setLike(SP.getLike(index))
+                // 频道 id 用"分类+规范名"哈希而非列表下标：聚合/刷新后顺序变化
+                // 也不会让收藏、稳定源、当前频道对不上号（收藏丢失/侧边栏漂移根因）
+                val stableId = ChannelClassifier.mergeKey(tv.title, tv.group).hashCode()
+                TVModel(tv.copy(id = stableId, title = canonicalTitle, name = canonicalTitle)).apply {
+                    setLike(SP.getLike(stableId))
                     setGroupIndex(2)
                     listIndex = index
                 }
@@ -1376,11 +1382,14 @@ class MainViewModel : ViewModel() {
             val modelMap = mutableMapOf<String, TVModel>()
             iptvModels.forEach { tvModel ->
                 val key = com.horsenma.yourtv.models.ChannelClassifier.mergeKey(tvModel.tv.title, tvModel.tv.group)
-                if (modelMap.containsKey(key)) {
+                val existing = modelMap[key]
+                if (existing != null && existing.tv.playerType == tvModel.tv.playerType) {
                     modelMap[key]?.tv?.uris = (modelMap[key]?.tv?.uris.orEmpty() + tvModel.tv.uris).distinct()
-                } else {
+                } else if (existing == null) {
                     modelMap[key] = tvModel
                 }
+                // 同名但类型不同（IPTV vs WEBVIEW）：不合并线路，保留先到者。
+                // 避免 webview:// 地址混入 IPTV 线路导致"播放失败/黑屏"
             }
             // Cached lists are intentionally accepted for instant startup, but
             // they must use the same deterministic order as a fresh aggregate.
@@ -1419,22 +1428,44 @@ class MainViewModel : ViewModel() {
             listModel = listModelNew
             groupModel.tvGroupValue[1].setTVListModel(listModelNew)
 
-            // 恢复或设置默认频道
-            val currentStableSource = SP.getStableSources().firstOrNull { it.id == groupModel.getCurrent()?.tv?.id }
-            if (restoreTitle != null) {
-                val matchingTvModel = listModelNew.firstOrNull { it.tv.title == restoreTitle }
-                if (matchingTvModel != null) {
-                    groupModel.setCurrent(matchingTvModel)
-                    Log.d(TAG, "applyChannelList: Restored current to: ${matchingTvModel.tv.title}")
+            // 收藏列表随聚合重建：旧收藏对象按 分类+规范名 映射到新频道，
+            // 避免收藏停留在过期对象上导致"播放与侧边栏不一致"
+            val newFavorites = oldFavorites.mapNotNull { old ->
+                val key = com.horsenma.yourtv.models.ChannelClassifier.mergeKey(old.tv.title, old.tv.group)
+                listModelNew.firstOrNull {
+                    com.horsenma.yourtv.models.ChannelClassifier.mergeKey(it.tv.title, it.tv.group) == key
                 }
-            } else if (groupModel.getCurrent() == null || currentStableSource == null) {
-                if (listModelNew.isNotEmpty()) {
-                    val preferred = listModelNew.firstOrNull {
-                        ChannelClassifier.mergeKey(it.tv.title, it.tv.group) == "央视||cctv1"
-                    } ?: listModelNew[0]
-                    groupModel.setCurrent(preferred)
-                    Log.d(TAG, "applyChannelList: Set default current to: ${preferred.tv.title}")
+            }.distinctBy { it.tv.id }
+            groupModel.getFavoritesList()?.setTVListModel(newFavorites)
+
+            // 恢复或设置默认频道：用"分类+规范名"把当前频道重新锚定到新列表。
+            // 旧实现按 id 匹配稳定源，聚合/刷新后 id 重排会导致匹配失败，
+            // 侧边栏被重置到 CCTV1 而实际播放不变——"观看与侧边栏不一致"的根因之一。
+            val current = groupModel.getCurrent()
+            val currentKey = current?.let {
+                com.horsenma.yourtv.models.ChannelClassifier.mergeKey(it.tv.title, it.tv.group)
+            }
+            val anchored = currentKey?.let { key ->
+                listModelNew.firstOrNull {
+                    com.horsenma.yourtv.models.ChannelClassifier.mergeKey(it.tv.title, it.tv.group) == key
                 }
+            }
+            val target = when {
+                anchored != null -> anchored
+                restoreTitle != null -> listModelNew.firstOrNull { it.tv.title == restoreTitle }
+                else -> null
+            }
+            if (target != null) {
+                if (target.tv.id != current?.tv?.id) {
+                    groupModel.setCurrent(target)
+                    Log.d(TAG, "applyChannelList: Re-anchored current to: ${target.tv.title}")
+                }
+            } else if (listModelNew.isNotEmpty()) {
+                val preferred = listModelNew.firstOrNull {
+                    com.horsenma.yourtv.models.ChannelClassifier.mergeKey(it.tv.title, it.tv.group) == "央视||cctv1"
+                } ?: listModelNew[0]
+                groupModel.setCurrent(preferred)
+                Log.d(TAG, "applyChannelList: Set default current to: ${preferred.tv.title}")
             }
 
             viewModelScope.launch(Dispatchers.IO) { preloadLogo() }

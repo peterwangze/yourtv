@@ -43,8 +43,8 @@ class TVGroupModel : ViewModel() {
     fun setCurrent(tvModel: TVModel) {
         _current.setValueSafe(tvModel)
         // 定位频道所属的真实分组（央视/卫视/地方/海外/其他），
-        // 跳过“我的收藏/全部频道”（索引 0/1，全部频道包含所有频道会抢先命中），
-        // 避免播放位置停留在“全部频道”导致菜单恢复导航时定位错误
+        // 跳过"我的收藏/全部频道"（索引 0/1，全部频道包含所有频道会抢先命中），
+        // 避免播放位置停留在"全部频道"导致菜单恢复导航时定位错误
         var groupIdx = -1
         for (i in 2 until tvGroupValue.size) {
             if (tvGroupValue[i].tvList.value?.any { it.tv.id == tvModel.tv.id } == true) {
@@ -56,19 +56,29 @@ class TVGroupModel : ViewModel() {
             setPosition(groupIdx)
             setPositionPlaying(groupIdx)
         } else {
-            val currentList = getCurrentList()
-            if (currentList != null) {
-                val tvList = currentList.tvList.value ?: emptyList()
-                val index = tvList.indexOfFirst { it.tv.id == tvModel.tv.id }
-                if (index >= 0) {
-                    currentList.setPosition(index)
-                } else {
-                    val newList = tvList.toMutableList().apply { add(tvModel) }
-                    currentList.setTVListModel(newList)
-                    currentList.setPosition(newList.size - 1)
+            // 旧对象（聚合前）按 分类+规范名 锚定到新列表中的同频道；
+            // 绝不把过期对象追加进分组（会造成重复频道与侧边栏漂移）
+            val key = com.horsenma.yourtv.models.ChannelClassifier.mergeKey(
+                tvModel.tv.title, tvModel.tv.group
+            )
+            var anchoredIdx = -1
+            for (i in 2 until tvGroupValue.size) {
+                val list = tvGroupValue[i].tvList.value ?: continue
+                val idx = list.indexOfFirst {
+                    com.horsenma.yourtv.models.ChannelClassifier.mergeKey(it.tv.title, it.tv.group) == key
+                }
+                if (idx >= 0) {
+                    anchoredIdx = i
+                    tvGroupValue[i].setPosition(idx)
+                    break
                 }
             }
-            setPositionPlaying(positionValue)
+            if (anchoredIdx >= 0) {
+                setPosition(anchoredIdx)
+                setPositionPlaying(anchoredIdx)
+            } else {
+                setPositionPlaying(positionValue)
+            }
         }
         setChange()
     }
