@@ -1489,6 +1489,9 @@ class MainViewModel : ViewModel() {
         // 主线程读取当前分组名：getCurrent() 会写入 LiveData，只能在主线程调用
         val currentGroup = groupModel.getCurrent()?.tv?.group
         viewModelScope.launch(Dispatchers.IO) {
+            // 首帧优先：等当前频道稳定起播后再全量探测，
+            // 避免 200 路并发探测抢占带宽导致启动/切台更慢
+            delay(10_000L)
             val channels = listModel.toList()
             if (channels.isEmpty()) return@launch
             // 首启降载：只探测当前分组；无分组匹配时探测前 PROBE_CHANNEL_LIMIT 个；WebView 源跳过

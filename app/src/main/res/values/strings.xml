@@ -91,6 +91,7 @@
     <string name="confirm_reset_settings">确定重置吗？</string>
     <string name="show_source_button">显示换源按钮</string>
     <string name="auto_switch_source">自动换源</string>
+    <string name="fast_zap">快速切台（预加载下一频道）</string>
     <string name="verify_user_error">测试码验验证失败</string>
     <string name="verify_user">测试码</string>
     <string name="initialization_error">initialization_error</string>

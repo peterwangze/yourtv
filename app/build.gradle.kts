@@ -99,7 +99,7 @@ android {
 
 fun getVersionName(): String {
     // 本地分支版本：高于上游 2.4.3，避免被上游更新检查误判为可升级
-    return "2.9.0"
+    return "3.0.0"
 }
 
 fun getVersionCode(): Int {

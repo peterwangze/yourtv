@@ -369,6 +369,18 @@
                 app:thumbTint="@color/switch_thumb_color"
                 app:trackTint="@color/switch_track_color" />
             <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch_fast_zap"
+                android:text="@string/fast_zap"
+                android:textColor="@color/title_blur"
+                android:textSize="14sp"
+                android:layout_marginTop="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nextFocusUp="@+id/switch_auto_switch_source"
+                android:nextFocusDown="@+id/switch_show_source_button"
+                app:thumbTint="@color/switch_thumb_color"
+                app:trackTint="@color/switch_track_color" />
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/switch_show_source_button"
                 android:text="@string/show_source_button"
                 android:textColor="@color/title_blur"

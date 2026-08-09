@@ -74,6 +74,7 @@ class PlayerFragment : Fragment() {
     private var standbyTargetUrl: String? = null
     private var standbyChannelId = -1
     private var standbyReady = false
+    private var standbyRetryCount = 0
     private val aspectRatio = 16f / 9f
     internal var isInPictureInPictureMode = false
     private val handler = Handler(Looper.myLooper()!!)
@@ -105,6 +106,9 @@ class PlayerFragment : Fragment() {
     private var lastStopTime = 0L
     private val stopDurationThreshold = 2_500L
     private val retryCooldown = 30_000L
+    // 会话内是否成功出过画面：从未出画时（启动稳定源失效等）跳过换线冷却与
+    // 自动换源开关，立即换下一条线路，避免"首帧黑屏 30 秒"
+    private var hasPlayedSuccessfully = false
     private val checkPlaybackInterval = 15_000L
     // 定义保存间隔（例如 5 分钟，防止频繁保存）
     private var lastPauseTime = 0L
@@ -317,34 +321,68 @@ class PlayerFragment : Fragment() {
         this.playbackCallback = callback
     }
 
+    /**
+     * 播放器池：主播放器（当前可见）+ 备用播放器（预加载下一频道）。
+     * 两个实例启动时创建、切台时角色交换复用，绝不反复创建/释放；
+     * 备用播放器在电视上也启用（设置可关），预加载到 READY 停在首帧，
+     * 切台时无缝接管，实现秒切。
+     */
     @OptIn(UnstableApi::class)
     fun updatePlayer() {
         if (context == null) {
             Log.e(TAG, "context == null")
             return
         }
+        ensurePlayerPool()
+    }
 
+    /** 软解切换等播放器设置变化：释放并重建两个播放器 */
+    @OptIn(UnstableApi::class)
+    fun rebuildPlayers() {
+        releaseAllPlayers()
+        ensurePlayerPool()
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun ensurePlayerPool() {
         val ctx = requireContext()
-        val playerView = binding.playerView
+        if (player == null) {
+            player = buildMainPlayer(ctx)
+            binding.playerView.player = player
+            player?.playWhenReady = true
+            Log.d(TAG, "Main player created")
+        }
+        if (standbyPlayer == null) {
+            standbyPlayer = buildStandbyPlayer(ctx)
+            _binding?.standbyView?.player = standbyPlayer
+            Log.d(TAG, "Standby player created")
+        }
+        // 定时任务随播放器池常驻
+        handler.removeCallbacks(checkPlaybackRunnable)
+        handler.removeCallbacks(stableSourceCheckRunnable)
+        handler.postDelayed(checkPlaybackRunnable, checkPlaybackInterval)
+        handler.postDelayed(stableSourceCheckRunnable, stablePlaybackDuration)
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun buildMainPlayer(ctx: android.content.Context): ExoPlayer {
         val renderersFactory = DefaultRenderersFactory(ctx)
         val playerMediaCodecSelector = PlayerMediaCodecSelector()
         renderersFactory.setMediaCodecSelector(playerMediaCodecSelector)
         renderersFactory.setExtensionRendererMode(
             if (SP.softDecode) DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER else DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
         )
-
-        if (player != null) {
-            player?.release()
-        }
-
-        player = ExoPlayer.Builder(ctx)
+        val exo = ExoPlayer.Builder(ctx)
             .setRenderersFactory(renderersFactory)
             .setLoadControl(createFastLoadControl())
             .build()
-        player?.repeatMode = REPEAT_MODE_ALL
-        player?.playWhenReady = true
-        player?.addListener(object : Player.Listener {
+        exo.repeatMode = REPEAT_MODE_ALL
+        exo.addListener(object : Player.Listener {
+            // 备用播放器与主播放器共享本监听器：只有"当前可见"的实例才处理
+            private val self = exo
+
             override fun onVideoSizeChanged(videoSize: VideoSize) {
+                if (self !== player) return
                 if (!isInPictureInPictureMode) {
                     updatePlayerViewLayout() // Call new method to handle layout
                 }
@@ -358,6 +396,7 @@ class PlayerFragment : Fragment() {
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (self !== player) return
                 if (tvModel == null) {
                     Log.e(TAG, "tvModel == null")
                     return
@@ -365,6 +404,7 @@ class PlayerFragment : Fragment() {
 
                 val tv = tvModel!!
                 if (isPlaying) {
+                    hasPlayedSuccessfully = true
                     tv.confirmSourceType()
                     tv.confirmVideoIndex()
                     tv.setErrInfo("")
@@ -388,6 +428,7 @@ class PlayerFragment : Fragment() {
             }
 
             override fun onPlaybackStateChanged(state: Int) {
+                if (self !== player) return
                 if (!SP.autoSwitchSource) return
                 if (tvModel == null || player == null) {
                     return
@@ -469,12 +510,14 @@ class PlayerFragment : Fragment() {
                 newPosition: Player.PositionInfo,
                 reason: Int
             ) {
+                if (self !== player) return
                 if (reason == DISCONTINUITY_REASON_AUTO_TRANSITION) {
                     (activity as MainActivity).onPlayEnd()
                 }
             }
 
             override fun onPlayerError(error: PlaybackException) {
+                if (self !== player) return
                 Log.w(TAG, "Player error: ${error.errorCode}, message=${error.message}")
                 // 播放失败：立即标记线路不可用，后续切换跳过
                 tvModel?.getVideoUrl()?.let { LineHealth.mark(it, false) }
@@ -490,7 +533,8 @@ class PlayerFragment : Fragment() {
                 }
                 lastStopTime = System.currentTimeMillis()
                 Log.w(TAG, "Marking for retry: lastStopTime=$lastStopTime, cooldownRemaining=${if (System.currentTimeMillis() - lastSwitchTime < retryCooldown) retryCooldown - (System.currentTimeMillis() - lastSwitchTime) else 0}")
-                if (System.currentTimeMillis() - lastSwitchTime >= retryCooldown) {
+                // 从未成功出画：忽略 30s 冷却立即换线（启动期稳定源失效场景）
+                if (!hasPlayedSuccessfully || System.currentTimeMillis() - lastSwitchTime >= retryCooldown) {
                     Log.w(TAG, "${tvModel?.tv?.title} error, retrying immediately")
                     tvModel?.let { switchSource(it) }
                     lastSwitchTime = System.currentTimeMillis()
@@ -539,7 +583,7 @@ class PlayerFragment : Fragment() {
                     }
                 }
 
-                if (!SP.autoSwitchSource) {
+                if (!SP.autoSwitchSource && hasPlayedSuccessfully) {
                     Log.w(TAG, "Auto-switch disabled, ignoring error: ${error.message}")
                     return
                 }
@@ -596,17 +640,41 @@ class PlayerFragment : Fragment() {
                 }
             }
         })
+        return exo
+    }
 
-        playerView.player = player
-        tvModel?.let {
-            play(it)
-        }
+    /** 备用播放器：只负责把下一频道预加载到 READY（停首帧不拉流） */
+    @OptIn(UnstableApi::class)
+    private fun buildStandbyPlayer(ctx: android.content.Context): ExoPlayer {
+        val exo = ExoPlayer.Builder(ctx)
+            .setLoadControl(createFastLoadControl())
+            .build().apply {
+                repeatMode = REPEAT_MODE_ALL
+                addListener(object : Player.Listener {
+                    override fun onPlaybackStateChanged(state: Int) {
+                        if (state == Player.STATE_READY) {
+                            standbyReady = true
+                            Log.d(TAG, "Standby ready for next channel")
+                        }
+                    }
 
-        // 修复：移动定时器启动到末尾
-        handler.removeCallbacks(checkPlaybackRunnable)
-        handler.removeCallbacks(stableSourceCheckRunnable)
-        handler.postDelayed(checkPlaybackRunnable, checkPlaybackInterval)
-        handler.postDelayed(stableSourceCheckRunnable, stablePlaybackDuration)
+                    override fun onPlayerError(error: PlaybackException) {
+                        // 预加载失败不打扰主播放：标记坏线并换下一条线路重试（最多 3 次）
+                        Log.d(TAG, "Standby prepare failed, discard: ${error.message}")
+                        standbyTargetUrl?.let { LineHealth.mark(it, false) }
+                        standbyTargetUrl = null
+                        standbyChannelId = -1
+                        standbyReady = false
+                        standbyRetryCount++
+                        if (standbyRetryCount < 3) {
+                            handler.post { prepareStandbyForNextChannel() }
+                        } else {
+                            standbyRetryCount = 0
+                        }
+                    }
+                })
+            }
+        return exo
     }
 
     @OptIn(UnstableApi::class)
@@ -733,7 +801,9 @@ class PlayerFragment : Fragment() {
                     "isResumed=$isResumed, isInPip=$isInPictureInPictureMode, playerType=${tvModel!!.tv.playerType}, " +
                     "bufferingCount=$bufferingCount, retryTimes=${tvModel!!.retryTimes}, " +
                     "playbackDuration=${if (playbackStartTime > 0) currentTime - playbackStartTime else 0L}")
-            if (!isPlaying && lastStopTime > 0 && stopDuration >= stopDurationThreshold && cooldownRemaining == 0L) {
+            if (!isPlaying && lastStopTime > 0 && stopDuration >= stopDurationThreshold &&
+                (cooldownRemaining == 0L || !hasPlayedSuccessfully)
+            ) {
                 if (tvModel?.tv?.playerType == PlayerType.WEBVIEW) {
                     // 网页源解析/加载慢（可达数十秒），停播检测不适用：
                     // 交给 WebFragment 内部超时重载，不在这里自动换线/弹错
@@ -1122,7 +1192,7 @@ class PlayerFragment : Fragment() {
 
             Log.d(TAG, "Playing IPTV: ${tvModel.tv.title}, uris: ${tvModel.tv.uris.size}")
 
-            // 秒切路径：目标频道已在备用播放器就绪 → 无缝接管，无黑屏等待
+            // 秒切路径：目标频道已在备用播放器 READY → 角色交换无缝接管（0 延迟）
             val targetUrl = tvModel.getVideoUrl()
             val seamlessSwitched = standbyPlayer != null && standbyReady && standbyChannelId == tvModel.tv.id
             if (seamlessSwitched) {
@@ -1137,55 +1207,25 @@ class PlayerFragment : Fragment() {
                 }
                 val old = player
                 player = standbyPlayer
-                standbyPlayer = null
+                standbyPlayer = old
                 standbyTargetUrl = null
                 standbyChannelId = -1
                 standbyReady = false
                 binding.playerView.player = player
-                binding.standbyView.player = null
+                binding.standbyView.player = standbyPlayer
                 player?.play()
                 old?.stop()
-                old?.release()
+                old?.clearMediaItems()
                 Log.d(TAG, "Seamless switch to standby: ${tvModel.tv.title}, url=$targetUrl")
             } else {
                 releaseStandby()
             }
 
             if (!seamlessSwitched) {
-                // 确保 player 存在且绑定到 PlayerView
-                if (player == null) {
-                    player = ExoPlayer.Builder(requireContext())
-                        .setLoadControl(createFastLoadControl())
-                        .build().apply {
-                        addListener(object : Player.Listener {
-                            override fun onVideoSizeChanged(videoSize: VideoSize) {
-                                Log.d(TAG, "Video size changed: ${videoSize.width}x${videoSize.height}")
-                                updatePlayerViewLayout()
-                            }
-                            override fun onPlaybackStateChanged(playbackState: Int) {
-                                if (playbackState == Player.STATE_READY) {
-                                    Log.d(TAG, "${tvModel.tv.title} is playing")
-                                    prepareStandbyForNextChannel()
-                                }
-                            }
-                            override fun onPlayerError(error: PlaybackException) {
-                                Log.e(TAG, "Player error for ${tvModel.tv.title}: ${error.message}")
-                                tvModel.setErrInfo(R.string.play_error.getString())
-                            }
-                        })
-                    }
-                    Log.d(TAG, "Created new ExoPlayer for ${tvModel.tv.title}")
-                }
-                // 绑定 PlayerView
+                // 冷切路径：复用主播放器实例（不重建、不释放），只换媒体源
+                releaseStandby()
+                ensurePlayerPool()
                 binding.playerView.player = player
-                // 如果暂停状态，准备恢复
-                if (player?.isPlaying == false) {
-                    //player?.stop()
-                    player?.prepare()
-                    player?.playWhenReady = true
-                    Log.d(TAG, "Resumed existing ExoPlayer for ${tvModel.tv.title}")
-                }
-
                 player?.run {
                     val videoUrl = tvModel.tv.uris.getOrNull(tvModel.videoIndexValue) ?: run {
                         Log.w(TAG, "No valid URL in uris for ${tvModel.tv.title}")
@@ -1206,6 +1246,8 @@ class PlayerFragment : Fragment() {
                     }
                     val mediaSource = tvModel.getMediaSource()
                     try {
+                        stop()
+                        clearMediaItems()
                         if (mediaSource != null) {
                             setMediaSource(mediaSource)
                         } else {
@@ -1222,6 +1264,8 @@ class PlayerFragment : Fragment() {
             }
             binding.playerView.requestFocus()
             binding.webView.isFocusable = false
+            // 无论秒切/冷切，都用备用槽预加载新的"下一频道"，为下一次切台做准备
+            prepareStandbyForNextChannel()
         }
     }
 
@@ -1245,62 +1289,75 @@ class PlayerFragment : Fragment() {
         return hasTouchScreen && !isTv
     }
 
-    /** 释放备用播放器 */
+    /** 丢弃备用预加载（停止并清空媒体，实例保留在池中复用） */
     private fun releaseStandby() {
+        standbyPlayer?.stop()
+        standbyPlayer?.clearMediaItems()
+        standbyTargetUrl = null
+        standbyChannelId = -1
+        standbyReady = false
+    }
+
+    /** 释放整个播放器池（软解切换重建/销毁时调用） */
+    private fun releaseAllPlayers() {
+        player?.release()
+        player = null
         standbyPlayer?.release()
         standbyPlayer = null
         standbyTargetUrl = null
         standbyChannelId = -1
         standbyReady = false
-        // onDestroyView 之后 binding 已置空（配置变更销毁路径），必须判空
+        _binding?.playerView?.player = null
         _binding?.standbyView?.player = null
     }
 
     /**
-     * 当前频道播放就绪后，后台预准备"下一频道"（列表下一个 IPTV 频道）。
-     * prepare 到 READY 后停在首帧（不 play 不持续拉流），切台时无缝接管。
+     * 后台预准备"下一频道"（切台顺序的下一个 IPTV 频道）：
+     * 电视/触屏所有设备默认启用（设置可关），prepare 到 READY 停在首帧
+     * （不 play 不持续拉流），切台时无缝接管。保留每频道 HTTP 头
+     * （Referer/User-Agent），并对目标连接预热以复用 OkHttp 连接池。
      */
     private fun prepareStandbyForNextChannel() {
         if (!::viewModel.isInitialized) return
-        // 电视等弱机不启用备用播放器（双解码器内存/带宽压力大），只保留触屏设备秒切体验
-        if (!isTouchScreenDevice()) return
+        if (!SP.fastZap) return
         // 全列表顺序取"当前频道的下一个"（与按键切台顺序一致，且无 getNext 的位置副作用）
         val current = viewModel.groupModel.getCurrent() ?: return
         val allModels = viewModel.listModel
         val currentIdx = allModels.indexOfFirst { it.tv.id == current.tv.id }
         if (currentIdx < 0 || currentIdx + 1 >= allModels.size) return
         val next = allModels[currentIdx + 1]
-        if (standbyPlayer != null) {
-            if (standbyChannelId == next.tv.id) return // 已预准备当前目标
-            releaseStandby() // 频道漂移：目标变化，重建
-        }
+        if (standbyPlayer != null && standbyChannelId == next.tv.id && standbyReady) return // 已就绪
         if (next.tv.playerType != PlayerType.IPTV) return
-        val url = next.getVideoUrl() ?: return
+        // 选线：跳过已探测坏线，取质量分最高的可用线（与主播放器选线一致），
+        // 避免首条线路是坏线导致预加载失败
+        val lineIdx = next.tv.uris.indices
+            .filter { !LineHealth.isDead(next.tv.uris[it]) }
+            .maxByOrNull {
+                SourceQuality.scoreWithResolution(
+                    next.tv.uris[it],
+                    SP.getResolutionCache(next.tv.uris[it]),
+                    next.tv.title
+                )
+            } ?: return
+        val url = next.tv.uris[lineIdx]
         if (url.isBlank() || !url.startsWith("http")) return
+        next.setVideoIndex(lineIdx)
 
+        ensurePlayerPool()
         standbyTargetUrl = url
         standbyChannelId = next.tv.id
         standbyReady = false
-        standbyPlayer = ExoPlayer.Builder(requireContext())
-            .setLoadControl(createFastLoadControl())
-            .build().apply {
-                addListener(object : Player.Listener {
-                    override fun onPlaybackStateChanged(state: Int) {
-                        if (state == Player.STATE_READY) {
-                            standbyReady = true
-                            Log.d(TAG, "Standby ready for next channel: $url")
-                        }
-                    }
-
-                    override fun onPlayerError(error: PlaybackException) {
-                        Log.d(TAG, "Standby prepare failed, discard: ${error.message}")
-                        releaseStandby()
-                    }
-                })
-            }
-        binding.standbyView.player = standbyPlayer
-        standbyPlayer?.setMediaItem(MediaItem.fromUri(url))
+        standbyPlayer?.stop()
+        standbyPlayer?.clearMediaItems()
+        val mediaSource = next.getMediaSource()
+        val mediaItem = next.getMediaItem()
+        standbyPlayer?.run {
+            if (mediaSource != null) setMediaSource(mediaSource)
+            else if (mediaItem != null) setMediaItem(mediaItem)
+        }
         standbyPlayer?.prepare()
+        standbyPlayer?.playWhenReady = false
+        prewarm(url)
         Log.d(TAG, "Preparing standby for next channel: ${next.tv.title}, url=$url")
     }
 
@@ -1495,9 +1552,7 @@ class PlayerFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        player?.release()
-        player = null
-        releaseStandby()
+        releaseAllPlayers()
         try {
             requireActivity().unregisterReceiver(screenReceiver)
         } catch (e: Exception) {

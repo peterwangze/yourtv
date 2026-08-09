@@ -976,7 +976,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        playerFragment.updatePlayer()
+        playerFragment.rebuildPlayers()
     }
 
     fun settingActive() {

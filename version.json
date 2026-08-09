@@ -1,7 +1,7 @@
 {
-  "version_code": 290,
-  "version_name": "2.9.0",
-  "apk_url": "https://github.com/peterwangze/yourtv/releases/download/v2.9.0/juyuan_tv_v2.9.0.apk",
-  "apk_name": "juyuan_tv_v2.9.0.apk",
-  "description": "修复频道漂移/自动跳台/广告源混入/黑屏广播台/未分类泛滥，未分类从115降至3，收藏与稳定源跨聚合保留"
+  "version_code": 300,
+  "version_name": "3.0.0",
+  "apk_url": "https://github.com/peterwangze/yourtv/releases/download/v3.0.0/juyuan_tv_v3.0.0.apk",
+  "apk_name": "juyuan_tv_v3.0.0.apk",
+  "description": "多播放器快速加载：电视启用备用播放器预加载下一频道、切台无缝接管、播放器复用、启动坏线快速恢复"
 }

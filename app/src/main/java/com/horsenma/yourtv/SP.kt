@@ -46,6 +46,7 @@ object SP {
     private const val KEY_ENABLE_SCREEN_OFF_AUDIO = "enable_screen_off_audio"
     private const val KEY_ENABLE_WEBVIEW_TYPE = "enable_webview_type"
     private const val KEY_FULL_SCREEN_MODE = "full_screen_mode"
+    private const val KEY_FAST_ZAP = "fast_zap"
     private const val RESOLUTION_CACHE_PREFIX = "resolution_"
     private const val RESOLUTION_CACHE_TIMESTAMP_PREFIX = "resolution_timestamp_"
     private const val CACHE_DURATION = 24 * 60 * 60 * 1000L // 24 小时
@@ -58,6 +59,7 @@ object SP {
     const val DEFAULT_ENABLE_SCREEN_OFF_AUDIO = true
     const val DEFAULT_SHOW_SOURCE_BUTTON = true
     const val DEFAULT_AUTO_SWITCH_SOURCE = false
+    const val DEFAULT_FAST_ZAP = true
     const val DEFAULT_CHANNEL_REVERSAL = false
     const val DEFAULT_CHANNEL_NUM = false
     const val DEFAULT_TIME = true
@@ -227,6 +229,15 @@ object SP {
         set(value) {
             if (sp.getBoolean(KEY_SOFT_DECODE, DEFAULT_SOFT_DECODE) != value) {
                 sp.edit(commit = true) { putBoolean(KEY_SOFT_DECODE, value) }
+            }
+        }
+
+    /** 快速切台：备用播放器预加载下一频道，切台秒开（所有设备默认开启，弱机可关） */
+    var fastZap: Boolean
+        get() = sp.getBoolean(KEY_FAST_ZAP, DEFAULT_FAST_ZAP)
+        set(value) {
+            if (sp.getBoolean(KEY_FAST_ZAP, DEFAULT_FAST_ZAP) != value) {
+                sp.edit(commit = true) { putBoolean(KEY_FAST_ZAP, value) }
             }
         }
 
