@@ -1,7 +1,7 @@
 {
-  "version_code": 330,
-  "version_name": "3.3.0",
-  "apk_url": "https://github.com/peterwangze/yourtv/releases/download/v3.3.0/juyuan_tv_v3.3.0.apk",
-  "apk_name": "juyuan_tv_v3.3.0.apk",
-  "description": "聚合反向关联源架构：内置预载源快照开箱即用、频道级换源与线路来源标注、自动选优（持久线路健康+源质量分层）、播放缓冲/换线策略修正（消除进频道卡顿）、分类全量修复（词边界匹配/咪咕体育归位/县市补齐）、源与镜像治理（CCSH 卫视地方扩充、失效源移除）"
+  "version_code": 340,
+  "version_name": "3.4.0",
+  "apk_url": "https://github.com/peterwangze/yourtv/releases/download/v3.4.0/juyuan_tv_v3.4.0.apk",
+  "apk_name": "juyuan_tv_v3.4.0.apk",
+  "description": "国内三网可用性治理：真实播放健康可恢复、线路失败分级退避、公网优先与移动/联通/电信多样化兜底、每频道候选限流、默认源去重降噪、完整聚合后再替换列表、重建当前可用内置快照"
 }

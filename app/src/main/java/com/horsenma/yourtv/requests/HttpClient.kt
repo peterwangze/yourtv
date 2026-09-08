@@ -26,6 +26,17 @@ object HttpClient {
         getClientWithProxy()
     }
 
+    /** Short-lived, low-bandwidth client used only for IPTV reachability probes. */
+    val probeHttpClient: OkHttpClient by lazy {
+        okHttpClient.newBuilder()
+            .callTimeout(3, TimeUnit.SECONDS)
+            .connectTimeout(2, TimeUnit.SECONDS)
+            .readTimeout(2, TimeUnit.SECONDS)
+            .writeTimeout(2, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(false)
+            .build()
+    }
+
     internal val builder: OkHttpClient.Builder by lazy {
         createBuilder()
     }

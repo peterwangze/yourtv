@@ -37,8 +37,11 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
 import com.horsenma.yourtv.data.PlayerType
 import com.horsenma.yourtv.data.Global
 import com.google.gson.reflect.TypeToken
@@ -57,20 +60,28 @@ class MainViewModel : ViewModel() {
     private val epgCooldownMs = 30L * 60 * 1000
     // 解析互斥：同一时刻只允许一个解析+应用任务，避免列表被并发整体替换导致画面闪断
     private val parseMutex = Mutex()
-    // 全量线路探测只做一次，避免首启占满弱机网络
-    @Volatile private var linesProbed = false
     // 会话内只弹一次"解析源"Toast：多个源并行/串行导入时避免 Toast 排队刷屏
     private val parsingToastShown = java.util.concurrent.atomic.AtomicBoolean(false)
     // 多源聚合：apply=false 静默解析时收集各源频道，聚合完成后一次性替换界面列表
     private val aggregateBuffer = mutableListOf<List<TV>>()
     private val aggregating = java.util.concurrent.atomic.AtomicBoolean(false)
     @Volatile private var aggregateStarted = false
+    private val probesInFlight = java.util.concurrent.ConcurrentHashMap<String, okhttp3.Call>()
+    @Volatile private var playbackActive = false
+    private var sourceMaintenanceJob: kotlinx.coroutines.Job? = null
+    private var epgMaintenanceJob: kotlinx.coroutines.Job? = null
+    private var idleMaintenanceResumeJob: kotlinx.coroutines.Job? = null
+    @Volatile private var epgCall: okhttp3.Call? = null
+    @Volatile private var forceEpgRefreshWhenIdle = false
+    @Volatile private var forceSourceRefreshWhenIdle = false
 
     // 解析结果缓存：启动秒出列表，避免每次启动重新解析/下载
     // Bump the parsed-list cache when the metadata parser changes.  Reusing a
     // v2.7 cache would reintroduce the old `tvg-id=...` display names after an
     // upgrade even though all new source files are parsed correctly.
-    private val channelsCacheFileName = "channels_list_cache_v290.json"
+    // v3.4 changes source filtering/ranking and must not inherit an older,
+    // potentially unusable aggregate before the new bundled snapshot.
+    private val channelsCacheFileName = "channels_list_cache_v340.json"
     private var lastChannelsHash = 0
 
     private val _playTrigger = MutableLiveData<TVModel?>()
@@ -94,7 +105,7 @@ class MainViewModel : ViewModel() {
     private var timeFormat = if (SP.displaySeconds) "HH:mm:ss" else "HH:mm"
 
     private lateinit var appDirectory: File
-    // 主线程 applyChannelList 写、IO 线程（preloadLogo/probeAllLines/str2Channels）读，
+    // 主线程 applyChannelList 写、IO 线程 str2Channels 读，
     // @Volatile 保证跨线程可见性，避免解析期间读到半初始化列表
     @Volatile
     var listModel: List<TVModel> = emptyList()
@@ -106,8 +117,6 @@ class MainViewModel : ViewModel() {
 
     private lateinit var cacheEPG: File
     private var epgUrl = SP.epg
-
-    private lateinit var imageHelper: ImageHelper
 
     val sources = Sources()
 
@@ -124,33 +133,97 @@ class MainViewModel : ViewModel() {
         _channelsOk.postValue(value)
     }
 
+    /**
+     * 播放活跃时暂停自动源维护。源列表快照已经足够启动播放，
+     * 自动下载/聚合必须等到观看停止后再执行，避免和当前节目争用带宽。
+     */
+    fun setPlaybackActive(active: Boolean) {
+        playbackActive = active
+        if (active) {
+            idleMaintenanceResumeJob?.cancel()
+            idleMaintenanceResumeJob = null
+            cancelBackgroundMaintenance()
+        } else if (initialized) {
+            idleMaintenanceResumeJob?.cancel()
+            idleMaintenanceResumeJob = viewModelScope.launch {
+                // Let a just-cancelled aggregate release its guard before
+                // scheduling the next quiet-period maintenance pass.
+                delay(100L)
+                if (playbackActive || !initialized) return@launch
+                if (forceSourceRefreshWhenIdle) {
+                    scheduleSourceMaintenance(forceRefreshActive = true) {}
+                } else if (SP.configUrl.isNullOrEmpty()) {
+                    importDefaultsIfNeeded()
+                } else {
+                    refreshSourcesIfStale()
+                }
+                if (forceEpgRefreshWhenIdle) {
+                    updateEPG(force = true)
+                } else {
+                    updateEPG()
+                }
+            }
+        }
+    }
+
+    /** Cancel speculative line checks immediately when playback or input needs the network. */
+    fun cancelLineProbes() {
+        probesInFlight.values.forEach { it.cancel() }
+    }
+
+    /** Stop all non-playback network work without changing deferred user intent. */
+    fun cancelBackgroundMaintenance() {
+        cancelLineProbes()
+        idleMaintenanceResumeJob?.cancel()
+        idleMaintenanceResumeJob = null
+        sourceMaintenanceJob?.cancel()
+        sourceMaintenanceJob = null
+        epgMaintenanceJob?.cancel()
+        epgMaintenanceJob = null
+        epgCall?.cancel()
+        epgCall = null
+    }
+
     fun getTime(): String {
         return getDateFormat(timeFormat)
     }
 
     fun updateEPG(force: Boolean = false) {
+        if (force) forceEpgRefreshWhenIdle = true
+        if (playbackActive) {
+            if (force) R.string.epg_refresh_deferred.showToast()
+            Log.d(TAG, "updateEPG: deferred while playback is active")
+            return
+        }
         // 冷却：30 分钟内不重复自动尝试（避免启动时 EPG 镜像疯狂重试刷屏/占网络）；
         // 用户在设置里手动点击"更新节目单"时 force=true 跳过冷却，并给出结果反馈
         if (!force && System.currentTimeMillis() - lastEpgAttempt < epgCooldownMs) {
             return
         }
-        lastEpgAttempt = System.currentTimeMillis()
-        viewModelScope.launch {
-            var success = false
-            if (!epgUrl.isNullOrEmpty()) {
-                success = updateEPG(epgUrl!!)
-            }
-            if (!success && !SP.epg.isNullOrEmpty()) {
-                success = updateEPG(SP.epg!!)
-            }
-            if (force) {
-                if (success) {
-                    R.string.epg_update_success.showToast()
-                    Log.i(TAG, "EPG update succeeded (manual)")
-                } else {
-                    R.string.epg_update_failed.showToast()
-                    Log.w(TAG, "EPG update failed (manual)")
+        epgMaintenanceJob?.cancel()
+        epgMaintenanceJob = viewModelScope.launch(Dispatchers.IO) {
+            delay(BACKGROUND_SOURCE_REFRESH_DELAY_MS)
+            if (playbackActive) return@launch
+            lastEpgAttempt = System.currentTimeMillis()
+            try {
+                var success = false
+                if (!epgUrl.isNullOrEmpty()) {
+                    success = updateEPG(epgUrl!!)
                 }
+                if (!success && !SP.epg.isNullOrEmpty()) {
+                    success = updateEPG(SP.epg!!)
+                }
+                if (force) {
+                    if (success) {
+                        R.string.epg_update_success.showToast()
+                        Log.i(TAG, "EPG update succeeded (manual)")
+                    } else {
+                        R.string.epg_update_failed.showToast()
+                        Log.w(TAG, "EPG update failed (manual)")
+                    }
+                }
+            } finally {
+                if (force && !playbackActive) forceEpgRefreshWhenIdle = false
             }
         }
     }
@@ -163,10 +236,17 @@ class MainViewModel : ViewModel() {
             Log.w(TAG, "refreshActiveSource: no active source configured")
             return
         }
-        viewModelScope.launch {
-            // 强制刷新激活源后重新聚合多源，避免列表退化成单源
-            aggregateRemainingSources(forceRefreshActive = true)
+        if (playbackActive) {
+            forceSourceRefreshWhenIdle = true
+            Log.i(TAG, "refreshActiveSource: deferred until playback is idle")
+            return
         }
+        forceSourceRefreshWhenIdle = true
+        sourceMaintenanceJob?.cancel()
+        sourceMaintenanceJob = null
+        // 强制刷新激活源后重新聚合多源，避免列表退化成单源。
+        // 任务纳入统一维护 Job；若播放开始，会被取消并在空闲后继续。
+        scheduleSourceMaintenance(forceRefreshActive = true) {}
     }
 
     fun updateConfig() {
@@ -179,19 +259,25 @@ class MainViewModel : ViewModel() {
             }
             return
         }
+        if (playbackActive) {
+            Log.d(TAG, "updateConfig: deferred while playback is active")
+            return
+        }
         SP.configUrl?.let {
             if (it.startsWith("http")) {
-                // IO 线程执行，避免 prefs/文件 IO 阻塞主线程（重进黑屏根因）
-                viewModelScope.launch(Dispatchers.IO) {
-                    // 已有合并缓存（含配置源频道）时静默刷新，避免每次启动用单源覆盖多源合并结果
-                    importFromUrl(it, "", apply = !channelsCacheFile().exists())
-                    // v3.3.0：静默导入完成后若聚合已过期，立即合并（原逻辑只入 buffer 永不合并，
-                    // 导致二次启动列表停留在旧快照/单源——"启动看不到央视分类"根因之一）
-                    if (aggregateBuffer.isNotEmpty() &&
-                        System.currentTimeMillis() - SP.lastAggregationMs >= REFRESH_AGGREGATION_INTERVAL_MS
-                    ) {
-                        aggregateAllSources()
-                    }
+                // Delay automatic source maintenance so playback and remote input win.
+                scheduleSourceMaintenance {
+                    val isBundledDefault = it in SP.defaultSourceUrls()
+                    // A default source is only one input to the aggregate and
+                    // must never replace the bundled/cached list on its own.
+                    // A user-supplied custom source keeps the direct-import
+                    // behavior when no parsed cache exists.
+                    importFromUrl(
+                        it,
+                        "",
+                        apply = !isBundledDefault && !channelsCacheFile().exists(),
+                        silent = isBundledDefault,
+                    )
                     updateEPG()
                 }
             }
@@ -200,10 +286,9 @@ class MainViewModel : ViewModel() {
 
     /**
      * 首次启动时自动导入预置的公共直播源（界面就绪后延迟执行）。
-     * 全部预置源并行下载（每个最多 12 秒），首个成功即成为激活源并出列表，
-     * 无需按顺序逐个试错——串行最坏情况是 19 源 × 12 秒才出第一个列表，
-     * 并行后首列表耗时 = 最快可用源耗时（对齐 zcode 项目并行 fan-out 方案）。
-     * 解析/应用阶段仍由 parseMutex 串行化，避免列表被并发整体替换。
+     * 内置快照先出列表；全部预置源并行下载（每个最多 12 秒），解析结果
+     * 进入聚合缓冲，完成后只整体应用一次。激活源按配置顺序选择，不由并发竞速决定。
+     * 解析/应用阶段由 parseMutex 串行化，避免列表被并发整体替换。
      * 全部失败时记录时间，24 小时内不再重试，避免每次启动卡顿。
      */
     fun importDefaultsIfNeeded() {
@@ -221,38 +306,58 @@ class MainViewModel : ViewModel() {
             Log.d(TAG, "importDefaultsIfNeeded: last attempt too recent, skip")
             return
         }
+        if (playbackActive) {
+            Log.d(TAG, "importDefaultsIfNeeded: deferred while playback is active")
+            return
+        }
         defaultsImportStarted = true
         SP.defaultsLastAttempt = System.currentTimeMillis()
-        viewModelScope.launch(Dispatchers.IO) {
+        scheduleSourceMaintenance {
+            var completed = false
+            try {
+            // Give the current channel the connection and bandwidth during its
+            // first frame. The bundled snapshot is already usable offline.
             val urls = SP.defaultSourceUrls().filter { it.isNotBlank() }
-            // 只有第一个真正解析成功的源允许 apply=true（防止并行导入多源先后
-            // 整体替换列表：加载页延迟隐藏 + 列表闪换）。其余成功源进入聚合缓冲。
-            val firstApplied = java.util.concurrent.atomic.AtomicBoolean(false)
-            coroutineScope {
+            val semaphore = Semaphore(DEFAULT_SOURCE_CONCURRENCY)
+            // The bundled aggregate is already visible at this point. Collect
+            // every successful default source and apply one complete merge;
+            // never let the fastest single download replace the usable list.
+            val results = coroutineScope {
                 urls.map { url ->
                     async(Dispatchers.IO) {
-                        Log.d(TAG, "importDefaultsIfNeeded: trying default source $url (parallel)")
-                        try {
-                            // 每个源最多等 12 秒：弱网/源失效时快速跳过，避免首屏长时间卡"解析源"
-                            withTimeoutOrNull(12_000L) {
-                                importFromUrl(url, silent = true, applyGate = firstApplied)
+                        semaphore.withPermit {
+                            Log.d(TAG, "importDefaultsIfNeeded: collecting default source $url")
+                            val ok = try {
+                                withTimeoutOrNull(DEFAULT_SOURCE_TIMEOUT_MS) {
+                                    importFromUrl(url, apply = false, silent = true)
+                                } == true
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                Log.e(TAG, "importDefaultsIfNeeded: failed $url: ${e.message}")
+                                false
                             }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "importDefaultsIfNeeded: failed $url: ${e.message}")
+                            url to ok
                         }
                     }
                 }.awaitAll()
             }
-            val anySuccess = !SP.configUrl.isNullOrEmpty()
-            // 无论成败都标记已尝试；失败时靠 lastAttempt 控制 24 小时后重试
+            val successful = results.filter { it.second }.map { it.first }
             SP.defaultsImported = true
-            if (anySuccess) {
-                Log.i(TAG, "importDefaultsIfNeeded: done, active source = ${SP.configUrl} (parallel first-success)")
-                // 后台静默导入其余源并聚合多线路（不阻塞观看、不弹提示）
-                aggregateRemainingSources()
+            if (successful.size >= MIN_AGGREGATE_SOURCE_COUNT) {
+                // Deterministic active source: source-policy order, not a race.
+                SP.configUrl = successful.first()
+                if (aggregateAllSources()) {
+                    SP.lastAggregationMs = System.currentTimeMillis()
+                }
+                Log.i(TAG, "importDefaultsIfNeeded: merged ${successful.size}/${urls.size} sources, active=${successful.first()}")
             } else {
-                Log.w(TAG, "importDefaultsIfNeeded: all default sources failed, retry after 24h")
+                Log.w(TAG, "importDefaultsIfNeeded: only ${successful.size}/${urls.size} sources available; keeping bundled list")
                 defaultsImportStarted = false
+            }
+            completed = true
+            } finally {
+                if (!completed) defaultsImportStarted = false
             }
         }
     }
@@ -272,46 +377,63 @@ class MainViewModel : ViewModel() {
             addAll(SP.defaultSourceUrls().filter { it.isNotBlank() && it != activeUrl })
         }
         Log.i(TAG, "aggregateRemainingSources: importing ${urls.size} sources for multi-source merge")
-        coroutineScope {
-            urls.map { url ->
-                async(Dispatchers.IO) {
-                    try {
-                       // 单源最多等 50 秒：即使下载内部超时失效也不会拖死整个聚合
-                       withTimeoutOrNull(50_000L) {
-                            importFromUrl(url, apply = false, forceDownload = forceRefreshActive && url == activeUrl, silent = true)
-                       }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "aggregateRemainingSources: failed $url: ${e.message}")
+        try {
+            val semaphore = Semaphore(DEFAULT_SOURCE_CONCURRENCY)
+            val successfulCount = coroutineScope {
+                urls.map { url ->
+                    async(Dispatchers.IO) {
+                        semaphore.withPermit {
+                            try {
+                                withTimeoutOrNull(DEFAULT_SOURCE_TIMEOUT_MS) {
+                                    importFromUrl(
+                                        url,
+                                        apply = false,
+                                        forceDownload = forceRefreshActive && url == activeUrl,
+                                        silent = true,
+                                    )
+                                } == true
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                Log.e(TAG, "aggregateRemainingSources: failed $url: ${e.message}")
+                                false
+                            }
+                        }
                     }
+                }.awaitAll().count { it }
+            }
+            if (successfulCount >= MIN_AGGREGATE_SOURCE_COUNT) {
+                if (aggregateAllSources()) {
+                    SP.lastAggregationMs = System.currentTimeMillis()
                 }
-            }.awaitAll()
+            } else {
+                Log.w(TAG, "aggregateRemainingSources: only $successfulCount/${urls.size} sources available; keeping current list")
+            }
+        } finally {
+            aggregateStarted = false
         }
-        aggregateAllSources()
-        // 完整聚合（全部预置源）完成才刷新 24h 闸门；
-        // updateConfig 的局部聚合（仅激活源）不置位，避免完整聚合被跳过
-        SP.lastAggregationMs = System.currentTimeMillis()
     }
 
     /** 将 aggregateBuffer 中收集的各源频道按分类+规范名合并，线路按清晰度/稳定度排序后应用 */
-    private suspend fun aggregateAllSources() {
+    private suspend fun aggregateAllSources(): Boolean {
         // 防重入：首装并行导入路径与 updateConfig/refreshSourcesIfStale 路径可能并发触发
         if (!aggregating.compareAndSet(false, true)) {
             Log.d(TAG, "aggregateAllSources: already running, skip")
-            return
+            return false
         }
-        try {
+        return try {
             aggregateAllSourcesLocked()
         } finally {
             aggregating.set(false)
         }
     }
 
-    private suspend fun aggregateAllSourcesLocked() {
+    private suspend fun aggregateAllSourcesLocked(): Boolean {
         // 快照 buffer（写入方持 parseMutex，避免并发 add 的 CME）
         val lists = parseMutex.withLock { aggregateBuffer.toList() }
         if (lists.isEmpty()) {
             Log.w(TAG, "aggregateAllSources: nothing collected, skip")
-            return
+            return false
         }
         Log.i(TAG, "aggregateAllSources: merging ${lists.size} source lists")
         val mergedMap = LinkedHashMap<String, TV>()
@@ -339,7 +461,7 @@ class MainViewModel : ViewModel() {
         val merged = mergedMap.values.toList()
         if (merged.isEmpty()) {
             Log.w(TAG, "aggregateAllSources: merged list empty")
-            return
+            return false
         }
         // 线路排序：频道反向聚合后，先健康度，再清晰度/稳定度/延迟。
         merged.forEach { tv ->
@@ -370,8 +492,13 @@ class MainViewModel : ViewModel() {
         }
         saveChannelsCache(ordered)
         // 只移除本次已消费的源列表（期间新导入的列表保留给下一轮聚合）
-        parseMutex.withLock { aggregateBuffer.removeAll(lists) }
+        parseMutex.withLock {
+            // Remove exactly the prefix consumed by this snapshot. Equal lists
+            // appended during the merge must remain for the next aggregation.
+            repeat(min(lists.size, aggregateBuffer.size)) { aggregateBuffer.removeAt(0) }
+        }
         aggregateStarted = false
+        return true
     }
 
     private fun getCache(): String {
@@ -384,8 +511,6 @@ class MainViewModel : ViewModel() {
 
     fun init(context: Context) {
         this.context = context
-        val application = context.applicationContext as YourTVApplication
-        imageHelper = application.imageHelper
         // v3.3.0：恢复跨会话线路健康（死线/延迟），切台/选线跳过已知坏线
         LineHealth.loadPersisted()
 
@@ -444,28 +569,9 @@ class MainViewModel : ViewModel() {
                     Log.w(TAG, "Selected stable source is null")
                 }
             } else {
-                Log.w(TAG, "Selected stable source is null")
-                try {
-                    val inputStream = context.resources.openRawResource(R.raw.rawstablesource)
-                    val jsonString = inputStream.bufferedReader().use { it.readText() }
-                    val type = object : TypeToken<List<TV>>() {}.type
-                    val stableSources: List<TV> = Global.gson.fromJson(jsonString, type)
-                    if (stableSources.isNotEmpty()) {
-                        val tv = stableSources.random()
-                        val defaultChannel = TVModel(tv).apply {
-                            setLike(SP.getLike(tv.id))
-                            setGroupIndex(2)
-                            listIndex = 0
-                        }
-                        groupModel.setCurrent(defaultChannel)
-                        triggerPlay(defaultChannel)
-                        Log.i(TAG, "Playing random fallback stable channel from raw: ${defaultChannel.tv.title}, url: ${defaultChannel.getVideoUrl()}")
-                    } else {
-                        Log.w(TAG, "No stable sources found in rawstablesource.txt")
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to load random stable source from rawstablesource.txt: ${e.message}", e)
-                }
+                // Do not start a random, release-time URL. The bundled list is
+                // loaded below and MainActivity deterministically starts CCTV1.
+                Log.i(TAG, "No stable playback history; waiting for bundled channel list")
             }
 
         }
@@ -579,32 +685,6 @@ class MainViewModel : ViewModel() {
 
     }
 
-    suspend fun preloadLogo() {
-        if (!this::imageHelper.isInitialized) {
-            return
-        }
-
-        withContext(Dispatchers.IO) { // 添加后台线程调度
-            // 首启降载：列表 bind 时已按需加载 logo，这里只预热前 PRELOAD_LOGO_LIMIT 个频道
-            for (tvModel in listModel.take(PRELOAD_LOGO_LIMIT)) {
-                var name = tvModel.tv.name
-                if (name.isEmpty()) {
-                    name = tvModel.tv.title
-                }
-                val url = tvModel.tv.logo
-                var urls =
-                    listOf(
-                        "https://live.fanmingming.cn/tv/$name.png"
-                    ) + getUrls("https://raw.githubusercontent.com/fanmingming/live/main/tv/$name.png")
-                if (url.isNotEmpty()) {
-                    urls = (getUrls(url) + urls).distinct()
-                }
-
-                imageHelper.preloadImage(name, urls)
-            }
-        }
-    }
-
     suspend fun readEPG(input: InputStream): Boolean = withContext(Dispatchers.IO) {
         try {
             val res = EPGXmlParser().parse(input)
@@ -628,6 +708,8 @@ class MainViewModel : ViewModel() {
                 cacheEPG.writeText(gson.toJson(e1))
             }
             true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             false
         }
@@ -651,6 +733,8 @@ class MainViewModel : ViewModel() {
                 }
             }
             true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             false
         }
@@ -664,21 +748,30 @@ class MainViewModel : ViewModel() {
             withContext(Dispatchers.IO) {
                 try {
                     val request = okhttp3.Request.Builder().url(a).build()
-                    val response = HttpClient.okHttpClient.newCall(request).execute()
+                    val call = HttpClient.okHttpClient.newCall(request)
+                    epgCall = call
+                    val response = call.execute()
 
                     if (response.isSuccessful) {
-                        response.bodyAlias()?.byteStream()?.use { stream ->
-                            if (readEPG(stream)) {
-                                success = true
+                        response.use {
+                            it.bodyAlias()?.byteStream()?.use { stream ->
+                                if (readEPG(stream)) {
+                                    success = true
+                                }
+                            } ?: run {
+                                Log.e(TAG, "EPG $a response body is null")
                             }
-                        } ?: run {
-                            Log.e(TAG, "EPG $a response body is null")
                         }
                     } else {
+                        response.close()
                         Log.e(TAG, "EPG $a ${response.codeAlias()}")
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Log.e(TAG, "EPG $a error")
+                } finally {
+                    epgCall = null
                 }
             }
 
@@ -698,22 +791,29 @@ class MainViewModel : ViewModel() {
        apply: Boolean = true,
         silent: Boolean = false,
         applyGate: java.util.concurrent.atomic.AtomicBoolean? = null
-   ) {
+   ): Boolean {
        Log.d(TAG, "importFromUrl: url=$url, id=$id, skipHistory=$skipHistory, forceDownload=$forceDownload")
        if (url.isBlank()) {
            Log.w(TAG, "importFromUrl: Skipping empty URL")
             if (!silent) R.string.sources_download_error.showToast()
-           return
+           return false
        }
 
         //val filename = if (id.isNotBlank()) id else url.substringAfterLast("/").takeIf { it.isNotBlank() } ?: "source_${url.hashCode()}.txt"
-        val rawFilename = url.substringAfterLast("/").takeIf { it.isNotBlank() }?.substringBeforeLast(".") ?: "source_${url.hashCode()}"
-        val filename = "$rawFilename.txt"
+        val rawFilename = url.substringAfterLast("/").takeIf { it.isNotBlank() }?.substringBeforeLast(".") ?: "source"
+        val safeFilename = rawFilename.replace(Regex("[^A-Za-z0-9._-]"), "_").take(48).ifBlank { "source" }
+        // Different repositories often use the same basename (index.m3u).
+        // Include the URL hash so one source can never parse another's cache.
+        val filename = if (id.isNotBlank() || !url.startsWith("http")) {
+            "$safeFilename.txt"
+        } else {
+            "${safeFilename}_${Integer.toHexString(url.hashCode())}.txt"
+        }
         val prefs = context.getSharedPreferences("SourceCache", Context.MODE_PRIVATE)
         val cacheTimeKey = "cache_time_$filename"
         val urlKey = "url_$filename"
         val cacheTime = prefs.getLong(cacheTimeKey, 0)
-        val cacheDuration = 24 * 60 * 60 * 1000
+        val cacheDuration = 24L * 60 * 60 * 1000
         val cacheCodeFile = File(appDirectory, "cache_$filename")
         val MAX_CACHE_FILES = 20
         // 缓存内容存文件（SharedPreferences 只存元数据，避免大字符串拖慢主线程）
@@ -747,11 +847,13 @@ class MainViewModel : ViewModel() {
         }
 
         // 检查缓存，并更新时间戳
-        if (!forceDownload && cachedContent != null && cacheCodeFile.exists() ) {
+        val cachedUrl = prefs.getString(urlKey, null)
+        val cacheIsFresh = cacheTime > 0L && System.currentTimeMillis() - cacheTime < cacheDuration
+        val cacheBelongsToUrl = cachedUrl == url
+        if (!forceDownload && cachedContent != null && cacheCodeFile.exists() && cacheIsFresh && cacheBelongsToUrl) {
             Log.d(TAG, "importFromUrl: Using cached content for filename=$filename, cacheTime=$cacheTime")
             viewModelScope.launch(Dispatchers.IO) {
                 with(prefs.edit()) {
-                    putLong("cache_time_$filename", System.currentTimeMillis())
                     // 仅真正应用（apply=true，首源导入/手动切源）时才移动 active_source；
                     // 聚合静默导入（apply=false）不得覆盖激活源，避免并发竞态把激活源指向随机源
                     if (apply) putString("active_source", filename)
@@ -759,7 +861,7 @@ class MainViewModel : ViewModel() {
                 }
             }
             // 在 IO 线程解析频道列表（大文件解析不再占用主线程），并等待解析完成
-            withContext(Dispatchers.IO) {
+            return withContext(Dispatchers.IO) {
                 val isHex = cachedContent.trim().matches(Regex("^[0-9a-fA-F]+$"))
                 val contentToParse = if (isHex) {
                     SourceDecoder.decodeHexSource(cachedContent) ?: cachedContent
@@ -776,7 +878,6 @@ class MainViewModel : ViewModel() {
                     sourceLabel = url
                 )
             }
-            return
         }
 
         // 下载
@@ -785,13 +886,13 @@ class MainViewModel : ViewModel() {
         val result = withContext(Dispatchers.IO) {
             DownGithubPrivate.download(context, url, id)
         }
-        when {
+        return when {
             result.isSuccess -> {
                 val content = result.getOrNull() ?: ""
                if (content.isEmpty()) {
                    Log.w(TAG, "importFromUrl: Downloaded empty content for url=$url")
                     if (!silent) R.string.sources_download_error.showToast()
-                   return
+                   return false
                }
                 val isHex = content.trim().matches(Regex("^[0-9a-fA-F]+$"))
                 val normalizedContent = if (isHex) {
@@ -809,7 +910,7 @@ class MainViewModel : ViewModel() {
                     }
                 }
                 withContext(Dispatchers.IO) {
-                    parseAndApplyChannels(
+                    val parsed = parseAndApplyChannels(
                         normalizedContent,
                         cacheCodeFile,
                         if (skipHistory) "" else url,
@@ -826,12 +927,15 @@ class MainViewModel : ViewModel() {
                         apply()
                     }
                     Log.d(TAG, "importFromUrl: Cached content for filename=$filename, isHex=$isHex")
+                    parsed
                 }
             }
            result.isFailure -> {
                Log.e(TAG, "importFromUrl: Download failed for url=$url: ${result.exceptionOrNull()?.message}")
                 if (!silent) R.string.sources_download_error.showToast()
+               false
            }
+            else -> false
        }
    }
 
@@ -1401,17 +1505,19 @@ class MainViewModel : ViewModel() {
             .filter { ChannelClassifier.mergeKey(it.title, it.group) == ChannelClassifier.mergeKey(tv.title, tv.group) }
             .flatMap { it.uris }
             .toSet()
-        return tv.uris.distinct().sortedWith(
-            compareByDescending<String> { if (LineHealth.isDead(it)) 0 else 1 }
-                // 稳定源线路（上次真实播放 30s+）优先于源分层：实测成功 > URL 启发式
+        val ranked = tv.uris.distinct().sortedWith(
+            // Device-local evidence dominates every URL/source heuristic.
+            compareByDescending<String> { LineHealth.healthRank(it) }
                 .thenByDescending { if (it in stableUrls) 1 else 0 }
-                // 源质量分层（v3.3.0）：实测稳定的国内源优先，iptv-org/aptv/退化源靠后，
-                // 避免"高清晰度但 0% 存活"的线路排在最前（实测 CCTV1-17 首选均为 aptv 死链）
+                // Public/official CDNs are normally reachable across Telecom,
+                // Unicom and Mobile; carrier-bound lines remain as fallbacks.
+                .thenByDescending { SourceNetworkPolicy.compatibilityScore(it) }
                 .thenByDescending { sourceWeightOf(tv, it) }
                 .thenByDescending { SourceQuality.scoreWithResolution(it, SP.getResolutionCache(it), tv.title) }
                 .thenBy { LineHealth.latency(it) ?: Long.MAX_VALUE }
                 .thenBy { it }
         )
+        return SourceNetworkPolicy.diversify(ranked, MAX_URIS_PER_CHANNEL)
     }
 
     /** 源质量分层分（按 uriSources 中的源名/域名判定；无标注时给中性分） */
@@ -1420,14 +1526,18 @@ class MainViewModel : ViewModel() {
         return when {
             "zbds.top" in src -> 90
             "vbskycn" in src -> 88
-            "ccsh" in src -> 85
+            // CCSH is broad but currently contains many volatile relay hosts;
+            // it is useful for fallback coverage, not as a universal first line.
+            "ccsh" in src -> 68
             "best-fan" in src -> 80
             "yuechan" in src -> 80
             "yangg-1989" in src -> 78
             "migu" in src -> 75
+            "fanmingming.com" in src -> 76
+            "hujingguang" in src -> 65
             "iptv-org" in src -> 55
             "aptv" in src -> 45
-            "jk2024988" in src || "hujingguang" in src -> 35
+            "jk2024988" in src -> 35
             else -> 60
         }
     }
@@ -1488,8 +1598,28 @@ class MainViewModel : ViewModel() {
             return
         }
         if (aggregateStarted) return
-        viewModelScope.launch(Dispatchers.IO) {
-            aggregateRemainingSources()
+        if (playbackActive) {
+            Log.d(TAG, "refreshSourcesIfStale: deferred while playback is active")
+            return
+        }
+        scheduleSourceMaintenance { aggregateRemainingSources() }
+    }
+
+    /** Schedule source maintenance only after a quiet period with no playback. */
+    private fun scheduleSourceMaintenance(
+        forceRefreshActive: Boolean = false,
+        block: suspend () -> Unit,
+    ) {
+        if (playbackActive || sourceMaintenanceJob?.isActive == true) return
+        sourceMaintenanceJob = viewModelScope.launch(Dispatchers.IO) {
+            delay(BACKGROUND_SOURCE_REFRESH_DELAY_MS)
+            if (playbackActive) return@launch
+            if (forceRefreshActive) {
+                aggregateRemainingSources(forceRefreshActive = true)
+                if (!playbackActive) forceSourceRefreshWhenIdle = false
+            } else {
+                block()
+            }
         }
     }
 
@@ -1565,11 +1695,8 @@ class MainViewModel : ViewModel() {
                 Log.d(TAG, "applyChannelList: Set default current to: ${preferred.tv.title}")
             }
 
-            viewModelScope.launch(Dispatchers.IO) { preloadLogo() }
             Log.d(TAG, "applyChannelList: Updated listModel size=${listModel.size}")
             groupModel.setChange()
-            // 列表就绪后后台探测线路健康
-            probeAllLines()
             // 列表应用完成：通知等待方（channelsOk 置位、自动起播等）
             onApplied?.invoke()
         }
@@ -1617,6 +1744,15 @@ class MainViewModel : ViewModel() {
             // 同名但类型不同（IPTV vs WEBVIEW）：不合并线路，保留先到者。
             // 避免 webview:// 地址混入 IPTV 线路导致"播放失败/黑屏"
         }
+        // Bundled/cached lists enter through this path without str2Channels.
+        // Apply the same cap, health order and carrier diversity after all
+        // duplicate channel objects have been merged.
+        modelMap.values.forEach { model ->
+            if (model.tv.playerType != PlayerType.WEBVIEW) {
+                model.tv.uris = rankChannelUris(model.tv)
+                model.setVideoIndex(model.tv.videoIndex.coerceIn(0, (model.tv.uris.size - 1).coerceAtLeast(0)))
+            }
+        }
         // Cached lists are intentionally accepted for instant startup, but
         // they must use the same deterministic order as a fresh aggregate.
         // Otherwise a v2.7-era source order puts CCTV10 before CCTV3 until
@@ -1641,89 +1777,43 @@ class MainViewModel : ViewModel() {
         return listModelNew to groupMap
     }
 
-    /**
-     * 后台渐进探测所有频道首选线路（并发 4，每线 2s 超时），
-     * 探测结果供切台跳过不可达线路。
-     */
-    fun probeAllLines() {
-        // 全量探测只做一次，避免首启占满弱机网络；后续线路健康由播放失败动态标记
-        if (linesProbed) return
-        linesProbed = true
-        // 主线程读取当前分组名：getCurrent() 会写入 LiveData，只能在主线程调用
-        val currentGroup = groupModel.getCurrent()?.tv?.group
-        viewModelScope.launch(Dispatchers.IO) {
-            // 首帧优先：等当前频道稳定起播后再全量探测，
-            // 避免 200 路并发探测抢占带宽导致启动/切台更慢
-            delay(10_000L)
-            val channels = listModel.toList()
-            if (channels.isEmpty()) return@launch
-            // 首启降载：只探测当前分组；无分组匹配时探测前 PROBE_CHANNEL_LIMIT 个；WebView 源跳过
-            val limited = channels
-                .filter { it.tv.playerType != PlayerType.WEBVIEW }
-                .let { list -> list.filter { it.tv.group == currentGroup }.ifEmpty { list.take(PROBE_CHANNEL_LIMIT) } }
-            if (limited.isEmpty()) return@launch
-            val workers = 4
-            val chunk = (limited.size + workers - 1) / workers
-            (0 until workers).map { w ->
-                launch {
-                    for (i in (w * chunk) until min((w + 1) * chunk, limited.size)) {
-                        val url = limited[i].tv.uris.firstOrNull() ?: continue
-                        if (LineHealth.isProbed(url)) continue
-                        val probeStart = System.currentTimeMillis()
-                        val ok = try {
-                            val request = okhttp3.Request.Builder().url(url)
-                                .header("Range", "bytes=0-0")
-                                .header("User-Agent", "VLC/3.0.18")
-                                .build()
-                            HttpClient.okHttpClient.newCall(request).execute().use { response ->
-                                if (response.isSuccessful) {
-                                    // 读取部分数据确认流可播（连接通但无数据=坏线）
-                                    response.bodyAlias()?.byteStream()?.use { it.read(ByteArray(1024)) != -1 } ?: false
-                                } else {
-                                    response.code == 416 // Range 超出=服务器正常
-                                }
-                            }
-                        } catch (e: Exception) {
-                            false
-                        }
-                        LineHealth.mark(url, ok, System.currentTimeMillis() - probeStart)
-                    }
-                }
-            }.forEach { it.join() }
-            val deadCount = limited.count { c ->
-                c.tv.uris.firstOrNull()?.let { LineHealth.isDead(it) } == true
-            }
-            Log.d(TAG, "probeAllLines: probed ${limited.size} channels, dead=${deadCount}")
-        }
-    }
+    data class LineProbeResult(val reachable: Boolean, val latencyMs: Int)
 
-    /** 针对性探测单个频道的全部线路（切台时调用，结果供后续切换/自动换线使用） */
-    fun probeChannelLines(tvModel: TVModel) {
-        val uris = tvModel.tv.uris
-        if (uris.isEmpty()) return
-        if (uris.all { LineHealth.isProbed(it) }) return
-        viewModelScope.launch(Dispatchers.IO) {
-            uris.forEach { url ->
-                if (LineHealth.isProbed(url)) return@forEach
-                val probeStart = System.currentTimeMillis()
-                val ok = try {
-                    val request = okhttp3.Request.Builder().url(url)
-                        .header("Range", "bytes=0-0")
-                        .header("User-Agent", "VLC/3.0.18")
-                        .build()
-                    HttpClient.okHttpClient.newCall(request).execute().use { response ->
-                        if (response.isSuccessful) {
-                            response.bodyAlias()?.byteStream()?.use { it.read(ByteArray(1024)) != -1 } ?: false
-                        } else {
-                            response.code == 416
-                        }
-                    }
-                } catch (e: Exception) {
+    /** One bounded range request used only for a single idle-playback candidate. */
+    internal fun probeLine(url: String, headers: Map<String, String>): LineProbeResult? {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) return null
+        val probeStart = System.currentTimeMillis()
+        val builder = okhttp3.Request.Builder().url(url)
+            .header("Range", "bytes=0-0")
+            .header("Accept-Encoding", "identity")
+        if (headers.keys.none { it.equals("user-agent", ignoreCase = true) }) {
+            builder.header("User-Agent", "VLC/3.0.18")
+        }
+        headers.forEach { (key, value) -> builder.header(key, value) }
+        val call = HttpClient.probeHttpClient.newCall(builder.build())
+        if (probesInFlight.putIfAbsent(url, call) != null) return null
+        var cancelled = false
+        val ok = try {
+            call.execute().use { response ->
+                if (response.code == 416) {
+                    true
+                } else if (response.isSuccessful) {
+                    response.bodyAlias()?.byteStream()?.use { it.read(ByteArray(1024)) != -1 } ?: false
+                } else {
                     false
                 }
-                LineHealth.mark(url, ok, System.currentTimeMillis() - probeStart)
             }
+        } catch (_: Exception) {
+            cancelled = call.isCanceled()
+            false
+        } finally {
+            probesInFlight.remove(url, call)
         }
+        if (cancelled) return null
+        val latency = (System.currentTimeMillis() - probeStart).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+        if (ok) LineHealth.markProbeSuccess(url, latency.toLong())
+        else LineHealth.markProbeFailure(url, latency.toLong())
+        return LineProbeResult(ok, latency)
     }
 
     /**
@@ -1837,10 +1927,12 @@ class MainViewModel : ViewModel() {
         const val CACHE_EPG = "epg.xml"
         private const val DEFAULTS_RETRY_INTERVAL_MS = 24L * 3600 * 1000
         private const val REFRESH_AGGREGATION_INTERVAL_MS = 24L * 3600 * 1000
+        private const val DEFAULT_SOURCE_TIMEOUT_MS = 12_000L
+        private const val BACKGROUND_SOURCE_REFRESH_DELAY_MS = 15_000L
+        private const val DEFAULT_SOURCE_CONCURRENCY = 3
+        private const val MIN_AGGREGATE_SOURCE_COUNT = 2
         val DEFAULT_CHANNELS_FILE = R.raw.channels
         val DEFAULT_WEBCHANNELS_FILE = R.raw.webchannelsiniptv
-        // 首启降载：全量线路探测只探前 N 个频道，logo 预热只预热前 M 个频道
-        private const val PROBE_CHANNEL_LIMIT = 200
-        private const val PRELOAD_LOGO_LIMIT = 30
+        private const val MAX_URIS_PER_CHANNEL = 8
     }
 }

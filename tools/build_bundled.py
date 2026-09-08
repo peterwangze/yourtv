@@ -18,8 +18,11 @@
 用法：python tools/build_bundled.py
 """
 import json
+import ipaddress
 import os
+import re
 import sys
+from urllib.parse import urlparse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESEARCH = os.path.join(ROOT, "tools", "research")
@@ -39,7 +42,7 @@ def source_weight(url: str, source: str) -> int:
     if "vbskycn" in s:
         return 88
     if "ccsh" in s:
-        return 85
+        return 68
     if "best-fan" in s:
         return 80
     if "yuechan" in s:
@@ -48,13 +51,109 @@ def source_weight(url: str, source: str) -> int:
         return 78
     if "migu" in s:
         return 75
+    if "fanmingming.com" in s:
+        return 76
+    if "hujingguang" in s:
+        return 65
     if "iptv-org" in s:
         return 55
     if "aptv" in s:
         return 45
-    if "jk2024988" in s or "hujingguang" in s:
+    if "jk2024988" in s:
         return 35
     return 60
+
+
+def host_of(url: str) -> str:
+    try:
+        return (urlparse(url).hostname or "").lower()
+    except ValueError:
+        return ""
+
+
+def carrier_of(url: str) -> str:
+    host = host_of(url)
+    if any(x in host for x in ("chinamobile.com", "cmvideo.cn", "miguvideo.com", "gmcc.net", "mobaibox.com")):
+        return "mobile"
+    if any(x in host for x in ("chinaunicom.cn", "unicom", "wo.cn")):
+        return "unicom"
+    if any(x in host for x in ("chinatelecom", "dxhmt.cn", "189.cn", "ctcdn")):
+        return "telecom"
+    if host.startswith(("2409:", "39.134.", "39.135.", "39.136.", "183.207.")):
+        return "mobile"
+    if host.startswith(("2408:", "221.6.", "221.7.", "58.248.")):
+        return "unicom"
+    if host.startswith(("240e:", "61.136.", "219.147.", "222.169.")):
+        return "telecom"
+    return "public"
+
+
+def usable_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme.lower() not in {"http", "https", "rtmp", "rtsp"}:
+            return False
+        if parsed.path.lower().endswith((".mp4", ".m4a", ".mp3", ".aac")):
+            return False
+        host = parsed.hostname
+        if not host:
+            return False
+        try:
+            ip = ipaddress.ip_address(host)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved:
+                return False
+        except ValueError:
+            pass
+        return True
+    except ValueError:
+        return False
+
+
+def is_ephemeral(title: str, group: str) -> bool:
+    text = f"{title} {group}".lower()
+    if re.search(r"体育-(?:今|明|昨|后)天\d{1,2}-\d{1,2}", group):
+        return True
+    return any(word in text for word in ("全场回放", "赛事回放", "精彩回放", "集锦", "录像回放"))
+
+
+def select_diverse(lines: list[dict], limit: int = 8) -> list[dict]:
+    alive = [line for line in lines if line["alive"]]
+    if not alive:
+        return []
+
+    selected: list[dict] = []
+    selected_urls: set[str] = set()
+    host_counts: dict[str, int] = {}
+
+    def add(line: dict, host_limit: int) -> bool:
+        if len(selected) >= limit or line["url"] in selected_urls:
+            return False
+        host = host_of(line["url"])
+        if host_counts.get(host, 0) >= host_limit:
+            return False
+        selected.append(line)
+        selected_urls.add(line["url"])
+        host_counts[host] = host_counts.get(host, 0) + 1
+        return True
+
+    add(alive[0], 2)
+    for line in alive[1:]:
+        if len(selected) >= min(4, limit):
+            break
+        add(line, 1)
+
+    # Keep one carrier-specific fallback even when it was unreachable on the
+    # build network; it can be the best line on the matching home broadband.
+    for carrier in ("mobile", "unicom", "telecom"):
+        candidate = next((line for line in lines
+                          if carrier_of(line["url"]) == carrier
+                          and source_weight(line["url"], line["source"]) >= 60), None)
+        if candidate:
+            add(candidate, 2)
+
+    for line in alive:
+        add(line, 2)
+    return selected
 
 
 def main() -> int:
@@ -68,7 +167,7 @@ def main() -> int:
     merged = {}  # mergeKey -> channel dict
     for e in channels:
         c = cls_map.get((e["title"], e["group"]))
-        if c is None or c.get("noise"):
+        if c is None or c.get("noise") or is_ephemeral(e["title"], e["group"]):
             continue
         key = c["mergeKey"]
         ch = merged.setdefault(key, {
@@ -81,7 +180,7 @@ def main() -> int:
             "lines": {},
         })
         url = e["url"]
-        if url in ch["lines"]:
+        if url in ch["lines"] or not usable_url(url):
             continue
         p = probe_map.get(url)
         ch["lines"][url] = {
@@ -103,11 +202,11 @@ def main() -> int:
             l["latency"] if l["latency"] is not None else 10 ** 9,
             l["url"],
         ))
-        alive = [l for l in lines if l["alive"]]
-        cap = 10 if alive else 6
-        if not alive:
+        selected = select_diverse(lines, 8)
+        if not selected:
             dropped_no_alive += 1
-        lines = lines[:cap]
+            continue
+        lines = selected
         out.append({
             "name": ch["title"],
             "title": ch["title"],
@@ -133,7 +232,7 @@ def main() -> int:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
 
     total_lines = sum(len(t["uris"]) for t in out)
-    print(f"bundled channels: {len(out)}  lines: {total_lines}  (all-dead channels kept: {dropped_no_alive})")
+    print(f"bundled channels: {len(out)}  lines: {total_lines}  (all-dead channels dropped: {dropped_no_alive})")
     print(f"written: {OUT}  ({os.path.getsize(OUT) / 1024:.0f} KB)")
     return 0
 if __name__ == "__main__":

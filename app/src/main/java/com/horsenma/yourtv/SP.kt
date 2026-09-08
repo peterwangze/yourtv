@@ -46,7 +46,6 @@ object SP {
     private const val KEY_ENABLE_SCREEN_OFF_AUDIO = "enable_screen_off_audio"
     private const val KEY_ENABLE_WEBVIEW_TYPE = "enable_webview_type"
     private const val KEY_FULL_SCREEN_MODE = "full_screen_mode"
-    private const val KEY_FAST_ZAP = "fast_zap"
     private const val KEY_RECENT = "recent_channels"
     private const val KEY_SLEEP_TIMER = "sleep_timer_minutes"
     private const val KEY_SLEEP_DEADLINE = "sleep_timer_deadline"
@@ -69,7 +68,6 @@ object SP {
     // zcode 项目"多 URL 静默 failover"的默认体验——线路失效立即换下一条，
     // 全部线路失败才进入错误页。已有用户存储值不受影响（仅新安装默认）。
     const val DEFAULT_AUTO_SWITCH_SOURCE = true
-    const val DEFAULT_FAST_ZAP = true
     const val DEFAULT_ASPECT_RATIO = "fit"
     const val RECENT_CHANNEL_LIMIT = 24
     const val DEFAULT_CHANNEL_REVERSAL = false
@@ -91,28 +89,20 @@ object SP {
     const val DEFAULT_POSITION_GROUP = 1
     const val DEFAULT_POSITION = 0
     const val DEFAULT_REPEAT_INFO = true
-    // 预置公共直播源（首次启动自动导入第一个可用源，其余可在"源管理"中切换）
+    // 国内三网默认聚合源。控制数量和互补性，避免重复拆分表、过期赛事/VOD
+    // 和大规模低质量列表占满启动带宽。用户仍可在源管理中自行添加其他源。
     var DEFAULT_SOURCES = """
         [{"uri":"https://live.zbds.top/tv/iptv4.txt"},
          {"uri":"https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.m3u"},
-         {"uri":"https://raw.githubusercontent.com/CCSH/IPTV/master/live_lite.m3u"},
          {"uri":"https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_all.m3u8"},
-         {"uri":"https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_province.m3u8"},
-         {"uri":"https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_cctv.m3u8"},
          {"uri":"https://raw.githubusercontent.com/YueChan/Live/main/GNTV.m3u"},
          {"uri":"https://raw.githubusercontent.com/YanG-1989/m3u/main/Migu.m3u"},
-         {"uri":"https://raw.githubusercontent.com/zhmzjj310144/migu-sports/main/%E4%B8%89%E6%BA%90%E5%90%88%E5%B9%B6_%E5%A4%AE%E8%A7%86%E4%BD%93%E8%82%B2%E5%9C%B0%E6%96%B9%E7%BB%BC%E5%90%88%E6%BA%90.m3u"},
+         {"uri":"https://live.fanmingming.com/tv/m3u/index.m3u"},
+         {"uri":"https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV1_ALL.m3u8"},
          {"uri":"https://iptv-org.github.io/iptv/countries/cn.m3u"},
-         {"uri":"https://iptv-org.github.io/iptv/languages/zho.m3u"},
          {"uri":"https://iptv-org.github.io/iptv/countries/hk.m3u"},
          {"uri":"https://iptv-org.github.io/iptv/countries/tw.m3u"},
-         {"uri":"https://iptv-org.github.io/iptv/countries/mo.m3u"},
-         {"uri":"https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u"},
-         {"uri":"https://live.fanmingming.com/tv/m3u/ipv6.m3u"},
-         {"uri":"https://live.fanmingming.com/tv/m3u/index.m3u"},
-         {"uri":"https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u"},
-         {"uri":"https://raw.githubusercontent.com/jk2024988/TV2024/main/%E5%92%AA%E5%92%952.m3u"},
-         {"uri":"https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV1_ALL.m3u8"}]
+         {"uri":"https://iptv-org.github.io/iptv/countries/mo.m3u"}]
     """.trimIndent()
 
     fun defaultSourceUrls(): List<String> {
@@ -242,15 +232,6 @@ object SP {
         set(value) {
             if (sp.getBoolean(KEY_SOFT_DECODE, DEFAULT_SOFT_DECODE) != value) {
                 sp.edit(commit = true) { putBoolean(KEY_SOFT_DECODE, value) }
-            }
-        }
-
-    /** 快速切台：备用播放器预加载下一频道，切台秒开（所有设备默认开启，弱机可关） */
-    var fastZap: Boolean
-        get() = sp.getBoolean(KEY_FAST_ZAP, DEFAULT_FAST_ZAP)
-        set(value) {
-            if (sp.getBoolean(KEY_FAST_ZAP, DEFAULT_FAST_ZAP) != value) {
-                sp.edit(commit = true) { putBoolean(KEY_FAST_ZAP, value) }
             }
         }
 
@@ -420,7 +401,7 @@ object SP {
         }
     }
 
-    /** 线路健康持久化（url → "延迟|时间戳[|d]"），上限 3000 条 */
+    /** 线路健康持久化。值格式由 LineHealth 版本化并兼容旧数据。 */
     fun getLineHealth(): Map<String, String> {
         return try {
             val json = sp.getString(KEY_LINE_HEALTH, null) ?: return emptyMap()

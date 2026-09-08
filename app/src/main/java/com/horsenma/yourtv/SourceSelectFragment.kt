@@ -11,25 +11,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.CheckedTextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.horsenma.yourtv.data.PlayerType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.net.URL
-import java.util.regex.Pattern
-import androidx.appcompat.widget.SwitchCompat
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
-import com.horsenma.yourtv.models.TVModel
 import androidx.core.content.ContextCompat
+
+private const val PING_PENDING = -2
 
 class SourceSelectFragment : Fragment() {
 
@@ -41,7 +33,6 @@ class SourceSelectFragment : Fragment() {
     private lateinit var sourceAdapter: SourceAdapter
     private val handler = Handler(Looper.getMainLooper())
     private val hideDelay = 30_000L // 10秒后自动隐藏
-    private var updateJobs: MutableList<Job> = mutableListOf()
     private lateinit var onSourceSelected: (Int, Boolean) -> Unit
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,19 +70,13 @@ class SourceSelectFragment : Fragment() {
         }
 
         // 初始化 onSourceSelected
-        onSourceSelected = { index, isChecked ->
+        onSourceSelected = { index, _ ->
             val tvModel = viewModel.groupModel.getCurrent()
             if (tvModel != null) {
-                if (index == tvModel.videoIndexValue) {
-                    tvModel.sourceUp()
-                    (requireActivity() as MainActivity).playerFragment.switchSource(tvModel)
-                    sourceAdapter.updateSelection(tvModel.videoIndexValue)
-                } else {
-                    tvModel.setVideoIndex(index)
-                    tvModel.confirmVideoIndex()
-                    (requireActivity() as MainActivity).playerFragment.switchSource(tvModel)
-                    sourceAdapter.updateSelection(index)
-                }
+                // The panel is an exact line picker. Cycling here used to move
+                // once more inside switchSource and play index + 1.
+                (requireActivity() as MainActivity).playerFragment.selectSource(tvModel, index)
+                sourceAdapter.updateSelection(index)
                 hideSelf()
             } else {
                 Log.w("SourceSelectFragment", "onSourceSelected: tvModel is null, skipping source selection")
@@ -146,12 +131,8 @@ class SourceSelectFragment : Fragment() {
         if (!hidden) {
             Log.d("SourceSelectFragment", "Fragment shown, updating UI")
             updateUI()
-            startDynamicUpdate()
             scheduleAutoHide()
             initializeFocus()
-        } else {
-            updateJobs.forEach { it.cancel() }
-            updateJobs.clear()
         }
     }
 
@@ -162,7 +143,6 @@ class SourceSelectFragment : Fragment() {
             if (loaded) {
                 Log.d("SourceSelectFragment", "Channels loaded, updating UI")
                 updateUI()
-                startDynamicUpdate()
                 scheduleAutoHide()
                 initializeFocus()
             } else {
@@ -176,7 +156,6 @@ class SourceSelectFragment : Fragment() {
         if (viewModel.channelsOk.value == true) {
             Log.d("SourceSelectFragment", "Channels already loaded, updating UI")
             updateUI()
-            startDynamicUpdate()
             scheduleAutoHide()
             initializeFocus()
         }
@@ -193,11 +172,11 @@ class SourceSelectFragment : Fragment() {
                 if (!isAdded || !isVisible) return@postDelayed
                 val holder = sourceRecyclerView.findViewHolderForAdapterPosition(selectedIndex)
                 if (holder != null) {
-                    val switch = holder.itemView.findViewById<SwitchCompat>(R.id.source_switch)
-                    switch.isFocusable = true
-                    switch.isFocusableInTouchMode = true
-                    switch.requestFocus()
-                    Log.d("SourceSelectFragment", "Focus set on SwitchCompat at position $selectedIndex")
+                    val choice = holder.itemView.findViewById<CheckedTextView>(R.id.source_switch)
+                    choice.isFocusable = true
+                    choice.isFocusableInTouchMode = true
+                    choice.requestFocus()
+                    Log.d("SourceSelectFragment", "Focus set on line choice at position $selectedIndex")
                 } else {
                     sourceRecyclerView.requestFocus()
                     Log.w("SourceSelectFragment", "ViewHolder not found for position $selectedIndex, fallback to RecyclerView")
@@ -224,14 +203,32 @@ class SourceSelectFragment : Fragment() {
             SourceInfo(
                 index + 1,
                 url,
-                getString(R.string.unknown),
-                -1,
+                SP.getResolutionCache(url)?.let(::formatResolution) ?: getString(R.string.unknown),
+                LineHealth.latency(url)?.coerceAtMost(Int.MAX_VALUE.toLong())?.toInt() ?: PING_PENDING,
                 SP.getStableSources().any { it.uris.contains(url) },
                 index == tvModel.videoIndexValue,
                 // v3.3.0：线路来源标注（聚合反向关联源），换线面板直接可见
-                tvModel.tv.uriSources[url]?.let { sourceNameOf(it) } ?: ""
+                tvModel.tv.uriSources[url]?.let { sourceNameOf(it) } ?: "",
+                LineHealth.healthRank(url),
             )
         })
+    }
+
+    private fun formatResolution(resolution: String?): String {
+        if (resolution == null || !resolution.matches("\\d+x\\d+".toRegex())) {
+            return getString(R.string.unknown)
+        }
+        val (width, height) = resolution.split("x").map { it.toIntOrNull() ?: 0 }
+        return when {
+            width >= 3840 && height >= 2160 -> "4K"
+            width >= 2560 && height >= 1440 -> "2K"
+            width >= 1920 && height >= 1080 -> "1080p"
+            width >= 1280 && height >= 720 -> "720p"
+            width >= 854 && height >= 480 -> "480p"
+            width >= 640 && height >= 360 -> "360p"
+            width >= 426 && height >= 240 -> "240p"
+            else -> getString(R.string.unknown)
+        }
     }
 
     /** 源名精简：取域名最后两段（raw.githubusercontent.com/CCSH/IPTV → CCSH） */
@@ -258,176 +255,6 @@ class SourceSelectFragment : Fragment() {
         }
     }
 
-    private fun startDynamicUpdate() {
-        updateJobs.forEach { it.cancel() }
-        updateJobs.clear()
-        val tvModel = viewModel.groupModel.getCurrent() ?: return
-        val sources = tvModel.tv.uris.filter { it.isNotBlank() }
-        val limitedDispatcher = Dispatchers.IO.limitedParallelism(2)
-
-        sources.forEachIndexed { index, url ->
-            val job = lifecycleScope.launch(limitedDispatcher) {
-                val resolution = try {
-                    fetchResolution(url, index, tvModel)
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    throw e // 面板关闭/切台主动取消，属正常流程，不应记录为错误
-                } catch (e: Exception) {
-                    Log.e("SourceSelectFragment", "fetchResolution: Failed for URL=$url, error=${e.message}")
-                    getString(R.string.unknown)
-                }
-                val ping = try {
-                    withContext(Dispatchers.IO) { fetchPing(url) }
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    throw e // 同上：主动取消不记录错误
-                } catch (e: Exception) {
-                    Log.e("SourceSelectFragment", "fetchPing: Failed for URL=$url, error=${e.message}")
-                    -1
-                }
-                val isStable = SP.getStableSources().any { it.uris.contains(url) }
-                withContext(Dispatchers.Main) {
-                    // 获取当前焦点位置
-                    val currentFocusPosition = (sourceRecyclerView.layoutManager as LinearLayoutManager)
-                        .findFirstCompletelyVisibleItemPosition()
-                    // 仅对非焦点项更新
-                    if (index != currentFocusPosition) {
-                        sourceAdapter.updateSource(index + 1, resolution, ping, isStable)
-                    }
-                }
-            }
-            updateJobs.add(job)
-        }
-    }
-
-    private suspend fun fetchResolution(url: String, index: Int, tvModel: TVModel): String {
-        if (url.isBlank()) {
-            Log.w("SourceSelectFragment", "fetchResolution: URL is blank")
-            return getString(R.string.unknown)
-        }
-
-        // 检查缓存
-        val cachedResolution = SP.getResolutionCache(url)
-        if (cachedResolution != null) {
-            Log.d("SourceSelectFragment", "fetchResolution: Cache hit for URL=$url, resolution=$cachedResolution")
-            return cachedResolution
-        }
-
-        // 仅处理当前播放源
-        if (url == tvModel.tv.uris.getOrNull(tvModel.videoIndexValue)) {
-            if (tvModel.tv.playerType == PlayerType.IPTV) {
-                try {
-                    val resolution = withContext(Dispatchers.Main) {
-                        (requireActivity() as MainActivity).playerFragment.getCurrentResolution()
-                    }
-                    if (resolution != null) {
-                        val formattedResolution = formatResolution(resolution)
-                        Log.d("SourceSelectFragment", "fetchResolution: Current source URL=$url, resolution=$formattedResolution")
-                        withContext(Dispatchers.Main) {
-                            SP.cacheResolution(url, formattedResolution)
-                        }
-                        return formattedResolution
-                    }
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    throw e // 切台时获取分辨率被取消，属正常流程
-                } catch (e: Exception) {
-                    Log.e("SourceSelectFragment", "fetchResolution: Failed to get resolution from PlayerFragment for URL=$url, error=${e.message}")
-                    return getString(R.string.unknown)
-                }
-            } else {
-                Log.d("SourceSelectFragment", "fetchResolution: WebView source URL=$url, skipping resolution fetch")
-                return getString(R.string.unknown)
-            }
-        }
-
-        // 非当前播放源返回未知
-        return getString(R.string.unknown)
-    }
-
-    private fun formatResolution(resolution: String?): String {
-        if (resolution == null || !resolution.matches("\\d+x\\d+".toRegex())) {
-            return getString(R.string.unknown)
-        }
-        val (width, height) = resolution.split("x").map { it.toIntOrNull() ?: 0 }
-        return when {
-            width >= 3840 && height >= 2160 -> "4K"
-            width >= 2560 && height >= 1440 -> "2K"
-            width >= 1920 && height >= 1080 -> "1080p"
-            width >= 1280 && height >= 720 -> "720p"
-            width >= 854 && height >= 480 -> "480p"
-            width >= 640 && height >= 360 -> "360p"
-            width >= 426 && height >= 240 -> "240p"
-            else -> getString(R.string.unknown)
-        }
-    }
-
-    private suspend fun fetchPing(url: String): Int = withContext(Dispatchers.IO) {
-        if (url.isBlank()) {
-            //Log.w("SourceSelectFragment", "fetchPing: URL is blank")
-            return@withContext -1
-        }
-        try {
-            val measurements = mutableListOf<Long>()
-            repeat(3) {
-                val startTime = System.nanoTime()
-                val connection = URL(url).openConnection() as java.net.HttpURLConnection
-                connection.requestMethod = "HEAD"
-                connection.connectTimeout = 3000
-                connection.readTimeout = 3000
-                connection.connect()
-                val responseCode = connection.responseCode
-                connection.disconnect()
-                if (responseCode in 200..299) {
-                    val durationMs = (System.nanoTime() - startTime) / 1_000_000
-                    if (durationMs >= 1) measurements.add(durationMs)
-                }
-                delay(100)
-            }
-            if (measurements.isEmpty()) {
-                //Log.w("SourceSelectFragment", "fetchPing: No valid measurements for URL=$url")
-                return@withContext -1
-            }
-            val avgPing = measurements.average().toInt()
-            //Log.d("SourceSelectFragment", "fetchPing: URL=$url, avgPing=$avgPing ms")
-
-            if (url.endsWith(".m3u8")) {
-                try {
-                    val content = URL(url).readText()
-                    val subUrlPattern = Pattern.compile("""^(?!#)(http[s]?://.*\.ts)$""", Pattern.MULTILINE)
-                    val matcher = subUrlPattern.matcher(content)
-                    if (matcher.find()) {
-                        val segmentUrl = matcher.group(1)
-                        val segmentStart = System.nanoTime()
-                        val segmentConnection = URL(segmentUrl).openConnection() as java.net.HttpURLConnection
-                        segmentConnection.connectTimeout = 3000
-                        segmentConnection.readTimeout = 3000
-                        segmentConnection.connect()
-                        segmentConnection.inputStream.close()
-                        segmentConnection.disconnect()
-                        val segmentDuration = (System.nanoTime() - segmentStart) / 1_000_000
-                        //Log.d("SourceSelectFragment", "fetchPing: Segment URL=$segmentUrl, duration=$segmentDuration ms")
-                        return@withContext maxOf(avgPing, segmentDuration.toInt())
-                    }
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    //Log.w("SourceSelectFragment", "fetchPing: Failed to fetch M3U8 segment for URL=$url, error=${e.message}")
-                }
-            }
-
-            avgPing
-        } catch (e: kotlinx.coroutines.CancellationException) {
-            throw e
-        } catch (e: java.net.UnknownHostException) {
-            //Log.e("SourceSelectFragment", "fetchPing: DNS resolution failed for URL=$url, error=${e.message}")
-            -1
-        } catch (e: java.net.SocketTimeoutException) {
-            //Log.e("SourceSelectFragment", "fetchPing: Timeout for URL=$url, error=${e.message}")
-            -1
-        } catch (e: Exception) {
-            //Log.e("SourceSelectFragment", "fetchPing: Failed for URL=$url, error=${e.message}")
-            -1
-        }
-    }
-
     private fun scheduleAutoHide() {
         handler.removeCallbacksAndMessages(null)
         handler.postDelayed({
@@ -439,8 +266,6 @@ class SourceSelectFragment : Fragment() {
 
     fun hideSelf() {
         if (isAdded && !isHidden) {
-            updateJobs.forEach { it.cancel() }
-            updateJobs.clear()
             requireActivity().supportFragmentManager.beginTransaction()
                 .hide(this)
                 .commitAllowingStateLoss()
@@ -449,8 +274,6 @@ class SourceSelectFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        updateJobs.forEach { it.cancel() }
-        updateJobs.clear()
         handler.removeCallbacksAndMessages(null)
     }
 }
@@ -463,7 +286,8 @@ data class SourceInfo(
     val isStable: Boolean,
     val isSelected: Boolean = false,
     /** v3.3.0：线路来源（聚合反向关联源），换线面板直接展示 */
-    val sourceName: String = ""
+    val sourceName: String = "",
+    val healthRank: Int = 1,
 )
 
 class SourceAdapter(
@@ -474,7 +298,7 @@ class SourceAdapter(
 ) : RecyclerView.Adapter<SourceAdapter.SourceViewHolder>() {
 
     inner class SourceViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val sourceSwitch: SwitchCompat = itemView.findViewById(R.id.source_switch)
+        val sourceChoice: CheckedTextView = itemView.findViewById(R.id.source_switch)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SourceViewHolder {
@@ -485,39 +309,45 @@ class SourceAdapter(
 
     override fun onBindViewHolder(holder: SourceViewHolder, position: Int) {
         val source = sources[position]
-        val pingText = if (source.ping == -1) context.getString(R.string.timeout) else "${source.ping}ms"
+        val pingText = when {
+            source.healthRank >= 3 && source.ping >= 0 -> context.getString(R.string.line_status_played, source.ping)
+            source.healthRank >= 3 -> context.getString(R.string.line_status_played_no_latency)
+            source.healthRank >= 2 -> context.getString(R.string.line_status_available, source.ping.coerceAtLeast(0))
+            source.healthRank == 0 || source.ping == -1 -> context.getString(R.string.line_status_unavailable)
+            else -> context.getString(R.string.line_status_pending)
+        }
         // 设置 ping 值的底色和文字颜色
         val (backgroundColor, textColor) = when {
-            source.ping == -1 -> Pair(0xFFFF0000.toInt(), 0xFFFFFFFF.toInt()) // 红色底，白色字
-            source.ping <= 500 -> Pair(0xFF4CAF50.toInt(), 0xFFFFFFFF.toInt()) // 绿色底，白色字
-            source.ping <= 1000 -> Pair(0xFFFFFFFF.toInt(), 0xFF000000.toInt()) // 白色底，黑色字
-            else -> Pair(0xFFFFEB3B.toInt(), 0xFFFFFFFF.toInt()) // 黄色底，白色字
+            source.healthRank == 0 || source.ping == -1 -> Pair(0xFFB3261E.toInt(), 0xFFFFFFFF.toInt())
+            source.healthRank >= 2 || source.ping in 0..800 -> Pair(0xFF1B5E20.toInt(), 0xFFFFFFFF.toInt())
+            else -> Pair(0xFF455A64.toInt(), 0xFFFFFFFF.toInt())
         }
 
         // 创建 SpannableString 设置 ping 部分的颜色
-        val namePrefix = if (source.sourceName.isNotBlank()) " [${source.sourceName}]" else ""
-        val text = context.getString(R.string.source_info, source.index, source.resolution, pingText) + namePrefix
+        val stableText = if (source.isStable) context.getString(R.string.line_status_favorite) else ""
+        val details = listOf(source.sourceName, stableText).filter { it.isNotBlank() }.joinToString(" · ")
+        val text = context.getString(R.string.source_info, source.index, source.resolution, pingText) +
+            if (details.isBlank()) "" else "\n$details"
         val spannable = SpannableString(text)
-        val pingLabel = "Ping:"
-        val pingStart = text.indexOf(pingLabel) + pingLabel.length
-        val pingEnd = text.length // 直接到字符串末尾，避免硬编码长度
-        if (pingStart >= pingLabel.length && pingEnd <= text.length) {
+        val pingStart = text.indexOf(pingText)
+        val pingEnd = pingStart + pingText.length
+        if (pingStart >= 0) {
             spannable.setSpan(BackgroundColorSpan(backgroundColor), pingStart, pingEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
             spannable.setSpan(ForegroundColorSpan(textColor), pingStart, pingEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
-        holder.sourceSwitch.text = spannable
-        holder.sourceSwitch.isChecked = source.isSelected
-        holder.sourceSwitch.setOnClickListener {
-            onSourceSelected(source.index - 1, holder.sourceSwitch.isChecked)
+        holder.sourceChoice.text = spannable
+        holder.sourceChoice.isChecked = source.isSelected
+        holder.sourceChoice.setOnClickListener {
+            onSourceSelected(source.index - 1, true)
         }
 
         // 增强焦点文字反馈
-        holder.sourceSwitch.setOnFocusChangeListener { _, hasFocus ->
-            holder.sourceSwitch.setTextColor(
+        holder.sourceChoice.setOnFocusChangeListener { _, hasFocus ->
+            holder.sourceChoice.setTextColor(
                 ContextCompat.getColor(context, if (hasFocus) R.color.focus else R.color.title_blur)
             )
             if (hasFocus) {
-                holder.sourceSwitch.text = spannable // 确保焦点时文字刷新
+                holder.sourceChoice.text = spannable
             }
         }
 
@@ -532,30 +362,6 @@ class SourceAdapter(
             source.copy(isSelected = source.index - 1 == currentIndex)
         }
         notifyDataSetChanged()
-    }
-
-    fun updateSource(index: Int, resolution: String, ping: Int, isStable: Boolean) {
-        val tvModel = viewModel.groupModel.getCurrent()
-        val currentIndex = tvModel?.videoIndexValue ?: -1
-        val position = sources.indexOfFirst { it.index == index }
-        if (position != -1) {
-            sources = sources.toMutableList().apply {
-                this[position] = SourceInfo(
-                    index,
-                    sources[position].url,
-                    resolution,
-                    ping,
-                    isStable,
-                    index - 1 == currentIndex,
-                    sources[position].sourceName
-                )
-            }
-            notifyItemChanged(position)
-        }
-    }
-
-    fun getSourceAt(position: Int): SourceInfo {
-        return sources[position]
     }
 
     // 新增方法：更新选中状态

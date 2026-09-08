@@ -190,13 +190,6 @@ class SettingFragment : Fragment() {
             mainActivity.settingActive()
         }
 
-        val switchFastZap = _binding?.switchFastZap
-        switchFastZap?.isChecked = SP.fastZap
-        switchFastZap?.setOnCheckedChangeListener { _, isChecked ->
-            SP.fastZap = isChecked
-            mainActivity.settingActive()
-        }
-
         val isTouchScreen = isTouchScreenDevice(context)
         val switchEnableScreenOffAudio = _binding?.switchEnableScreenOffAudio
         switchEnableScreenOffAudio?.isChecked = SP.enableScreenOffAudio
@@ -434,7 +427,6 @@ class SettingFragment : Fragment() {
             binding.switchDisplaySeconds,
             binding.switchSoftDecode,
             binding.switchAutoSwitchSource,
-            binding.switchFastZap,
             binding.switchShowSourceButton,
             binding.switchEnableScreenOffAudio,
             binding.switchFullScreenMode,

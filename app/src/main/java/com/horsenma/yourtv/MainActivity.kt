@@ -476,22 +476,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            // 切台预热：提前建立下一频道/下一条线路的连接，切台秒开
-            viewModel.groupModel.current.observe(this) { tvModel ->
-                if (tvModel != null) {
-                    // 电视等弱机不做连接预热（省带宽/省电），只保留触屏设备秒切体验
-                    if (isTouchScreenDevice()) {
-                        viewModel.groupModel.getNext()?.let { next ->
-                            playerFragment.prewarm(next.getVideoUrl())
-                        }
-                        // 只预热当前频道当前线路的下一条（自动换线用），避免并发请求挤占网络
-                        tvModel.tv.uris.getOrNull(tvModel.videoIndexValue + 1)?.let { nextLine ->
-                            playerFragment.prewarm(nextLine)
-                        }
-                    }
-                }
-            }
-
             viewModel.channelsOk.observe(this) {
                 if (it) {
                     lifecycleScope.launch(Dispatchers.Main) {
@@ -706,6 +690,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onDown(e: MotionEvent): Boolean {
+            playerFragment.markUserInteraction()
             playerFragment.hideVolumeNow()
             return true
         }
@@ -994,26 +979,7 @@ class MainActivity : AppCompatActivity() {
 
         // switchSource 内部统一切换下一条健康线路
         playerFragment.switchSource(tvModel, showToast)
-        if (showToast) {
-            showSourceInfo(tvModel.videoIndexValue + 1, urls.size)
-        }
         Log.d(TAG, "sourceUp: switched to source ${tvModel.videoIndexValue + 1}, uris: ${tvModel.tv.uris.size}")
-    }
-
-    private fun showSourceInfo(sourceIndex: Int, totalSources: Int) {
-        val toast = Toast.makeText(
-            this,
-            "线路 $sourceIndex / $totalSources",
-            Toast.LENGTH_LONG
-        )
-        val textView = toast.view?.findViewById<TextView>(android.R.id.message)
-        textView?.textSize = 30f
-        toast.setGravity(Gravity.CENTER, 0, 0)
-        toast.show()
-
-        handler.postDelayed({
-            toast.cancel()
-        }, 5000)
     }
 
     fun menuActive() {
@@ -1069,6 +1035,20 @@ class MainActivity : AppCompatActivity() {
 
         // 延时3秒触发版本检查
         handler.postDelayed({
+            // Version metadata is optional work. Keep startup bandwidth for
+            // the first channel while ExoPlayer is preparing or playing.
+            val player = playerFragment.player
+            if (viewModel.channelsOk.value != true ||
+                player == null ||
+                player.isPlaying ||
+                player.playWhenReady
+            ) {
+                Log.d(TAG, "Deferring auto version check until playback is idle")
+                handler.postDelayed({
+                    if (!isFinishing) scheduleAutoVersionCheck()
+                }, 10 * 60 * 1000L)
+                return@postDelayed
+            }
             // 确保设置界面未打开，避免干扰用户操作
             if (settingFragment.isAdded && !settingFragment.isHidden) {
                 Log.d(TAG, "SettingFragment is visible, skipping auto version check")
@@ -1307,6 +1287,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("GestureBackNavigation")
     fun onKey(keyCode: Int): Boolean {
+        playerFragment.markUserInteraction()
         // 搜索浮层打开时：字母/数字/删除键转发给搜索（焦点在列表上，事件不会
         // 自动到达 Fragment 根监听）；方向键/OK 走系统焦点导航；MENU 关闭浮层
         if (searchFragment.isAdded && !searchFragment.isHidden) {
@@ -1655,6 +1636,7 @@ class MainActivity : AppCompatActivity() {
         showTimeFragment()
         // 从后台恢复时继续播放（onStop 只暂停不释放）
         if (playerFragment.isAdded && playerFragment.player != null) {
+            viewModel.setPlaybackActive(true)
             playerFragment.player?.play()
         }
     }
@@ -1675,6 +1657,7 @@ class MainActivity : AppCompatActivity() {
             }
             // 暂停播放而不是释放：保留播放器，回来秒恢复，避免黑屏
             playerFragment.player?.pause()
+            viewModel.setPlaybackActive(false)
         }
     }
 
@@ -1698,6 +1681,18 @@ class MainActivity : AppCompatActivity() {
 
     fun getViewModel(): MainViewModel {
         return viewModel
+    }
+
+    /** True while a user-facing overlay owns focus and speculative work must stop. */
+    fun hasBlockingOverlay(): Boolean {
+        return (sourceSelectFragment.isAdded && !sourceSelectFragment.isHidden) ||
+            (menuFragment.isAdded && !menuFragment.isHidden) ||
+            (settingFragment.isAdded && !settingFragment.isHidden) ||
+            (searchFragment.isAdded && !searchFragment.isHidden) ||
+            (programFragment.isAdded && !programFragment.isHidden) ||
+            (channelFragment.isAdded && !channelFragment.isHidden) ||
+            (loadingFragment.isAdded && !loadingFragment.isHidden) ||
+            (errorFragment.isAdded && !errorFragment.isHidden)
     }
 
     fun handleWebviewTypeSwitch(enable: Boolean) {
@@ -1757,7 +1752,7 @@ class MainActivity : AppCompatActivity() {
         if (url.startsWith("http")) {
             SP.configUrl = url
         }
-        Toast.makeText(this, "已设为聚合首选源，正在重新聚合…", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, R.string.source_refresh_deferred, Toast.LENGTH_LONG).show()
         viewModel.refreshActiveSource()
         supportFragmentManager.findFragmentByTag("MenuFragment")?.let { (it as MenuFragment).update() }
     }

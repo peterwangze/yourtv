@@ -266,7 +266,10 @@ class TVModel(var tv: TV) : ViewModel() {
     /** True when another URI (excluding the current one) is not known dead. */
     fun hasNextHealthyVideo(): Boolean {
         if (tv.uris.size <= 1) return false
-        return tv.uris.indices.any { it != videoIndexValue && !LineHealth.isDead(tv.uris[it]) }
+        // When every line is cooling down, still allow an exhaustive retry;
+        // otherwise one short ISP outage can leave the channel unavailable
+        // until every cooldown expires.
+        return true
     }
 
     /** Move to the next healthy URI. Returns false when no alternative exists. */
@@ -286,8 +289,13 @@ class TVModel(var tv: TV) : ViewModel() {
                 return true
             }
         }
-        Log.w(TAG, "nextVideo: no healthy alternative for ${tv.title}")
-        return false
+        // All alternatives are temporarily cooling down. Move once to the
+        // next candidate so manual retry and full failover remain possible.
+        val fallback = (start + 1) % tv.uris.size
+        _videoIndex.setValueSafe(fallback)
+        sourceTypeList = listOf(SourceType.UNKNOWN)
+        Log.w(TAG, "nextVideo: all lines cooling, retry fallback index=$fallback for ${tv.title}")
+        return true
     }
 
     fun update(t: TV) {

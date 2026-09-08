@@ -1,6 +1,11 @@
 <resources>
     <string name="channel_name">频道名称</string>
-    <string name="source_info">线路%d   分辨率:%s, Ping:%s</string>
+    <string name="source_info">線路%1$d · %2$s · %3$s</string>
+    <string name="line_status_pending">待檢測</string>
+    <string name="line_status_available">可用 %1$dms</string>
+    <string name="line_status_played">已播放 %1$dms</string>
+    <string name="line_status_unavailable">暫不可用</string>
+    <string name="line_status_favorite">常用線路</string>
     <string name="parsing_live_source">直播源文件解析中。。。请勿操作！</string>
     <string name="live_source_parsed">直播源文件解析完成。</string>
     <string name="no_channel_data">无频道数据</string>
@@ -10,7 +15,7 @@
     <string name="loading">加载中...</string>
     <string name="unknown">未知</string>
     <string name="timeout">超时</string>
-    <string name="source_item">线路%d   分辨率:%s, Ping:%s</string>
+    <string name="source_item">線路%1$d   解析度:%2$s, Ping:%3$s</string>
     <string name="error_invalid_code">测试码格式错，请重新输入</string>
     <string name="please_wait_minutes">请等待 %d 分钟后重试。"</string>
     <string name="existing_test_code">现有测试码：%1$s</string>
@@ -91,7 +96,6 @@
     <string name="confirm_reset_settings">确定重置吗？</string>
     <string name="show_source_button">显示换源按钮</string>
     <string name="auto_switch_source">自动换源</string>
-    <string name="fast_zap">快速切台（预加载下一频道）</string>
     <string name="verify_user_error">测试码验验证失败</string>
     <string name="verify_user">测试码</string>
     <string name="initialization_error">initialization_error</string>
@@ -123,8 +127,11 @@
     <string name="update_epg">更新节目单</string>
     <string name="epg_update_success">节目单更新成功</string>
     <string name="epg_update_failed">节目单更新失败</string>
+    <string name="epg_refresh_deferred">正在播放，將在停止播放後更新節目單</string>
     <string name="refresh_source">刷新直播源</string>
     <string name="source_refresh_no_source">暂无可用直播源</string>
+    <string name="source_refresh_deferred">已設定首選源，將在停止播放後更新</string>
+    <string name="line_status_played_no_latency">已播放</string>
     <string name="title_boot_startup">开机自启</string>
     <string name="appreciate">加入群组</string>
     <string name="channels">换视频源</string>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  播放层布局（FrameLayout）：
-  - 备用播放器视图（standby_view）必须排在主视图（player_view）之前，
-    确保 SurfaceFlinger 合成时主画面 z 序在上——即使备用 Surface 层因设备
-    差异被合成显示，也永远不可能覆盖主画面（修复 CCTV2 盖 CCTV1 问题）。
-  - 所有视图统一 FIT 等比缩放 + 居中，主/备视图共用同一套布局参数，
-    比例表现完全一致。
--->
+<!-- 播放层布局：单播放器独占解码器和直播连接。 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/player_fragment"
@@ -14,20 +7,6 @@
     android:layout_height="match_parent"
     android:background="@color/black"
     android:keepScreenOn="true">
-
-    <!-- 备用播放器视图：后台预准备下一频道，切台时无缝接管
-         （INVISIBLE 保持 surface 存活；z 序位于主视图之下） -->
-    <androidx.media3.ui.PlayerView
-        android:id="@+id/standby_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="invisible"
-        android:layout_gravity="center"
-        android:background="#000000"
-        android:keepScreenOn="true"
-        app:shutter_background_color="#000000"
-        app:resize_mode="fit"
-        app:use_controller="false" />
 
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
