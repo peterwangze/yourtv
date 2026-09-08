@@ -1,0 +1,203 @@
+{
+  "baseline": "1b47d7446074b9bf26931e8ed0945c6a6630723d",
+  "method": "Static Git blob counts; no current reachability, playback, ISP or regional claim.",
+  "tracked_files": 287,
+  "domain_files": {
+    "assets": 3,
+    "build-release-other": 27,
+    "historical-docs": 15,
+    "legacy-web": 36,
+    "main-kotlin": 63,
+    "research-tools-data": 43,
+    "resources": 94,
+    "tests": 6
+  },
+  "main_kotlin_files": 99,
+  "main_kotlin_lines": 23074,
+  "layouts": 25,
+  "test_files": 6,
+  "default_lists": 11,
+  "default_list_hosts": {
+    "live.zbds.top": 1,
+    "raw.githubusercontent.com": 5,
+    "live.fanmingming.com": 1,
+    "iptv-org.github.io": 4
+  },
+  "bundled": {
+    "sha256": "51731d05ddf3e7f379d0a986380af167ee0d1e431dcd72861cb746ae0d0799d4",
+    "bytes": 248995,
+    "channels": 521,
+    "line_slots": 1003,
+    "unique_urls": 976,
+    "line_count_histogram": {
+      "1": 363,
+      "2": 83,
+      "3": 13,
+      "4": 7,
+      "5": 6,
+      "6": 5,
+      "7": 5,
+      "8": 39
+    },
+    "single_host_channels": 431,
+    "schemes": {
+      "http": 769,
+      "https": 234
+    },
+    "ipv6_literal_slots": 1,
+    "channels_with_uri_headers": 0,
+    "channels_with_channel_headers": 0,
+    "top_hosts": [
+      [
+        "l.cztvcloud.com",
+        89
+      ],
+      [
+        "ali-m-l.cztv.com",
+        31
+      ],
+      [
+        "play.kankanlive.com",
+        31
+      ],
+      [
+        "112.123.243.37",
+        30
+      ],
+      [
+        "38.75.136.137",
+        30
+      ],
+      [
+        "113.57.140.161",
+        27
+      ],
+      [
+        "hlsztemgsplive.miguvideo.com",
+        25
+      ],
+      [
+        "221.7.175.154",
+        24
+      ],
+      [
+        "liveplay-srs.voc.com.cn",
+        23
+      ],
+      [
+        "ottrrs.hl.chinamobile.com",
+        21
+      ]
+    ],
+    "top_first_hosts": [
+      [
+        "l.cztvcloud.com",
+        58
+      ],
+      [
+        "play.kankanlive.com",
+        29
+      ],
+      [
+        "liveplay-srs.voc.com.cn",
+        23
+      ],
+      [
+        "ali-m-l.cztv.com",
+        13
+      ],
+      [
+        "38.75.136.137",
+        13
+      ],
+      [
+        "113.57.140.161",
+        12
+      ],
+      [
+        "masterpull.hljtv.com",
+        12
+      ],
+      [
+        "stream5.jlntv.cn",
+        10
+      ],
+      [
+        "stream.hrbtv.net",
+        9
+      ],
+      [
+        "satellitepull.cnr.cn",
+        9
+      ]
+    ],
+    "source_attribution_slots": [
+      [
+        "vbskycn_iptv4.m3u",
+        269
+      ],
+      [
+        "bestfan_cn_all.m3u8",
+        211
+      ],
+      [
+        "zbds_iptv4.txt",
+        190
+      ],
+      [
+        "migu_sports.m3u",
+        119
+      ],
+      [
+        "hujingguang_cnTV1.m3u8",
+        102
+      ],
+      [
+        "iptvorg_cn.m3u",
+        45
+      ],
+      [
+        "vicjl_TV-IPV4.m3u",
+        22
+      ],
+      [
+        "iptvorg_zho.m3u",
+        19
+      ],
+      [
+        "fanmingming_com_ipv6.m3u",
+        8
+      ],
+      [
+        "jk2024988_migu2.m3u",
+        8
+      ],
+      [
+        "iptvorg_tw.m3u",
+        8
+      ],
+      [
+        "aptv_iptv.m3u",
+        1
+      ],
+      [
+        "iptvorg_hk.m3u",
+        1
+      ]
+    ],
+    "sample_channel_line_counts": {
+      "CCTV1": 8,
+      "CCTV13": 8,
+      "CCTV5": 8,
+      "东方卫视": 8,
+      "北京卫视": 8,
+      "浙江卫视": 7,
+      "湖南卫视": 8
+    }
+  },
+  "bundler_input_in_revision": {
+    "tools/research/channels.json": true,
+    "tools/research/classified.json": true,
+    "tools/research/probe_lines_results.json": false
+  }
+}
