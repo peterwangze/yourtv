@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.horsenma.yourtv.data.EPG
 import com.horsenma.yourtv.databinding.ProgramBinding
@@ -26,8 +25,6 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
 
     private lateinit var programAdapter: ProgramAdapter
 
-    private lateinit var viewModel: MainViewModel
-
     /** 分日视图（G8）：0=今天，1=明天 */
     private var dayIndex = 0
 
@@ -42,8 +39,6 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val context = requireActivity()
-        viewModel = ViewModelProvider(context)[MainViewModel::class.java]
-
         binding.program.setOnClickListener {
             hideSelf()
         }
@@ -107,7 +102,7 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
 
     fun onVisible() {
         val context = requireActivity()
-        val tvModel = viewModel.groupModel.getCurrent() ?: return
+        val tvModel = (context as MainActivity).playerFragment.tvModel ?: return
         val epgList = tvModel.epgValue
         val now = Utils.getDateTimestamp()
         updateTabs()

@@ -49,6 +49,7 @@ class TVListAdapter(
     inner class ViewHolder(val binding: ListItemBinding) : RecyclerView.ViewHolder(binding.root) {
         private val imageHelper = application.imageHelper
         private var cachedBitmap: Bitmap? = null
+        private var cachedChannelNumber: Int? = null
 
         @SuppressLint("ClickableViewAccessibility")
         fun bind(tvModel: TVModel) {
@@ -168,11 +169,14 @@ class TVListAdapter(
             val tv = tvModel.tv
             val width = 300
             val height = 180
+            val channelNum = if (tv.number == -1) tv.id.plus(1) else tv.number
 
-            if (cachedBitmap == null) {
+            // View holders are reused across rows. Rebuild the fallback number image
+            // whenever the bound channel changes so old channel numbers do not leak
+            // into the next row while logos are loading or unavailable.
+            if (cachedBitmap == null || cachedChannelNumber != channelNum) {
                 cachedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
                 val canvas = Canvas(cachedBitmap!!)
-                val channelNum = if (tv.number == -1) tv.id.plus(1) else tv.number
                 var size = 150f
                 if (channelNum > 99) size = 90f
                 if (channelNum > 999) size = 75f
@@ -184,6 +188,7 @@ class TVListAdapter(
                 val x = width / 2f
                 val y = height / 2f - (paint.descent() + paint.ascent()) / 2
                 canvas.drawText(channelNum.toString(), x, y, paint)
+                cachedChannelNumber = channelNum
             }
 
             val name = if (tv.name.isNotEmpty()) tv.name else tv.title

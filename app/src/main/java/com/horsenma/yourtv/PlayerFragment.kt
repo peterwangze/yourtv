@@ -8,6 +8,11 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkRequest
+import android.net.NetworkCapabilities
 import android.widget.FrameLayout
 import android.util.Log
 import android.view.LayoutInflater
@@ -31,7 +36,6 @@ import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.mediacodec.MediaCodecUtil
-import com.horsenma.yourtv.data.SourceType
 import com.horsenma.yourtv.databinding.PlayerBinding
 import com.horsenma.yourtv.models.TVModel
 import com.horsenma.yourtv.models.ChannelClassifier
@@ -51,6 +55,11 @@ import android.util.Rational
 import androidx.core.view.isVisible
 import com.horsenma.yourtv.data.PlayerType
 import com.horsenma.mytv1.WebFragmentCallback
+import com.horsenma.yourtv.playback.core.PlaybackAction
+import com.horsenma.yourtv.playback.core.PlaybackCoordinator
+import com.horsenma.yourtv.playback.core.PlaybackFailure
+import com.horsenma.yourtv.playback.core.PlaybackState
+import com.horsenma.yourtv.playback.core.RecoveryBudget
 import android.view.Gravity
 import android.widget.TextView
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -66,7 +75,7 @@ class PlayerFragment : Fragment() {
 
     /** Reset the idle window whenever the user is operating the TV UI. */
     fun markUserInteraction() {
-        lastUserInteractionTime = System.currentTimeMillis()
+        lastUserInteractionTime = SystemClock.elapsedRealtime()
         idleProbeJob?.cancel()
         if (::viewModel.isInitialized) viewModel.cancelLineProbes()
     }
@@ -111,6 +120,26 @@ class PlayerFragment : Fragment() {
     private val binding get() = _binding!!
     internal var player: ExoPlayer? = null
     internal var tvModel: TVModel? = null
+    /** Session identity gates every Media3 callback, including callbacks from a replaced item. */
+    private val recoveryBudget = RecoveryBudget()
+    private val playbackCoordinator = PlaybackCoordinator(
+        nowElapsedMs = { SystemClock.elapsedRealtime() },
+        budget = recoveryBudget,
+    )
+    private var activeSessionId: Long? = null
+    private var activeAttemptId: Long? = null
+    private var activeNetworkGeneration = 0L
+    private var playerListener: Player.Listener? = null
+    private var stableEpisodeResetAttemptId: Long? = null
+    private var connectivityManager: ConnectivityManager? = null
+    private val availableNetworks = mutableSetOf<Network>()
+    private var lastNetworkAvailable: Boolean? = null
+
+    private data class PlaybackEventToken(
+        val sessionId: Long,
+        val attemptId: Long,
+        val networkGeneration: Long,
+    )
     private val aspectRatio = 16f / 9f
     internal var isInPictureInPictureMode = false
     private val handler = Handler(Looper.myLooper()!!)
@@ -134,9 +163,6 @@ class PlayerFragment : Fragment() {
     private val bufferingThreshold = 8
     private val bufferingWindowMs = 15_000L
     private val bufferingDurationThreshold = 10_000L
-    private val maxAutoSwitchPerChannel = 5
-    private var autoSwitchCount = 0
-    private var autoSwitchChannelId = -1
     /** 本次播放尝试是否已出画（用于区分"起播缓冲中"与"播放中卡停"，v3.3.0） */
     private var attemptPlayed = false
     private val switchCooldown = 8_000L
@@ -167,10 +193,275 @@ class PlayerFragment : Fragment() {
     private val retryCooldown = 8_000L
     // 会话内是否成功出过画面：从未出画时（启动稳定源失效等）跳过换线冷却与
     // 自动换源开关，立即换下一条线路，避免"首帧黑屏 30 秒"
-    private var hasPlayedSuccessfully = false
     // 播放健康轮询：2s 一查（原 15s）。只做 isPlaying/state 检查，开销可忽略；
     // 缩短轮询后停播检测（2.5s 阈值）与首帧看门狗都能及时触发，不再让用户干等。
     private val checkPlaybackInterval = 2_000L
+
+    private fun startPlaybackSession(model: TVModel): Boolean {
+        val currentLine = model.getVideoUrl()
+        val orderedLines = listOfNotNull(currentLine) + model.tv.uris.filter { it != currentLine }
+        val action = playbackCoordinator.play(
+            channelId = model.tv.id.toString(),
+            lineIds = orderedLines,
+        )
+        val current = playbackCoordinator.currentSession ?: return false
+        activeSessionId = current.sessionId
+        activeAttemptId = current.attemptId
+        activeNetworkGeneration = current.networkGeneration
+        stableEpisodeResetAttemptId = null
+        if (action is PlaybackAction.ShowError) {
+            model.setErrInfo(R.string.play_error.getString())
+            return false
+        }
+        if (action is PlaybackAction.Prepare) {
+            val selectedIndex = model.tv.uris.indexOf(action.lineId)
+            if (selectedIndex >= 0 && selectedIndex != model.videoIndexValue) {
+                model.setVideoIndex(selectedIndex)
+                model.confirmVideoIndex()
+            }
+        }
+        // Keep callback identity aligned with the first prepare action.
+        activeAttemptId = playbackCoordinator.currentSession?.attemptId
+        return true
+    }
+
+    private fun beginPlaybackAttempt(model: TVModel): Boolean {
+        val lineId = model.getVideoUrl() ?: return false
+        val current = playbackCoordinator.currentSession
+        if (current == null || current.channelId != model.tv.id.toString()) {
+            if (!startPlaybackSession(model)) return false
+        }
+        val sessionId = activeSessionId ?: return false
+        val action = playbackCoordinator.beginAttempt(sessionId, lineId)
+        val updated = playbackCoordinator.currentSession ?: return false
+        activeSessionId = updated.sessionId
+        activeAttemptId = updated.attemptId
+        activeNetworkGeneration = updated.networkGeneration
+        stableEpisodeResetAttemptId = null
+        return action is PlaybackAction.Prepare
+    }
+
+    private fun currentPlaybackEventToken(): PlaybackEventToken? {
+        return PlaybackEventToken(
+            sessionId = activeSessionId ?: return null,
+            attemptId = activeAttemptId ?: return null,
+            networkGeneration = activeNetworkGeneration,
+        )
+    }
+
+    private fun acceptsPlaybackCallback(token: PlaybackEventToken): Boolean {
+        return activeSessionId == token.sessionId &&
+            activeAttemptId == token.attemptId &&
+            activeNetworkGeneration == token.networkGeneration &&
+            playbackCoordinator.accepts(token.sessionId, token.attemptId, token.networkGeneration)
+    }
+
+    private fun bindPlayerListener(exo: ExoPlayer): Boolean {
+        val token = currentPlaybackEventToken() ?: return false
+        playerListener?.let(exo::removeListener)
+        playerListener = createMainPlayerListener(exo, token).also(exo::addListener)
+        return true
+    }
+
+    private fun registerConnectivityCallback() {
+        val context = context ?: return
+        val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return
+        connectivityManager = manager
+        manager.activeNetwork?.let { network ->
+            if (manager.getNetworkCapabilities(network)
+                    ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+            ) {
+                availableNetworks.add(network)
+            }
+        }
+        lastNetworkAvailable = availableNetworks.isNotEmpty()
+        val request = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        try {
+            manager.registerNetworkCallback(request, connectivityCallback)
+        } catch (e: Exception) {
+            Log.w(TAG, "Network callback registration failed: ${e.message}")
+        }
+    }
+
+    private fun unregisterConnectivityCallback() {
+        connectivityManager?.let { manager ->
+            try {
+                manager.unregisterNetworkCallback(connectivityCallback)
+            } catch (_: Exception) {
+                // Callback may already be removed by the framework.
+            }
+        }
+        connectivityManager = null
+        availableNetworks.clear()
+        lastNetworkAvailable = null
+    }
+
+    private fun handleNetworkAvailability(available: Boolean) {
+        if (lastNetworkAvailable == available) return
+        lastNetworkAvailable = available
+        val action = playbackCoordinator.onNetworkChanged(available)
+        val model = tvModel ?: return
+        if (action !is PlaybackAction.None) applyRecoveryAction(action, model)
+    }
+
+    private val connectivityCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onLost(network: Network) {
+            if (!isAdded) return
+            requireActivity().runOnUiThread {
+                availableNetworks.remove(network)
+                handleNetworkAvailability(availableNetworks.isNotEmpty())
+            }
+        }
+
+        override fun onAvailable(network: Network) {
+            if (!isAdded) return
+            requireActivity().runOnUiThread {
+                availableNetworks.add(network)
+                handleNetworkAvailability(available = true)
+            }
+        }
+    }
+
+    private fun recordFirstFrame(model: TVModel, token: PlaybackEventToken) {
+        if (!acceptsPlaybackCallback(token)) return
+        if (attemptPlayed) return
+        if (playbackCoordinator.onFirstFrame(token.sessionId, token.attemptId, token.networkGeneration) !is PlaybackAction.None) return
+        val now = SystemClock.elapsedRealtime()
+        val firstPlaybackForAttempt = !attemptPlayed
+        attemptPlayed = true
+        model.getVideoUrl()?.let { url ->
+            LineHealth.markPlaybackSuccess(
+                url,
+                if (firstPlaybackForAttempt) (now - playRequestTime).coerceAtLeast(0L) else -1L,
+            )
+        }
+        model.confirmSourceType()
+        model.confirmVideoIndex()
+        model.setErrInfo("")
+        model.retryTimes = 0
+        bufferingCount = 0
+        bufferingStartTime = 0L
+        bufferingTimestamps.clear()
+        lastBufferingTime = 0L
+        playbackStartTime = now
+        playbackCallback?.onPlaybackStarted()
+        lastStopTime = 0L
+        Log.d(TAG, "${model.tv.title} rendered first frame")
+    }
+
+    private fun classifyPlaybackFailure(error: PlaybackException): PlaybackFailure {
+        return when (error.errorCode) {
+            PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW -> PlaybackFailure.BEHIND_LIVE_WINDOW
+            PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> PlaybackFailure.NETWORK
+            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
+            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> PlaybackFailure.NETWORK
+            PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
+            PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED,
+            PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED -> PlaybackFailure.MALFORMED_MEDIA
+            PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
+            PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED -> PlaybackFailure.DECODER
+            else -> PlaybackFailure.UNKNOWN
+        }
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun prepareRecoveryLine(model: TVModel, action: PlaybackAction): Boolean {
+        val playerInstance = player ?: return false
+        val mediaItem = model.getMediaItem() ?: return false
+        val mediaSource = model.getMediaSource()
+        activeSessionId = actionSessionId(action)
+        activeAttemptId = actionAttemptId(action)
+        activeNetworkGeneration = playbackCoordinator.currentSession?.networkGeneration ?: activeNetworkGeneration
+        stableEpisodeResetAttemptId = null
+        return try {
+            playerInstance.stop()
+            playerInstance.clearMediaItems()
+            bindPlayerListener(playerInstance)
+            if (mediaSource != null) playerInstance.setMediaSource(mediaSource) else playerInstance.setMediaItem(mediaItem)
+            playerInstance.prepare()
+            playerInstance.playWhenReady = true
+            playRequestTime = SystemClock.elapsedRealtime()
+            attemptPlayed = false
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Recovery prepare failed for ${model.tv.title}: ${e.message}", e)
+            false
+        }
+    }
+
+    private fun actionSessionId(action: PlaybackAction): Long = when (action) {
+        is PlaybackAction.Prepare -> action.sessionId
+        is PlaybackAction.RetrySameLine -> action.sessionId
+        is PlaybackAction.SwitchLine -> action.sessionId
+        is PlaybackAction.WaitForNetwork -> action.sessionId
+        is PlaybackAction.ShowError -> action.sessionId
+        PlaybackAction.None -> activeSessionId ?: -1L
+    }
+
+    private fun actionAttemptId(action: PlaybackAction): Long = when (action) {
+        is PlaybackAction.Prepare -> action.attemptId
+        is PlaybackAction.RetrySameLine -> action.attemptId
+        is PlaybackAction.SwitchLine -> action.attemptId
+        else -> activeAttemptId ?: -1L
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun applyRecoveryAction(action: PlaybackAction, model: TVModel): Boolean {
+        when (action) {
+            is PlaybackAction.RetrySameLine -> {
+                return prepareRecoveryLine(model, action)
+            }
+            is PlaybackAction.SwitchLine -> {
+                val index = model.tv.uris.indexOf(action.lineId)
+                if (index < 0) return false
+                model.setVideoIndex(index)
+                model.confirmVideoIndex()
+                return prepareRecoveryLine(model, action)
+            }
+            is PlaybackAction.Prepare -> return prepareRecoveryLine(model, action)
+            is PlaybackAction.WaitForNetwork -> {
+                player?.pause()
+                activeNetworkGeneration = playbackCoordinator.currentSession?.networkGeneration ?: activeNetworkGeneration
+                return true
+            }
+            is PlaybackAction.ShowError -> {
+                model.setErrInfo(R.string.play_error.getString())
+                player?.stop()
+                return true
+            }
+            PlaybackAction.None -> return false
+        }
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun handleCoordinatorError(token: PlaybackEventToken, failure: PlaybackFailure): Boolean {
+        val model = tvModel ?: return false
+        if (!acceptsPlaybackCallback(token)) return false
+        val networkAvailable = lastNetworkAvailable != false
+        val action = playbackCoordinator.onError(
+            sessionId = token.sessionId,
+            attemptId = token.attemptId,
+            callbackNetworkGeneration = token.networkGeneration,
+            failure = failure,
+            networkAvailable = networkAvailable,
+            autoSwitchEnabled = SP.autoSwitchSource,
+        )
+        if (networkAvailable && failure != PlaybackFailure.BEHIND_LIVE_WINDOW) {
+            model.getVideoUrl()?.let(LineHealth::markPlaybackFailure)
+        }
+        val handled = applyRecoveryAction(action, model)
+        if (handled) {
+            lastStopTime = 0L
+            bufferingStartTime = 0L
+            bufferingCount = 0
+            bufferingTimestamps.clear()
+            lastSwitchTime = SystemClock.elapsedRealtime()
+        }
+        return handled
+    }
 
     /** 首帧看门狗：播放请求发出后该时长内未出画（持续 BUFFERING 且无错误事件）即换下一条线路 */
     private val firstFrameTimeoutMs = 8_000L
@@ -180,7 +471,7 @@ class PlayerFragment : Fragment() {
     private var lastStableSaveTime = 0L
     private val stableSourceCheckRunnable = Runnable {
         if (player?.isPlaying == true && tvModel != null &&
-            System.currentTimeMillis() - playbackStartTime >= stablePlaybackDuration &&
+            SystemClock.elapsedRealtime() - playbackStartTime >= stablePlaybackDuration &&
             bufferingCount == 0 && tvModel!!.retryTimes == 0) {
             isStable = true
             saveStableSource(tvModel!!)
@@ -405,8 +696,34 @@ class PlayerFragment : Fragment() {
     /** 软解切换等播放器设置变化：释放并重建播放器。 */
     @OptIn(UnstableApi::class)
     fun rebuildPlayers() {
+        val model = tvModel
+        val currentUrl = model?.getVideoUrl()
+        val shouldPlay = player?.playWhenReady == true
+        if (model != null && currentUrl != null) {
+            beginPlaybackAttempt(model)
+            playRequestTime = SystemClock.elapsedRealtime()
+            attemptPlayed = false
+        }
         releaseAllPlayers()
         ensurePlayerPool()
+        if (model != null && currentUrl != null) {
+            player?.let(::bindPlayerListener)
+        }
+
+        // Rebuilding a decoder must not lose the user's channel or selected line.
+        // Restore the same media item before allowing normal recovery to run.
+        if (model != null && currentUrl != null && model.tv.playerType == PlayerType.IPTV) {
+            player?.let { rebuilt ->
+                val mediaItem = model.getMediaItem()
+                val mediaSource = model.getMediaSource()
+                if (mediaItem != null) {
+                    if (mediaSource != null) rebuilt.setMediaSource(mediaSource) else rebuilt.setMediaItem(mediaItem)
+                    rebuilt.prepare()
+                    rebuilt.playWhenReady = shouldPlay
+                    Log.d(TAG, "Restored playback after player rebuild: ${model.tv.title}, url=$currentUrl")
+                }
+            }
+        }
     }
 
     @OptIn(UnstableApi::class)
@@ -438,18 +755,18 @@ class PlayerFragment : Fragment() {
             .setLoadControl(createFastLoadControl())
             .build()
         exo.repeatMode = REPEAT_MODE_ALL
-        exo.addListener(createMainPlayerListener(exo))
         return exo
     }
 
     /** 主播放器监听：出画状态/缓冲监控/自动换线/分辨率缓存/布局刷新 */
     @OptIn(UnstableApi::class)
-    private fun createMainPlayerListener(exo: ExoPlayer): Player.Listener {
+    private fun createMainPlayerListener(exo: ExoPlayer, token: PlaybackEventToken): Player.Listener {
         return object : Player.Listener {
             private val self = exo
 
             override fun onVideoSizeChanged(videoSize: VideoSize) {
                 if (self !== player) return
+                if (!acceptsPlaybackCallback(token)) return
                 if (!isInPictureInPictureMode) {
                     updatePlayerViewLayout() // Call new method to handle layout
                 }
@@ -464,57 +781,43 @@ class PlayerFragment : Fragment() {
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 if (self !== player) return
+                if (!acceptsPlaybackCallback(token)) return
                 if (tvModel == null) {
                     Log.e(TAG, "tvModel == null")
                     return
                 }
 
                 val tv = tvModel!!
+                val now = SystemClock.elapsedRealtime()
                 if (isPlaying) {
-                    val now = System.currentTimeMillis()
-                    val firstPlaybackForAttempt = !attemptPlayed
-                    hasPlayedSuccessfully = true
-                    attemptPlayed = true
-                    // Real playback on this device/network is the strongest
-                    // health signal and must recover a line from old failures.
-                    tv.getVideoUrl()?.let { url ->
-                        LineHealth.markPlaybackSuccess(
-                            url,
-                            if (firstPlaybackForAttempt) (now - playRequestTime).coerceAtLeast(0L) else -1L,
-                        )
+                    // isPlaying only means that the clock is advancing; the
+                    // first health signal is the real video render callback.
+                    if (attemptPlayed) {
+                        playbackStartTime = now
+                        lastStopTime = 0L
                     }
-                    tv.confirmSourceType()
-                    tv.confirmVideoIndex()
-                    tv.setErrInfo("")
-                    tv.retryTimes = 0
-                    bufferingCount = 0
-                    bufferingStartTime = 0L
-                    bufferingTimestamps.clear()
-                    lastBufferingTime = 0L
-                    playbackStartTime = now
-                    playbackCallback?.onPlaybackStarted()
-                    lastStopTime = 0L // 重置停止时间
-                    Log.d(TAG, "${tv.tv.title} is playing")
+                    Log.d(TAG, "${tv.tv.title} isPlaying=$isPlaying, firstFrame=$attemptPlayed")
                 } else {
                     idleProbeJob?.cancel()
                     if (::viewModel.isInitialized) viewModel.cancelLineProbes()
-                    lastPlaybackDisruptionTime = System.currentTimeMillis()
+                    lastPlaybackDisruptionTime = now
                     isStable = false
                     playbackStartTime = 0L // 重置计时
-                    lastStopTime = System.currentTimeMillis() // 记录停止时间
+                    lastStopTime = now // 记录停止时间
                     Log.i(TAG, "${tv.tv.title} 播放停止")
                 }
             }
 
             override fun onPlaybackStateChanged(state: Int) {
                 if (self !== player) return
-                val currentTime = System.currentTimeMillis()
+                if (!acceptsPlaybackCallback(token)) return
+                val currentTime = SystemClock.elapsedRealtime()
                 if (state == Player.STATE_BUFFERING) {
+                    playbackCoordinator.onBuffering(token.sessionId, token.attemptId, token.networkGeneration)
                     lastPlaybackDisruptionTime = currentTime
                     idleProbeJob?.cancel()
                     if (::viewModel.isInitialized) viewModel.cancelLineProbes()
                 }
-                if (!SP.autoSwitchSource) return
                 if (tvModel == null || player == null) {
                     return
                 }
@@ -548,24 +851,15 @@ class PlayerFragment : Fragment() {
                     bufferingTimestamps.removeAll { it < currentTime - bufferingWindowMs }
 
                     // 检查是否需要切换源
-                    if (autoSwitchCount < maxAutoSwitchPerChannel &&
-                        ((bufferingCount >= bufferingThreshold && currentTime - lastSwitchTime >= switchCooldown) ||
-                        (bufferingDuration >= bufferingDurationThreshold && currentTime - lastSwitchTime >= switchCooldown))) {
-                        if (tvModel!!.retryTimes < tvModel!!.retryMaxTimes && player!!.currentPosition > 0) {
-                            Log.i(TAG, "Non-smooth playback detected: bufferingCount=$bufferingCount, duration=$bufferingDuration")
-                            tvModel?.getVideoUrl()?.let { LineHealth.markPlaybackFailure(it) }
-                            (activity as MainActivity).sourceUp(false)
-                            lastSwitchTime = currentTime
-                            autoSwitchCount++
-                            autoSwitchChannelId = tvModel!!.tv.id
-                            playbackStartTime = currentTime // 重置播放开始时间
-                            bufferingCount = 0
-                            bufferingStartTime = 0L
-                            bufferingTimestamps.clear()
-                            lastBufferingTime = 0L
-                        }
+                    if (((bufferingCount >= bufferingThreshold && currentTime - lastSwitchTime >= switchCooldown) ||
+                        (bufferingDuration >= bufferingDurationThreshold && currentTime - lastSwitchTime >= switchCooldown)) &&
+                        player!!.currentPosition > 0
+                    ) {
+                        Log.i(TAG, "Non-smooth playback detected: bufferingCount=$bufferingCount, duration=$bufferingDuration")
+                        handleCoordinatorError(token, PlaybackFailure.TIMEOUT)
                     }
                 } else if (state == Player.STATE_READY) {
+                    playbackCoordinator.onRecovered(token.sessionId, token.attemptId, token.networkGeneration)
                     // 播放流畅时重置缓冲变量（如果持续流畅超过2秒）
                     if (currentTime - lastBufferingTime >= 2_000L) {
                         bufferingStartTime = 0L
@@ -585,9 +879,7 @@ class PlayerFragment : Fragment() {
                     // 优化：立即触发重试
                     if (!isInPictureInPictureMode) {
                         Log.w(TAG, "${tvModel!!.tv.title} ended, retrying immediately")
-                        switchSource(tvModel!!)
-                        lastSwitchTime = currentTime
-                        lastStopTime = 0L
+                        handleCoordinatorError(token, PlaybackFailure.TIMEOUT)
                     }
                 }
             }
@@ -598,137 +890,30 @@ class PlayerFragment : Fragment() {
                 reason: Int
             ) {
                 if (self !== player) return
+                if (!acceptsPlaybackCallback(token)) return
                 if (reason == DISCONTINUITY_REASON_AUTO_TRANSITION) {
                     (activity as MainActivity).onPlayEnd()
                 }
             }
 
+            override fun onRenderedFirstFrame() {
+                if (self !== player) return
+                val tv = tvModel ?: return
+                if (!acceptsPlaybackCallback(token)) return
+                recordFirstFrame(tv, token)
+            }
+
             override fun onPlayerError(error: PlaybackException) {
                 if (self !== player) return
+                if (!acceptsPlaybackCallback(token)) return
                 Log.w(TAG, "Player error: ${error.errorCode}, message=${error.message}")
-                if (tvModel?.tv?.playerType == PlayerType.WEBVIEW) {
-                    // 仅忽略非网络相关错误，网络错误仍需触发切换
-                    if (error.errorCode !in listOf(
-                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
-                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT
-                        )) {
-                        Log.d(TAG, "Ignored non-network ExoPlayer error for WEBVIEW: ${tvModel?.tv?.title}, error=${error.message}")
-                        return
-                    }
-                }
-                // Playback failure gets a stronger cooldown than a background
-                // probe failure, but a later success can recover immediately.
-                if (tvModel?.tv?.playerType != PlayerType.WEBVIEW) {
-                    tvModel?.getVideoUrl()?.let { LineHealth.markPlaybackFailure(it) }
-                }
-                lastStopTime = System.currentTimeMillis()
-                Log.w(TAG, "Marking for retry: lastStopTime=$lastStopTime, cooldownRemaining=${if (System.currentTimeMillis() - lastSwitchTime < retryCooldown) retryCooldown - (System.currentTimeMillis() - lastSwitchTime) else 0}")
-                // 从未成功出画：忽略 30s 冷却立即换线（启动期稳定源失效场景）
-                if (!attemptPlayed || System.currentTimeMillis() - lastSwitchTime >= retryCooldown) {
-                    Log.w(TAG, "${tvModel?.tv?.title} error, retrying immediately")
-                    tvModel?.let { switchSource(it) }
-                    lastSwitchTime = System.currentTimeMillis()
-                    lastStopTime = 0L
+                if (handleCoordinatorError(token, classifyPlaybackFailure(error))) {
                     return
                 }
-                // 首次使用检测：无稳定源且 cacheFile 不存在
-                // val isFirstUse = SP.getStableSources().isEmpty() && !File(requireContext().filesDir, "cacheFile").exists()
-                val isFirstUse = SP.getStableSources().isEmpty()
-                if (isFirstUse && tvModel != null) {
-                    if (tvModel!!.retryTimes < 3) { // 限制为 3 次
-                        tvModel!!.nextSourceType() // 尝试下一个源类型
-                        tvModel!!.setReady(true)
-                        tvModel!!.retryTimes++
-                        Log.i(TAG, "First use: Error detected, switching source for ${tvModel!!.tv.title}")
-                        (activity as MainActivity).sourceUp(false)
-                        lastSwitchTime = System.currentTimeMillis()
-                        // 快速超时：3 秒后若未播放，触发下一次切换
-                        handler.postDelayed({
-                            if (player?.isPlaying != true) {
-                                (activity as MainActivity).sourceUp(false)
-                                Log.i(TAG, "First use: 3s timeout, retry switching for ${tvModel!!.tv.title}")
-                            }
-                        }, 3_000L)
-                        return
-                    } else if (tvModel!!.hasNextHealthyVideo()) {
-                        tvModel!!.nextVideo() // 尝试下一个视频源
-                        tvModel!!.setReady(true)
-                        tvModel!!.retryTimes = 0
-                        Log.i(TAG, "First use: All source types failed, switching video for ${tvModel!!.tv.title}")
-                        (activity as MainActivity).sourceUp(false)
-                        lastSwitchTime = System.currentTimeMillis()
-                        handler.postDelayed({
-                            if (player?.isPlaying != true) {
-                                (activity as MainActivity).sourceUp(false)
-                                Log.i(TAG, "First use: 3s timeout, retry switching for ${tvModel!!.tv.title}")
-                            }
-                        }, 3_000L)
-                        return
-                    } else {
-                        // 不要把播放失败的频道静默替换成下一个频道：这会造成
-                        // 用户选择 CCTV1 却不断跳到 CCTV2/3。保留频道焦点，
-                        // 让用户手动换线或重新播放，并显示明确错误。
-                        tvModel!!.setErrInfo(R.string.play_error.getString())
-                        Log.w(TAG, "First use: all lines failed for ${tvModel!!.tv.title}; keeping channel selected")
-                        return
-                    }
-                }
-
-                if (!SP.autoSwitchSource && hasPlayedSuccessfully) {
-                    Log.w(TAG, "Auto-switch disabled, ignoring error: ${error.message}")
-                    return
-                }
-                if (tvModel == null) {
-                    Log.e(TAG, "tvModel == null")
-                    return
-                }
-
-                if (error.errorCode !in listOf(
-                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
-                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
-                        PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED
-                    )) {
-                    Log.w(TAG, "Non-supported error: ${error.errorCode}, ignoring")
-                    return
-                }
-
-                val tv = tvModel!!
-                if (tv.retryTimes < tv.retryMaxTimes) {
-                    var last = true
-                    if (tv.getSourceTypeDefault() == SourceType.UNKNOWN) {
-                        last = tv.nextSourceType()
-                    }
-                    tv.setReady(true)
-                    if (last) {
-                        tv.retryTimes++
-                    }
-                    Log.i(
-                        TAG,
-                        "Retry ${tv.videoIndex.value} ${tv.getSourceTypeCurrent()} ${tv.retryTimes}/${tv.retryMaxTimes}"
-                    )
-                    if (System.currentTimeMillis() - lastSwitchTime >= switchCooldown) {
-                        handler.postDelayed({
-                            if (player?.isPlaying != true) {
-                                (activity as MainActivity).sourceUp(false)
-                            } else {
-                                Log.d(TAG, "Playback recovered, no need to switch")
-                            }
-                        }, 2_000L)
-                        lastSwitchTime = System.currentTimeMillis()
-                    }
-                } else {
-                    if (tv.hasNextHealthyVideo()) {
-                        tv.nextVideo()
-                        tv.setReady(true)
-                        tv.retryTimes = 0
-                        (activity as MainActivity).sourceUp(false)
-                    } else {
-                        // 播放失败只在当前频道内耗尽线路，不跨频道漂移。
-                        // 稳定源只能用于启动恢复，不能覆盖用户当前的频道选择。
-                        tv.setErrInfo(R.string.play_error.getString())
-                        Log.w(TAG, "All lines failed for ${tv.tv.title}; keeping channel selected")
-                    }
-                }
+                val model = tvModel ?: return
+                model.setErrInfo(R.string.play_error.getString())
+                lastStopTime = SystemClock.elapsedRealtime()
+                Log.w(TAG, "Recovery budget exhausted for ${model.tv.title}")
             }
         }
     }
@@ -838,15 +1023,13 @@ class PlayerFragment : Fragment() {
     private val checkPlaybackRunnable = object : Runnable {
         @OptIn(UnstableApi::class)
         override fun run() {
-            val currentTime = System.currentTimeMillis()
+            val currentTime = SystemClock.elapsedRealtime()
             if (tvModel == null || !isResumed) {
                 Log.d(TAG, "Playback check skipped: tvModel=$tvModel, isResumed=$isResumed, isInPip=$isInPictureInPictureMode")
                 handler.postDelayed(this, checkPlaybackInterval)
                 return
             }
-            if (tvModel!!.retryTimes >= tvModel!!.retryMaxTimes &&
-                !tvModel!!.errInfo.value.isNullOrBlank()
-            ) {
+            if (!tvModel!!.errInfo.value.isNullOrBlank()) {
                 handler.postDelayed(this, checkPlaybackInterval)
                 return
             }
@@ -861,7 +1044,7 @@ class PlayerFragment : Fragment() {
                         (fragment as? com.horsenma.mytv1.WebFragment)?.let { webFragment ->
                             webFragment.isPlaying.also { playing ->
                                 if (!playing && lastStopTime == 0L) {
-                                    lastStopTime = System.currentTimeMillis()
+                                    lastStopTime = currentTime
                                     Log.d(TAG, "WEBVIEW playback stopped, marking lastStopTime=$lastStopTime")
                                 }
                             }
@@ -872,7 +1055,7 @@ class PlayerFragment : Fragment() {
                     player?.let {
                         (it.isPlaying == true && it.playbackState == Player.STATE_READY && it.playWhenReady == true).also { playing ->
                             if (!playing && lastStopTime == 0L) {
-                                lastStopTime = System.currentTimeMillis()
+                                lastStopTime = currentTime
                                 Log.d(TAG, "IPTV playback stopped, marking lastStopTime=$lastStopTime")
                             }
                         }
@@ -893,36 +1076,60 @@ class PlayerFragment : Fragment() {
             // （ExoPlayer 不会为"永远缓冲"发 onPlayerError），直接标记坏线换下一条，
             // 避免黑屏/转圈干等。换线节奏由 switchSourceDebounce(2s) 与
             // nextVideo 的"全部线路试完才停止"语义兜底，不会在坏线间死循环。
+            val session = playbackCoordinator.currentSession
+            val totalBudgetExpired = when {
+                session == null -> false
+                !session.hasFirstFrame ->
+                    currentTime - session.startedAtElapsedMs >= recoveryBudget.startupDeadlineMs
+                session.recoveryStartedAtElapsedMs != null ->
+                    currentTime - session.recoveryStartedAtElapsedMs >= recoveryBudget.recoveryDeadlineMs
+                else -> false
+            }
             if (!isPlaying &&
                 tvModel!!.tv.playerType == PlayerType.IPTV &&
                 player?.playbackState == Player.STATE_BUFFERING &&
                 !attemptPlayed &&
-                currentTime - playRequestTime >= firstFrameTimeoutMs &&
-                tvModel!!.retryTimes < tvModel!!.retryMaxTimes
+                (currentTime - playRequestTime >= firstFrameTimeoutMs || totalBudgetExpired)
             ) {
                 Log.w(TAG, "${tvModel!!.tv.title} buffering ${(currentTime - playRequestTime) / 1000}s without first frame, switching line")
-                tvModel?.getVideoUrl()?.let { LineHealth.markPlaybackFailure(it) }
-                switchSource(tvModel!!)
-                lastSwitchTime = currentTime
-                lastStopTime = 0L
+                currentPlaybackEventToken()?.let { token ->
+                    handleCoordinatorError(token, PlaybackFailure.TIMEOUT)
+                }
             }
             if (!isPlaying && lastStopTime > 0 && stopDuration >= stopDurationThreshold &&
                 cooldownRemaining == 0L && attemptPlayed
             ) {
-                if (tvModel?.tv?.playerType == PlayerType.WEBVIEW) {
+                val waitingForNetwork = lastNetworkAvailable == false ||
+                    session?.state == PlaybackState.WAITING_FOR_NETWORK
+                if (waitingForNetwork) {
+                    // Network loss is owned by the coordinator. Keep the last
+                    // frame and wait for onAvailable instead of retrying every
+                    // health-tick while all transports are offline.
+                    Log.d(TAG, "${tvModel!!.tv.title} waiting for network, skip stop-based retry")
+                } else if (tvModel?.tv?.playerType == PlayerType.WEBVIEW) {
                     // 网页源解析/加载慢（可达数十秒），停播检测不适用：
                     // 交给 WebFragment 内部超时重载，不在这里自动换线/弹错
                     Log.d(TAG, "WebView channel slow to start, skipping stop-based auto-switch")
                     lastStopTime = 0L
                 } else {
                     Log.w(TAG, "${tvModel!!.tv.title} stopped after playing for ${stopDurationThreshold / 1000}s, retrying")
-                    // 停播超时：标记当前线路不可用
-                    tvModel?.getVideoUrl()?.let { LineHealth.markPlaybackFailure(it) }
-                    switchSource(tvModel!!)
-                    lastSwitchTime = currentTime
-                    lastStopTime = 0L
+                    currentPlaybackEventToken()?.let { token ->
+                        handleCoordinatorError(token, PlaybackFailure.TIMEOUT)
+                    }
                 }
             } else if (isPlaying && stopDuration == 0L && cooldownRemaining == 0L) {
+                val token = currentPlaybackEventToken()
+                if (attemptPlayed && playbackStartTime > 0L &&
+                    currentTime - playbackStartTime >= STABLE_RECOVERY_DURATION_MS &&
+                    stableEpisodeResetAttemptId != token?.attemptId && token != null
+                ) {
+                    playbackCoordinator.onStablePlayback(
+                        token.sessionId,
+                        token.attemptId,
+                        token.networkGeneration,
+                    )
+                    stableEpisodeResetAttemptId = token.attemptId
+                }
                 // Check for stable source saving
                 if (currentTime - lastStableSaveTime >= stablePlaybackDuration && // 30s 节流
                     currentTime - playbackStartTime >= stablePlaybackDuration && // 播放持续 30 秒
@@ -1039,7 +1246,7 @@ class PlayerFragment : Fragment() {
         advance: Boolean,
         force: Boolean,
     ) {
-        val currentTime = System.currentTimeMillis()
+        val currentTime = SystemClock.elapsedRealtime()
         if (!force && currentTime - lastSwitchSourceTime < switchSourceDebounce) {
             Log.d(TAG, "Debounced switchSource for ${tvModel.tv.title}")
             return
@@ -1048,10 +1255,6 @@ class PlayerFragment : Fragment() {
         playbackStartTime = currentTime
         playRequestTime = currentTime
         attemptPlayed = false
-        if (autoSwitchChannelId != tvModel.tv.id) {
-            autoSwitchCount = 0
-            autoSwitchChannelId = tvModel.tv.id
-        }
 
         // Automatic/manual cycling advances to the next healthy line. A line
         // chosen from the panel must stay on the exact selected index.
@@ -1106,6 +1309,12 @@ class PlayerFragment : Fragment() {
             tvModel.setErrInfo(R.string.play_error.getString())
             return
         }
+        if (!beginPlaybackAttempt(tvModel)) {
+            Log.w(TAG, "Unable to start playback attempt for ${tvModel.tv.title}")
+            tvModel.setErrInfo(R.string.play_error.getString())
+            return
+        }
+        player?.let(::bindPlayerListener)
         Log.d(TAG, "Switching source: ${tvModel.tv.title}, url: $videoUrl, videoIndex=${tvModel.videoIndexValue}")
         player?.run {
             val mediaItem = tvModel.getMediaItem()
@@ -1143,7 +1352,7 @@ class PlayerFragment : Fragment() {
 
     @OptIn(UnstableApi::class)
     fun play(tvModel: TVModel) {
-        val currentTime = System.currentTimeMillis()
+        val currentTime = SystemClock.elapsedRealtime()
         // 防抖只拦截"同一线路的重复播放"，连续切不同频道不拦截
         if (currentTime - lastSwitchSourceTime < switchSourceDebounce &&
             this.tvModel != null && this.tvModel?.getVideoUrl() == tvModel.getVideoUrl()
@@ -1154,10 +1363,6 @@ class PlayerFragment : Fragment() {
         lastSwitchSourceTime = currentTime
         playRequestTime = currentTime
         attemptPlayed = false
-        if (autoSwitchChannelId != tvModel.tv.id) {
-            autoSwitchCount = 0
-            autoSwitchChannelId = tvModel.tv.id
-        }
         this.tvModel = tvModel
         viewModel.setPlaybackActive(true)
         markUserInteraction()
@@ -1207,10 +1412,16 @@ class PlayerFragment : Fragment() {
             }
         }
 
+        // Establish the session after line ranking so its first attempt is the
+        // exact URL that will be prepared below. A new channel supersedes every
+        // callback from the previous channel.
+        if (!startPlaybackSession(tvModel)) {
+            tvModel.setErrInfo(R.string.play_error.getString())
+            return
+        }
+
         if (tvModel.tv.playerType == PlayerType.WEBVIEW) {
-            player?.release()
-            player = null
-            binding.playerView.player = null
+            releaseAllPlayers()
             binding.playerView.visibility = View.GONE
             binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
             binding.webView.visibility = View.VISIBLE
@@ -1247,9 +1458,13 @@ class PlayerFragment : Fragment() {
                     return
                 }
 
+                val webToken = currentPlaybackEventToken()
                 webFragment.setCallback(object : WebFragmentCallback {
                     override fun onPlaybackStarted() {
-                        playbackStartTime = System.currentTimeMillis()
+                        val token = webToken ?: return
+                        if (!acceptsPlaybackCallback(token)) return
+                        recordFirstFrame(tvModel, token)
+                        playbackStartTime = SystemClock.elapsedRealtime()
                         bufferingCount = 0
                         tvModel.retryTimes = 0
                         lastStopTime = 0L
@@ -1258,13 +1473,13 @@ class PlayerFragment : Fragment() {
                     override fun onPlaybackStopped() {
                         isStable = false
                         playbackStartTime = 0L
-                        lastStopTime = System.currentTimeMillis()
+                        lastStopTime = SystemClock.elapsedRealtime()
                         Log.d(TAG, "WebView playback stopped for ${tvModel.tv.title}")
                     }
                     override fun onPlaybackError(error: String) {
                         isStable = false
                         playbackStartTime = 0L
-                        lastStopTime = System.currentTimeMillis()
+                        lastStopTime = SystemClock.elapsedRealtime()
                         tvModel.setErrInfo(error)
                         Log.e(TAG, "WebView playback error for ${tvModel.tv.title}: $error")
                     }
@@ -1338,6 +1553,7 @@ class PlayerFragment : Fragment() {
             // Reuse one player so current viewing owns the network and decoder resources.
             ensurePlayerPool()
             binding.playerView.player = player
+            player?.let(::bindPlayerListener)
             player?.run {
                 val videoUrl = tvModel.tv.uris.getOrNull(tvModel.videoIndexValue) ?: run {
                     Log.w(TAG, "No valid URL in uris for ${tvModel.tv.title}")
@@ -1390,7 +1606,11 @@ class PlayerFragment : Fragment() {
 
     /** 释放播放器（软解切换重建/销毁时调用）。 */
     private fun releaseAllPlayers() {
-        player?.release()
+        player?.let { exo ->
+            playerListener?.let(exo::removeListener)
+            playerListener = null
+            exo.release()
+        }
         player = null
         _binding?.playerView?.player = null
     }
@@ -1512,8 +1732,12 @@ class PlayerFragment : Fragment() {
         super.onResume()
         if (player?.isPlaying == false) {
             if (::viewModel.isInitialized) viewModel.setPlaybackActive(true)
-            player?.prepare()
-            player?.play()
+            val model = tvModel
+            val action = playbackCoordinator.resume()
+            if (model == null || action is PlaybackAction.None || !applyRecoveryAction(action, model)) {
+                player?.prepare()
+                player?.play()
+            }
         }
         // 确保定时器运行
         handler.removeCallbacks(checkPlaybackRunnable)
@@ -1530,12 +1754,13 @@ class PlayerFragment : Fragment() {
             Log.d(TAG, "Skipping pause for WEBVIEW")
             return
         }
-        if (!SP.enableScreenOffAudio && player != null) {
+        if (!isInPictureInPictureMode && !SP.enableScreenOffAudio && player != null) {
+            playbackCoordinator.suspend()
             player?.pause()
             if (::viewModel.isInitialized) viewModel.setPlaybackActive(false)
             Log.d(TAG, "Paused player due to SP.enableScreenOffAudio=false")
         }
-        lastPauseTime = System.currentTimeMillis()
+        lastPauseTime = SystemClock.elapsedRealtime()
     }
 
     // 添加广播接收器
@@ -1543,6 +1768,7 @@ class PlayerFragment : Fragment() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_SCREEN_OFF) {
                 if (!SP.enableScreenOffAudio && player != null) {
+                    playbackCoordinator.suspend()
                     player?.pause()
                     if (::viewModel.isInitialized) viewModel.setPlaybackActive(false)
                     Log.d(TAG, "Paused player on SCREEN_OFF in ${if (isInPictureInPictureMode) "PiP" else "Full-Screen"} mode")
@@ -1550,7 +1776,11 @@ class PlayerFragment : Fragment() {
             } else if (intent.action == Intent.ACTION_SCREEN_ON) {
                 if (!SP.enableScreenOffAudio && player != null) {
                     if (::viewModel.isInitialized) viewModel.setPlaybackActive(true)
-                    player?.playWhenReady = true
+                    val model = tvModel
+                    val action = playbackCoordinator.resume()
+                    if (model == null || action is PlaybackAction.None || !applyRecoveryAction(action, model)) {
+                        player?.playWhenReady = true
+                    }
                     Log.d(TAG, "Resumed player on SCREEN_ON in ${if (isInPictureInPictureMode) "PiP" else "Full-Screen"} mode")
                 }
             }
@@ -1560,6 +1790,7 @@ class PlayerFragment : Fragment() {
     // 在 onCreate 中注册
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        registerConnectivityCallback()
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_SCREEN_ON)
@@ -1577,6 +1808,10 @@ class PlayerFragment : Fragment() {
         if (::viewModel.isInitialized) viewModel.cancelBackgroundMaintenance()
         idleProbeJob?.cancel()
         releaseAllPlayers()
+        playbackCoordinator.stop()
+        activeSessionId = null
+        activeAttemptId = null
+        unregisterConnectivityCallback()
         try {
             requireActivity().unregisterReceiver(screenReceiver)
         } catch (e: Exception) {
@@ -1595,5 +1830,6 @@ class PlayerFragment : Fragment() {
 
     companion object {
         private const val TAG = "PlayerFragment"
+        private const val STABLE_RECOVERY_DURATION_MS = 60_000L
     }
 }

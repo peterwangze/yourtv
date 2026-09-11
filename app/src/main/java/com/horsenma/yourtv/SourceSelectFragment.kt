@@ -71,7 +71,7 @@ class SourceSelectFragment : Fragment() {
 
         // 初始化 onSourceSelected
         onSourceSelected = { index, _ ->
-            val tvModel = viewModel.groupModel.getCurrent()
+            val tvModel = (requireActivity() as MainActivity).playerFragment.tvModel
             if (tvModel != null) {
                 // The panel is an exact line picker. Cycling here used to move
                 // once more inside switchSource and play index + 1.
@@ -85,7 +85,7 @@ class SourceSelectFragment : Fragment() {
 
         // 初始化 RecyclerView
         sourceRecyclerView.layoutManager = LinearLayoutManager(context)
-        sourceAdapter = SourceAdapter(emptyList(), viewModel, requireContext(), onSourceSelected)
+        sourceAdapter = SourceAdapter(emptyList(), requireContext(), onSourceSelected)
         sourceRecyclerView.adapter = sourceAdapter
 
         // 设置按键监听
@@ -111,7 +111,9 @@ class SourceSelectFragment : Fragment() {
                         val currentPosition = (sourceRecyclerView.layoutManager as LinearLayoutManager)
                             .findFirstCompletelyVisibleItemPosition()
                         if (currentPosition >= 0) {
-                            onSourceSelected(currentPosition, true)
+                            sourceAdapter.videoIndexAt(currentPosition)?.let { videoIndex ->
+                                onSourceSelected(videoIndex, true)
+                            }
                         }
                         scheduleAutoHide()
                         true
@@ -166,7 +168,13 @@ class SourceSelectFragment : Fragment() {
             if (!isAdded || !isVisible) return@post
             sourceRecyclerView.isFocusable = true
             sourceRecyclerView.isFocusableInTouchMode = true
-            val selectedIndex = viewModel.groupModel.getCurrent()?.videoIndexValue ?: 0
+            val model = (requireActivity() as MainActivity).playerFragment.tvModel
+            val selectedVideoIndex = model?.videoIndexValue ?: 0
+            val selectedIndex = model?.tv?.uris
+                ?.withIndex()
+                ?.filter { it.value.isNotBlank() }
+                ?.indexOfFirst { it.index == selectedVideoIndex }
+                ?.coerceAtLeast(0) ?: 0
             sourceRecyclerView.smoothScrollToPosition(selectedIndex)
             view?.postDelayed({
                 if (!isAdded || !isVisible) return@postDelayed
@@ -191,27 +199,30 @@ class SourceSelectFragment : Fragment() {
             channelNameText.text = getString(R.string.no_channel_data)
             sourceCountText.text = getString(R.string.total_sources, 0)
             currentSourceText.text = getString(R.string.current_source, 0)
-            sourceAdapter.updateSources(emptyList())
+            sourceAdapter.updateSources(emptyList(), -1)
             return
         }
-        val sources = tvModel.tv.uris.filter { it.isNotBlank() }
+        val sources = tvModel.tv.uris.withIndex().filter { it.value.isNotBlank() }
+        val selectedPosition = sources.indexOfFirst { it.index == tvModel.videoIndexValue }
         Log.d("SourceSelectFragment", "updateUI: Channel=${tvModel.tv.title}, uris=${tvModel.tv.uris}, filtered sources=$sources, videoIndexValue=${tvModel.videoIndexValue}")
         channelNameText.text = getString(R.string.channel_name_with_tip, tvModel.tv.title)
         sourceCountText.text = getString(R.string.total_sources, sources.size)
-        currentSourceText.text = getString(R.string.current_source, tvModel.videoIndexValue + 1)
-        sourceAdapter.updateSources(sources.mapIndexed { index, url ->
+        currentSourceText.text = getString(R.string.current_source, selectedPosition + 1)
+        sourceAdapter.updateSources(sources.mapIndexed { displayIndex, source ->
+            val url = source.value
             SourceInfo(
-                index + 1,
+                displayIndex + 1,
+                source.index,
                 url,
                 SP.getResolutionCache(url)?.let(::formatResolution) ?: getString(R.string.unknown),
                 LineHealth.latency(url)?.coerceAtMost(Int.MAX_VALUE.toLong())?.toInt() ?: PING_PENDING,
                 SP.getStableSources().any { it.uris.contains(url) },
-                index == tvModel.videoIndexValue,
+                source.index == tvModel.videoIndexValue,
                 // v3.3.0：线路来源标注（聚合反向关联源），换线面板直接可见
                 tvModel.tv.uriSources[url]?.let { sourceNameOf(it) } ?: "",
                 LineHealth.healthRank(url),
             )
-        })
+        }, tvModel.videoIndexValue)
     }
 
     private fun formatResolution(resolution: String?): String {
@@ -280,6 +291,7 @@ class SourceSelectFragment : Fragment() {
 
 data class SourceInfo(
     val index: Int,
+    val videoIndex: Int,
     val url: String,
     val resolution: String,
     val ping: Int,
@@ -292,7 +304,6 @@ data class SourceInfo(
 
 class SourceAdapter(
     private var sources: List<SourceInfo>,
-    private val viewModel: MainViewModel,
     private val context: android.content.Context,
     private val onSourceSelected: (Int, Boolean) -> Unit
 ) : RecyclerView.Adapter<SourceAdapter.SourceViewHolder>() {
@@ -338,7 +349,7 @@ class SourceAdapter(
         holder.sourceChoice.text = spannable
         holder.sourceChoice.isChecked = source.isSelected
         holder.sourceChoice.setOnClickListener {
-            onSourceSelected(source.index - 1, true)
+            onSourceSelected(source.videoIndex, true)
         }
 
         // 增强焦点文字反馈
@@ -355,11 +366,11 @@ class SourceAdapter(
 
     override fun getItemCount(): Int = sources.size
 
-    fun updateSources(newSources: List<SourceInfo>) {
-        val tvModel = viewModel.groupModel.getCurrent()
-        val currentIndex = tvModel?.videoIndexValue ?: -1
+    fun videoIndexAt(position: Int): Int? = sources.getOrNull(position)?.videoIndex
+
+    fun updateSources(newSources: List<SourceInfo>, currentIndex: Int) {
         sources = newSources.map { source ->
-            source.copy(isSelected = source.index - 1 == currentIndex)
+            source.copy(isSelected = source.videoIndex == currentIndex)
         }
         notifyDataSetChanged()
     }
@@ -367,7 +378,7 @@ class SourceAdapter(
     // 新增方法：更新选中状态
     fun updateSelection(newSelectedIndex: Int) {
         sources = sources.map { source ->
-            source.copy(isSelected = source.index - 1 == newSelectedIndex)
+            source.copy(isSelected = source.videoIndex == newSelectedIndex)
         }
         notifyDataSetChanged()
     }

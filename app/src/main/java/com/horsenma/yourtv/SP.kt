@@ -268,6 +268,13 @@ object SP {
     val sleepTimerDeadline: Long
         get() = sp.getLong(KEY_SLEEP_DEADLINE, 0L)
 
+    fun clearSleepTimer() {
+        sp.edit {
+            putInt(KEY_SLEEP_TIMER, 0)
+            remove(KEY_SLEEP_DEADLINE)
+        }
+    }
+
     /** 画面比例：fit=跟随内容 / 16_9 / 4_3 / zoom=铺满（裁剪） */
     var aspectRatio: String
         get() = sp.getString(KEY_ASPECT_RATIO, DEFAULT_ASPECT_RATIO) ?: DEFAULT_ASPECT_RATIO

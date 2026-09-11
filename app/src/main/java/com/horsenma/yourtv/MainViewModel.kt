@@ -649,6 +649,7 @@ class MainViewModel : ViewModel() {
                     if (cacheWebChannels.isNotEmpty()) {
                         if (parseAndApply(cacheWebChannels, null, "", "")) {
                             Log.d(TAG, "Web channels loaded from /raw/webchannelsiniptv")
+                            channelsLoaded = true
                         }
                     } else {
                         Log.w(TAG, "Web channels file is empty: /raw/webchannelsiniptv")
@@ -659,7 +660,9 @@ class MainViewModel : ViewModel() {
             }
 
             initialized = true
-            _channelsOk.postValue(channelsLoaded)
+            if (!channelsLoaded) {
+                _channelsOk.postValue(false)
+            }
 
             // 界面就绪后再后台导入预置源，避免首屏卡顿
             importDefaultsIfNeeded()

@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.os.SystemClock
 import android.util.Log
 import android.view.GestureDetector
 import android.view.Gravity
@@ -515,7 +516,7 @@ class MainActivity : AppCompatActivity() {
 
             viewModel.updateConfig()
             if (playerFragment.isAdded && !playerFragment.isHidden) {
-                val currentTvModel = viewModel.groupModel.getCurrent()
+                val currentTvModel = playerFragment.tvModel ?: viewModel.groupModel.getCurrent()
                 if (currentTvModel != null) {
                     playerFragment.play(currentTvModel)
                 } else {
@@ -544,6 +545,10 @@ class MainActivity : AppCompatActivity() {
         val deadline = SP.sleepTimerDeadline
         if (deadline <= 0L) return
         if (System.currentTimeMillis() >= deadline) {
+            // One-shot timer: clear before finishing so the next launch cannot
+            // inherit an already-expired deadline and immediately exit again.
+            SP.clearSleepTimer()
+            handler.removeCallbacks(sleepTimerCheckRunnable)
             R.string.sleep_timer_fired.showToast()
             handler.postDelayed({
                 finishAffinity()
@@ -599,7 +604,7 @@ class MainActivity : AppCompatActivity() {
                 tvModel.errInfoThrottled = tvModel.errInfo.throttle(1000)
             }
             tvModel.errInfoThrottled!!.observe(this) { _ ->
-                if (tvModel.errInfo.value != null && tvModel == viewModel.groupModel.getCurrent()) {
+                if (tvModel.errInfo.value != null && tvModel == playerFragment.tvModel) {
                     hideFragment(loadingFragment)
                     if (tvModel.errInfo.value == "") {
                         hideFragment(errorFragment)
@@ -701,7 +706,7 @@ class MainActivity : AppCompatActivity() {
             if (infoView != null && infoView.visibility == View.VISIBLE) {
                 infoView.visibility = View.GONE
             } else {
-                viewModel.groupModel.getCurrent()?.let { infoFragment.show(it) }
+                playerFragment.tvModel?.let { infoFragment.show(it) }
             }
             return true
         }
@@ -839,7 +844,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onPlayEnd() {
-        val tvModel = viewModel.groupModel.getCurrent()!!
+        val tvModel = playerFragment.tvModel ?: return
         if (SP.repeatInfo) {
             infoFragment.show(tvModel)
             if (SP.channelNum) {
@@ -944,14 +949,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun sourceUp(showToast: Boolean = true) {
-        val currentTime = System.currentTimeMillis()
+        val currentTime = SystemClock.elapsedRealtime()
         if (currentTime - lastSourceUpTime < sourceUpDebounce) {
-            Log.d(TAG, "Debounced sourceUp for ${viewModel.groupModel.getCurrent()?.tv?.title}")
+            Log.d(TAG, "Debounced sourceUp for ${playerFragment.tvModel?.tv?.title}")
             return
         }
         lastSourceUpTime = currentTime
 
-        var tvModel = viewModel.groupModel.getCurrent()
+        // Recovery belongs to the immutable playback intent, not to the
+        // channel currently highlighted while browsing another group.
+        var tvModel = playerFragment.tvModel ?: viewModel.groupModel.getCurrent()
         if (tvModel == null) {
             Log.w(TAG, "sourceUp: tvModel is null, attempting to fix groupModel")
             if (viewModel.listModel.isNotEmpty()) {
@@ -1217,7 +1224,7 @@ class MainActivity : AppCompatActivity() {
 
     // 错误页重试：重新触发当前频道播放（内部会跳过坏线、选健康线路）
     fun retryCurrentPlayback() {
-        val tvModel = viewModel.groupModel.getCurrent() ?: return
+        val tvModel = playerFragment.tvModel ?: viewModel.groupModel.getCurrent() ?: return
         if (isSafeToPerformFragmentTransactions) {
             hideFragment(errorFragment)
             showFragment(playerFragment)
@@ -1235,11 +1242,10 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        viewModel.groupModel.getCurrent()?.let {
-            if (it.epgValue.isEmpty()) {
-                R.string.epg_is_empty.showToast()
-                return
-            }
+        val playing = playerFragment.tvModel ?: return
+        if (playing.epgValue.isEmpty()) {
+            R.string.epg_is_empty.showToast()
+            return
         }
 
         showFragment(programFragment)
@@ -1623,8 +1629,8 @@ class MainActivity : AppCompatActivity() {
             }
             findViewById<View>(R.id.main_browse_fragment)?.requestFocus()
             showTimeFragment()
-            if (SP.channelNum && viewModel.groupModel.getCurrent() != null) {
-                channelFragment.show(viewModel.groupModel.getCurrent()!!)
+            if (SP.channelNum) {
+                playerFragment.tvModel?.let(channelFragment::show)
             }
             Log.d(TAG, "Exited Picture-in-Picture mode, focus requested on main_browse_fragment")
         }
