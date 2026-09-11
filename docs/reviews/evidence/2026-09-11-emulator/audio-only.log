@@ -1,0 +1,47 @@
+--------- beginning of main
+
+09-11 13:00:00.678  1667  1667 D PlayerFragment: No stable source found for QA Audio, using default uris=[http://qa.test:18765/audio/index.m3u8], videoIndex=0
+
+09-11 13:00:00.678  1667  1667 D PlayerFragment: Playing tvModel: QA Audio, playerType: IPTV, uris: 1
+
+09-11 13:00:00.679  1667  1667 D PlayerFragment: Playing IPTV: QA Audio, uris: 1
+
+09-11 13:00:00.681  1667  1667 D PlayerFragment: IPTV playback started for QA Audio, url=http://qa.test:18765/audio/index.m3u8
+
+09-11 13:00:00.683  1667  1667 D PlayerFragment: Debounced play for QA Audio
+
+09-11 13:00:00.683  1667  1667 D PlayerFragment: Debounced play for QA Audio
+
+09-11 13:00:00.684  1667  1667 D PlayerFragment: Debounced play for QA Audio
+
+09-11 13:00:00.692  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 13:00:00.695  1667  1667 D PlayerFragment: Debounced play for QA Audio
+
+09-11 13:00:00.705  1667  1667 D PlayerFragment: Debounced play for QA Audio
+
+09-11 13:00:00.706  1667  1667 D MainActivity: PlayerFragment shown, playing: QA Audio
+
+09-11 13:00:00.818  1667  1667 D PlayerFragment: QA Audio isPlaying=true, firstFrame=false
+
+09-11 13:00:02.682  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=1, retryTimes=0, playbackDuration=0
+
+09-11 13:00:02.683  1667  1667 D PlayerFragment: QA Audio rendered first frame
+
+09-11 13:00:04.688  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=2005
+
+09-11 13:00:06.703  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=4020
+
+09-11 13:00:06.961  1667  1667 W PlayerFragment: Player error: 2001, message=Source error
+
+09-11 13:00:07.071  1667  1667 D PlayerFragment: QA Audio isPlaying=true, firstFrame=false
+
+09-11 13:00:08.705  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=6256, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=1635
+
+09-11 13:00:08.706  1667  1667 D PlayerFragment: QA Audio rendered first frame
+
+09-11 13:00:10.713  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=4249, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=2007
+
+09-11 13:00:12.720  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=2242, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=4014
+
+09-11 13:00:14.727  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=238, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=6018

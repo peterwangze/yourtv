@@ -1,0 +1,69 @@
+--------- beginning of main
+
+09-11 13:03:30.232  1667  1667 D PlayerFragment: Video size changed: 640x360
+
+09-11 13:03:30.268  1667  1667 D PlayerFragment: No stable source found for QA Audio, using default uris=[http://qa.test:18765/audio/index.m3u8], videoIndex=0
+
+09-11 13:03:30.268  1667  1667 D PlayerFragment: Playing tvModel: QA Audio, playerType: IPTV, uris: 1
+
+09-11 13:03:30.269  1667  1667 D PlayerFragment: Playing IPTV: QA Audio, uris: 1
+
+09-11 13:03:30.281  1667  1667 D PlayerFragment: IPTV playback started for QA Audio, url=http://qa.test:18765/audio/index.m3u8
+
+09-11 13:03:30.324  1667  1667 D PlayerFragment: Debounced play for QA Audio
+
+09-11 13:03:30.337  1667  1667 D PlayerFragment: Debounced play for QA Audio
+
+09-11 13:03:30.376  1667  1667 D PlayerFragment: Debounced play for QA Audio
+
+09-11 13:03:30.377  1667  1667 D PlayerFragment: Debounced play for QA Audio
+
+09-11 13:03:30.377  1667  1667 D PlayerFragment: Debounced play for QA Audio
+
+09-11 13:03:30.377  1667  1667 D PlayerFragment: Debounced play for QA Audio
+
+09-11 13:03:30.432  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 13:03:30.433  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 13:03:30.554  1667  1667 D PlayerFragment: Applied stable source: QA B, playerType=IPTV, url=http://qa.test:18765/b/index.m3u8, videoIndex=0
+
+09-11 13:03:30.554  1667  1667 D PlayerFragment: Playing tvModel: QA B, playerType: IPTV, uris: 1
+
+09-11 13:03:30.555  1667  1667 D PlayerFragment: Playing IPTV: QA B, uris: 1
+
+09-11 13:03:30.558  1667  1667 D PlayerFragment: IPTV playback started for QA B, url=http://qa.test:18765/b/index.m3u8
+
+09-11 13:03:30.559  1667  1667 D PlayerFragment: Debounced play for QA B
+
+09-11 13:03:30.560  1667  1667 D PlayerFragment: Debounced play for QA B
+
+09-11 13:03:30.561  1667  1667 D PlayerFragment: Debounced play for QA B
+
+09-11 13:03:30.562  1667  1667 D PlayerFragment: Debounced play for QA B
+
+09-11 13:03:30.564  1667  1667 D PlayerFragment: Debounced play for QA B
+
+09-11 13:03:30.566  1667  1667 D PlayerFragment: Debounced play for QA B
+
+09-11 13:03:30.584  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 13:03:30.628  1667  1667 D PlayerFragment: Video size changed: 0x0
+
+09-11 13:03:30.647  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 13:03:31.338  1667  1667 D PlayerFragment: Video size changed: 640x360
+
+09-11 13:03:31.341  1667  1667 D PlayerFragment: QA B rendered first frame
+
+09-11 13:03:31.372  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 13:03:31.425  1667  1667 D PlayerFragment: QA B isPlaying=true, firstFrame=true
+
+09-11 13:03:32.561  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=1136
+
+09-11 13:03:34.565  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=3140
+
+09-11 13:03:36.570  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=5145
+
+09-11 13:03:38.572  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=7147

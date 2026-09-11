@@ -1,0 +1,13 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="qa-a" group-title="QA",QA A
+http://qa.test:18765/a/index.m3u8
+#EXTINF:-1 tvg-id="qa-b" group-title="QA",QA B
+http://qa.test:18765/b/index.m3u8
+#EXTINF:-1 tvg-id="qa-retry" group-title="QA",QA Retry
+http://qa.test:18765/retry.m3u8
+#EXTINF:-1 tvg-id="qa-backup" group-title="QA",QA Backup
+http://qa.test:18765/slow.m3u8
+#EXTINF:-1 tvg-id="qa-backup" group-title="QA",QA Backup
+http://qa.test:18765/b/index.m3u8?backup=1
+#EXTINF:-1 tvg-id="qa-audio" group-title="QA",QA Audio
+http://qa.test:18765/audio/index.m3u8

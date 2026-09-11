@@ -1,0 +1,11 @@
+--------- beginning of main
+
+09-11 13:03:52.621  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=21196
+
+09-11 13:03:54.623  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=23198
+
+09-11 13:03:56.639  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=25214
+
+09-11 13:03:58.649  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=27224
+
+09-11 13:04:00.655  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=29230

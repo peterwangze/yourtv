@@ -1,0 +1,131 @@
+--------- beginning of main
+
+09-11 06:50:06.210  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=43276
+
+09-11 06:50:08.212  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=45277
+
+09-11 06:50:10.214  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=47279
+
+09-11 06:50:11.345  3572  3572 D MainActivity: Skipped Picture-in-Picture: SDK=36, isTouchScreen=false, playerFragmentAdded=true, playerFragmentHidden=false
+
+09-11 06:50:11.350  3572  3572 D PlayerFragment: Paused player due to SP.enableScreenOffAudio=false
+
+09-11 06:50:12.216  3572  3572 D PlayerFragment: Playback check skipped: tvModel=com.horsenma.yourtv.models.TVModel@423d63, isResumed=false, isInPip=false
+
+09-11 06:50:14.217  3572  3572 D PlayerFragment: Playback check skipped: tvModel=com.horsenma.yourtv.models.TVModel@423d63, isResumed=false, isInPip=false
+
+09-11 06:50:16.221  3572  3572 D PlayerFragment: Playback check skipped: tvModel=com.horsenma.yourtv.models.TVModel@423d63, isResumed=false, isInPip=false
+
+09-11 06:50:18.224  3572  3572 D PlayerFragment: Playback check skipped: tvModel=com.horsenma.yourtv.models.TVModel@423d63, isResumed=false, isInPip=false
+
+09-11 06:50:20.225  3572  3572 D PlayerFragment: Playback check skipped: tvModel=com.horsenma.yourtv.models.TVModel@423d63, isResumed=false, isInPip=false
+
+09-11 06:50:20.631  3572  3572 D PlayerFragment: Video size changed: 0x0
+
+09-11 06:50:20.637  3572  3572 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 06:50:21.019  3572  3572 D PlayerFragment: Video size changed: 640x360
+
+09-11 06:50:21.095  3572  3572 D PlayerFragment: QA B rendered first frame
+
+09-11 06:50:21.138  3572  3572 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 06:50:21.212  3572  3572 D PlayerFragment: QA B isPlaying=true, firstFrame=true
+
+09-11 06:50:22.548  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=1336
+
+09-11 06:50:24.550  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=3338
+
+09-11 06:50:26.551  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=5339
+
+09-11 06:50:28.553  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=7341
+
+09-11 06:50:30.555  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=9343
+
+09-11 06:50:32.555  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=11344
+
+09-11 06:50:34.557  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=13345
+
+09-11 06:50:36.558  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=15346
+
+09-11 06:50:38.559  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=17348
+
+09-11 06:50:40.560  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=19348
+
+09-11 06:50:42.561  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=21349
+
+09-11 06:50:44.563  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=23351
+
+09-11 06:50:46.564  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=25352
+
+09-11 06:50:48.566  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=27354
+
+09-11 06:50:50.566  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=29354
+
+09-11 06:50:52.568  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=31356
+
+09-11 06:50:52.568  3572  3594 D PlayerFragment: Preparing to save stable source: QA B, videoIndex=0, url=http://qa.test:18765/b/index.m3u8
+
+09-11 06:50:52.569  3572  3594 D PlayerFragment: Skipping save stable source: QA B, identical to existing (playerType=IPTV, url=http://qa.test:18765/b/index.m3u8, videoIndex=0)
+
+09-11 06:50:52.569  3572  3572 D PlayerFragment: Stable source saved: QA B, playerType=IPTV, isPlaying=true
+
+09-11 06:50:54.570  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=33358
+
+09-11 06:50:56.356  3572  3572 D PlayerFragment: No stable source found for QA A, using default uris=[http://qa.test:18765/a/index.m3u8], videoIndex=0
+
+09-11 06:50:56.356  3572  3572 D PlayerFragment: Playing tvModel: QA A, playerType: IPTV, uris: 1
+
+09-11 06:50:56.356  3572  3572 D PlayerFragment: Playing IPTV: QA A, uris: 1
+
+09-11 06:50:56.358  3572  3572 I PlayerFragment: QA A 播放停止
+
+09-11 06:50:56.360  3572  3572 D PlayerFragment: IPTV playback started for QA A, url=http://qa.test:18765/a/index.m3u8
+
+09-11 06:50:56.361  3572  3572 D PlayerFragment: Debounced play for QA A
+
+09-11 06:50:56.363  3572  3572 D PlayerFragment: Debounced play for QA A
+
+09-11 06:50:56.374  3572  3572 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 06:50:56.376  3572  3572 D PlayerFragment: Video size changed: 0x0
+
+09-11 06:50:56.378  3572  3572 D PlayerFragment: Debounced play for QA A
+
+09-11 06:50:56.378  3572  3572 D MainActivity: PlayerFragment shown, playing: QA A
+
+09-11 06:50:56.435  3572  3572 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 06:50:56.835  3572  3572 D PlayerFragment: Video size changed: 640x360
+
+09-11 06:50:56.836  3572  3572 D PlayerFragment: QA A rendered first frame
+
+09-11 06:50:56.837  3572  3572 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 06:50:56.948  3572  3572 D PlayerFragment: QA A isPlaying=true, firstFrame=true
+
+09-11 06:50:58.358  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=1410
+
+09-11 06:51:00.360  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=3412
+
+09-11 06:51:02.360  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=5412
+
+09-11 06:51:03.634  3572  3572 D MainActivity: Skipped Picture-in-Picture: SDK=36, isTouchScreen=false, playerFragmentAdded=true, playerFragmentHidden=false
+
+09-11 06:51:03.635  3572  3572 D PlayerFragment: Paused player due to SP.enableScreenOffAudio=false
+
+09-11 06:51:04.363  3572  3572 D PlayerFragment: Playback check skipped: tvModel=com.horsenma.yourtv.models.TVModel@a8c3beb, isResumed=false, isInPip=false
+
+09-11 06:51:06.238  3572  3572 D PlayerFragment: Video size changed: 0x0
+
+09-11 06:51:06.251  3572  3572 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 06:51:06.706  3572  3572 D PlayerFragment: Video size changed: 640x360
+
+09-11 06:51:06.710  3572  3572 D PlayerFragment: QA A rendered first frame
+
+09-11 06:51:06.750  3572  3572 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 06:51:06.813  3572  3572 D PlayerFragment: QA A isPlaying=true, firstFrame=true
+
+09-11 06:51:08.160  3572  3572 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=1348

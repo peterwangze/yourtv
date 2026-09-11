@@ -1,0 +1,73 @@
+--------- beginning of main
+
+09-11 13:00:32.805  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=24099
+
+09-11 13:00:34.813  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=26107
+
+09-11 13:00:36.818  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=28112
+
+09-11 13:00:37.024  1667  1667 D PlayerFragment: No stable source found for QA A, using default uris=[http://qa.test:18765/a/index.m3u8], videoIndex=0
+
+09-11 13:00:37.025  1667  1667 D PlayerFragment: Playing tvModel: QA A, playerType: IPTV, uris: 1
+
+09-11 13:00:37.029  1667  1667 D PlayerFragment: Playing IPTV: QA A, uris: 1
+
+09-11 13:00:37.031  1667  1667 I PlayerFragment: QA A 播放停止
+
+09-11 13:00:37.035  1667  1667 D PlayerFragment: IPTV playback started for QA A, url=http://qa.test:18765/a/index.m3u8
+
+09-11 13:00:37.039  1667  1667 D PlayerFragment: Debounced play for QA A
+
+09-11 13:00:37.043  1667  1667 D PlayerFragment: Debounced play for QA A
+
+09-11 13:00:37.046  1667  1667 D PlayerFragment: Debounced play for QA A
+
+09-11 13:00:37.051  1667  1667 D PlayerFragment: Debounced play for QA A
+
+09-11 13:00:37.060  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 13:00:37.081  1667  1667 D PlayerFragment: Debounced play for QA A
+
+09-11 13:00:37.092  1667  1667 D PlayerFragment: Debounced play for QA A
+
+09-11 13:00:37.092  1667  1667 D MainActivity: PlayerFragment shown, playing: QA A
+
+09-11 13:00:37.879  1667  1667 D PlayerFragment: Video size changed: 640x360
+
+09-11 13:00:37.883  1667  1667 D PlayerFragment: QA A rendered first frame
+
+09-11 13:00:37.899  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 13:00:38.149  1667  1667 D PlayerFragment: QA A isPlaying=true, firstFrame=true
+
+09-11 13:00:39.065  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=916
+
+09-11 13:00:40.426  1667  1667 D PlayerFragment: Paused player due to SP.enableScreenOffAudio=false
+
+09-11 13:00:40.618  1667  1667 D PlayerFragment: Paused player on SCREEN_OFF in Full-Screen mode
+
+09-11 13:00:41.065  1667  1667 D PlayerFragment: Playback check skipped: tvModel=com.horsenma.yourtv.models.TVModel@2b81ec6, isResumed=false, isInPip=false
+
+09-11 13:00:42.003  1667  1667 D PlayerFragment: Video size changed: 0x0
+
+09-11 13:00:42.014  1667  1667 D PlayerFragment: Resumed player on SCREEN_ON in Full-Screen mode
+
+09-11 13:00:42.052  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 13:00:42.577  1667  1667 D PlayerFragment: Video size changed: 0x0
+
+09-11 13:00:42.591  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 13:00:42.654  1667  1667 W PlayerFragment: Player error: 2001, message=Source error
+
+09-11 13:00:43.265  1667  1667 D PlayerFragment: Video size changed: 640x360
+
+09-11 13:00:43.271  1667  1667 D PlayerFragment: QA A rendered first frame
+
+09-11 13:00:43.342  1667  1667 D PlayerFragment: QA A isPlaying=true, firstFrame=true
+
+09-11 13:00:43.362  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 13:00:43.847  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=6811, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=505
+
+09-11 13:00:45.854  1667  1667 D PlayerFragment: Playback check: isPlaying=true, lastStopTime=0, stopDuration=0, cooldownRemaining=4804, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=2512

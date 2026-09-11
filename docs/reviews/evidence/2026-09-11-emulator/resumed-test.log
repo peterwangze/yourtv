@@ -1,0 +1,131 @@
+--------- beginning of crash
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: FATAL EXCEPTION: main
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: PID: 624
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: java.lang.NullPointerException: Attempt to invoke interface method 'void android.view.accessibility.IAccessibilityManager.registerUiTestAutomationService(android.os.IBinder, android.accessibilityservice.IAccessibilityServiceClient, android.accessibilityservice.AccessibilityServiceInfo, int, int)' on a null object reference
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: 	at android.app.UiAutomationConnection.registerUiTestAutomationServiceLocked(UiAutomationConnection.java:688)
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: 	at android.app.UiAutomationConnection.connect(UiAutomationConnection.java:117)
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: 	at android.app.UiAutomation.connectWithTimeout(UiAutomation.java:386)
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: 	at android.app.UiAutomation.connect(UiAutomation.java:331)
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: 	at com.android.uiautomator.core.UiAutomationShellWrapper.connect(UiAutomationShellWrapper.java:36)
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: 	at com.android.commands.uiautomator.DumpCommand.run(DumpCommand.java:78)
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: 	at com.android.commands.uiautomator.Launcher.main(Launcher.java:83)
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+
+09-11 12:53:02.078   624   624 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+
+09-11 12:53:02.080   624   624 E AndroidRuntime: Couldn't report crash. Here's the crash:
+
+09-11 12:53:02.080   624   624 E AndroidRuntime: java.lang.NullPointerException: Attempt to invoke interface method 'void android.view.accessibility.IAccessibilityManager.registerUiTestAutomationService(android.os.IBinder, android.accessibilityservice.IAccessibilityServiceClient, android.accessibilityservice.AccessibilityServiceInfo, int, int)' on a null object reference
+
+09-11 12:53:02.080   624   624 E AndroidRuntime: 	at android.app.UiAutomationConnection.registerUiTestAutomationServiceLocked(UiAutomationConnection.java:688)
+
+09-11 12:53:02.080   624   624 E AndroidRuntime: 	at android.app.UiAutomationConnection.connect(UiAutomationConnection.java:117)
+
+09-11 12:53:02.080   624   624 E AndroidRuntime: 	at android.app.UiAutomation.connectWithTimeout(UiAutomation.java:386)
+
+09-11 12:53:02.080   624   624 E AndroidRuntime: 	at android.app.UiAutomation.connect(UiAutomation.java:331)
+
+09-11 12:53:02.080   624   624 E AndroidRuntime: 	at com.android.uiautomator.core.UiAutomationShellWrapper.connect(UiAutomationShellWrapper.java:36)
+
+09-11 12:53:02.080   624   624 E AndroidRuntime: 	at com.android.commands.uiautomator.DumpCommand.run(DumpCommand.java:78)
+
+09-11 12:53:02.080   624   624 E AndroidRuntime: 	at com.android.commands.uiautomator.Launcher.main(Launcher.java:83)
+
+09-11 12:53:02.080   624   624 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+
+09-11 12:53:02.080   624   624 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: Error reporting crash. Here's the error:
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: java.lang.RuntimeException: Bad file descriptor
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at android.os.BinderProxy.transactNative(Native Method)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at android.os.BinderProxy.transact(BinderProxy.java:592)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at android.os.IServiceManager$Stub$Proxy.checkService2(IServiceManager.java:557)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at android.os.ServiceManagerProxy.checkService2(ServiceManagerNative.java:81)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at android.os.ServiceManagerProxy.getService2(ServiceManagerNative.java:70)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at android.os.ServiceManager.rawGetService(ServiceManager.java:430)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at android.os.ServiceManager.getService(ServiceManager.java:175)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at android.app.ActivityManager$4.create(ActivityManager.java:5807)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at android.app.ActivityManager$4.create(ActivityManager.java:5804)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at android.util.Singleton.get(Singleton.java:44)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at android.app.ActivityManager.getService(ActivityManager.java:5795)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$KillApplicationHandler.uncaughtException(RuntimeInit.java:170)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at java.lang.ThreadGroup.uncaughtException(ThreadGroup.java:1071)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at java.lang.ThreadGroup.uncaughtException(ThreadGroup.java:1066)
+
+09-11 12:53:02.087   624   624 E AndroidRuntime: 	at java.lang.Thread.dispatchUncaughtException(Thread.java:2442)
+
+--------- beginning of main
+
+09-11 12:53:24.641  1667  1667 D MainActivity: updateFullScreenMode: isFullScreen=false
+
+09-11 12:53:25.393  1667  1667 D PlayerFragment: Screen broadcast receiver registered
+
+09-11 12:53:26.050  1667  1667 D PlayerFragment: Main player created
+
+09-11 12:53:26.051  1667  1667 D PlayerFragment: PlayerView focus requested: isFocusable=true
+
+09-11 12:53:26.051  1667  1667 D MainActivity: ready(): running one-time initialization
+
+09-11 12:53:26.095  1667  1667 W MainActivity: No current TV model available
+
+09-11 12:53:26.101  1667  1667 D PlayerFragment: setSourceButtonVisibility: visible=false, shouldShow=false, isTouchScreen=false, showSourceButton=true, btnSource.focusable=false
+
+09-11 12:53:26.101  1667  1667 D PlayerFragment: btn_source initialized: visibility=false, isTouchScreen=false, showSourceButton=true
+
+09-11 12:53:26.796  1667  1667 D MainActivity: Waiting for stable source, attempt 1, currentTvModel: null
+
+09-11 12:53:26.941  1667  1667 D PlayerFragment: Applied stable source: QA Retry, playerType=IPTV, url=http://qa.test:18765/retry.m3u8, videoIndex=0
+
+09-11 12:53:26.941  1667  1667 D PlayerFragment: Playing tvModel: QA Retry, playerType: IPTV, uris: 1
+
+09-11 12:53:26.966  1667  1667 D PlayerFragment: Playing IPTV: QA Retry, uris: 1
+
+09-11 12:53:27.270  1667  1667 D PlayerFragment: IPTV playback started for QA Retry, url=http://qa.test:18765/retry.m3u8
+
+09-11 12:53:27.270  1667  1667 D MainActivity: PlayerFragment shown, playing: QA Retry
+
+09-11 12:53:27.288  1667  1667 D MainActivity: Waiting for stable source, attempt 2, currentTvModel: null
+
+09-11 12:53:27.309  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 12:53:27.393  1667  1667 D MainActivity: Waiting for stable source, attempt 3, currentTvModel: null
+
+09-11 12:53:27.497  1667  1667 D MainActivity: Waiting for stable source, attempt 4, currentTvModel: null
+
+09-11 12:53:27.609  1667  1667 D MainActivity: Waiting for stable source, attempt 5, currentTvModel: null
+
+09-11 12:53:27.716  1667  1667 D MainActivity: Waiting for stable source, attempt 6, currentTvModel: QA A
+
+09-11 12:53:27.717  1667  1667 D MainActivity: Stable source already playing: QA A...
+
+09-11 12:53:28.989  1667  1667 D PlayerFragment: IPTV playback stopped, marking lastStopTime=39969
+
+09-11 12:53:28.989  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=39969, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=1, retryTimes=0, playbackDuration=0
+
+09-11 12:53:30.989  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=39969, stopDuration=2000, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=1, retryTimes=0, playbackDuration=0

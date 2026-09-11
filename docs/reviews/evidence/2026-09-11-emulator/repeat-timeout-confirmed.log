@@ -1,0 +1,53 @@
+--------- beginning of main
+
+09-11 12:59:15.024  1667  1667 D PlayerFragment: Applied stable source: QA Retry, playerType=IPTV, url=http://qa.test:18765/retry.m3u8, videoIndex=0
+
+09-11 12:59:15.024  1667  1667 D PlayerFragment: Playing tvModel: QA Retry, playerType: IPTV, uris: 1
+
+09-11 12:59:15.024  1667  1667 D PlayerFragment: Playing IPTV: QA Retry, uris: 1
+
+09-11 12:59:15.026  1667  1667 D PlayerFragment: IPTV playback started for QA Retry, url=http://qa.test:18765/retry.m3u8
+
+09-11 12:59:15.026  1667  1667 D MainActivity: retryCurrentPlayback: QA Retry
+
+09-11 12:59:15.037  1667  1667 D PlayerFragment: Updated player layout: fullScreen=false, width=1920, height=1080, gravity=17
+
+09-11 12:59:17.029  1667  1667 D PlayerFragment: IPTV playback stopped, marking lastStopTime=388009
+
+09-11 12:59:17.029  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=388009, stopDuration=0, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=1, retryTimes=0, playbackDuration=0
+
+09-11 12:59:19.033  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=388009, stopDuration=2004, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=1, retryTimes=0, playbackDuration=0
+
+09-11 12:59:21.033  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=388009, stopDuration=4004, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=1, retryTimes=0, playbackDuration=0
+
+09-11 12:59:23.037  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=388009, stopDuration=6008, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=1, retryTimes=0, playbackDuration=0
+
+09-11 12:59:23.037  1667  1667 W PlayerFragment: QA Retry no first frame after 8s, requesting recovery
+
+09-11 12:59:25.056  1667  1667 D PlayerFragment: IPTV playback stopped, marking lastStopTime=396036
+
+09-11 12:59:25.056  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=396036, stopDuration=0, cooldownRemaining=5990, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=0
+
+09-11 12:59:27.064  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=396036, stopDuration=2008, cooldownRemaining=3982, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=0
+
+09-11 12:59:29.071  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=396036, stopDuration=4015, cooldownRemaining=1975, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=0
+
+09-11 12:59:31.078  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=396036, stopDuration=6021, cooldownRemaining=0, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=0
+
+09-11 12:59:31.078  1667  1667 W PlayerFragment: QA Retry no first frame after 8s, requesting recovery
+
+09-11 12:59:33.095  1667  1667 D PlayerFragment: IPTV playback stopped, marking lastStopTime=404075
+
+09-11 12:59:33.095  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=404075, stopDuration=0, cooldownRemaining=5996, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=0
+
+09-11 12:59:35.097  1667  1667 D PlayerFragment: Playback check: isPlaying=false, lastStopTime=404075, stopDuration=2002, cooldownRemaining=3994, isResumed=true, isInPip=false, playerType=IPTV, bufferingCount=0, retryTimes=0, playbackDuration=0
+
+09-11 12:59:35.097  1667  1667 W PlayerFragment: QA Retry no first frame after 4s, requesting recovery
+
+09-11 12:59:35.097  1667  1667 I MainActivity: QA Retry 播放错误
+
+09-11 12:59:35.099  1667  1667 I MainActivity: QA Retry 播放错误
+
+09-11 12:59:35.099  1667  1667 I MainActivity: QA Retry 播放错误
+
+09-11 12:59:35.099  1667  1667 I MainActivity: QA Retry 播放错误
