@@ -3,5 +3,5 @@
   "version_name": "3.4.0",
   "apk_url": "https://github.com/peterwangze/yourtv/releases/download/v3.4.0/juyuan_tv_v3.4.0.apk",
   "apk_name": "juyuan_tv_v3.4.0.apk",
-  "description": "国内三网可用性治理：真实播放健康可恢复、线路失败分级退避、公网优先与移动/联通/电信多样化兜底、每频道候选限流、默认源去重降噪、完整聚合后再替换列表、重建当前可用内置快照"
+  "description": "播放会话与恢复预算统一、坏线切换与重试修复、前后台/熄屏恢复、首帧身份校验、国内网络源排序与缓存治理。已知问题：历史稳定线路冷启动失败时可能黑屏且缺少重试入口；手动导入私网源可能被过滤。尚未完成大陆三网实测，详见 Release 说明。"
 }
