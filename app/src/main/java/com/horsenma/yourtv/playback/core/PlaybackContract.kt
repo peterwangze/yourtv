@@ -40,6 +40,7 @@ data class RecoveryBudget(
     val recoveryMaxSwitches: Int = 2,
     val recoveryWindowMs: Long = 5 * 60_000L,
     val sameLineRetries: Int = 2,
+    val attemptTimeoutMs: Long = 8_000L,
 )
 
 data class PlaybackSession(

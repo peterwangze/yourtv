@@ -6,6 +6,148 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PlaybackCoordinatorTest {
+    private fun fail(c: PlaybackCoordinator, autoSwitch: Boolean = true): PlaybackAction {
+        val s = c.currentSession!!
+        return c.onError(s.sessionId, s.attemptId, s.networkGeneration, PlaybackFailure.TIMEOUT,
+            autoSwitchEnabled = autoSwitch)
+    }
+
+    private fun frame(c: PlaybackCoordinator) {
+        val s = c.currentSession!!
+        c.onFirstFrame(s.sessionId, s.attemptId, s.networkGeneration)
+    }
+
+    private fun stable(c: PlaybackCoordinator) {
+        val s = c.currentSession!!
+        c.onStablePlayback(s.sessionId, s.attemptId, s.networkGeneration)
+    }
+
+    @Test
+    fun slowStartupTriesBackupBeforeTotalDeadline() {
+        val clock = TestClock()
+        val c = PlaybackCoordinator({ clock.value })
+        c.play("tv", listOf("dead-a", "good-b", "c"))
+        clock.advance(8_000)
+        assertEquals("good-b", (fail(c) as PlaybackAction.SwitchLine).lineId)
+        clock.advance(1_000)
+        frame(c)
+        assertEquals(PlaybackState.PLAYING, c.currentSession!!.state)
+    }
+
+    @Test
+    fun slowRecoveryReservesRemainingTimeForBackup() {
+        val clock = TestClock()
+        val c = PlaybackCoordinator({ clock.value })
+        c.play("tv", listOf("a", "b"))
+        frame(c)
+        assertTrue(fail(c) is PlaybackAction.RetrySameLine)
+        clock.advance(8_000)
+        assertEquals("b", (fail(c) as PlaybackAction.SwitchLine).lineId)
+        clock.advance(1_000)
+        frame(c)
+        assertEquals(PlaybackState.PLAYING, c.currentSession!!.state)
+    }
+
+    @Test
+    fun disabledAutoSwitchStillHonorsStartupAndRecoveryDeadlines() {
+        val clock = TestClock()
+        val c = PlaybackCoordinator({ clock.value })
+        c.play("tv", listOf("a", "b"))
+        clock.advance(20_001)
+        assertTrue(fail(c, false) is PlaybackAction.ShowError)
+        c.play("tv", listOf("a", "b"))
+        frame(c)
+        assertTrue(fail(c, false) is PlaybackAction.RetrySameLine)
+        clock.advance(12_001)
+        assertTrue(fail(c, false) is PlaybackAction.ShowError)
+    }
+
+    @Test
+    fun manualSelectionCanReturnToPreviousLineAfterStablePlayback() {
+        val clock = TestClock()
+        val c = PlaybackCoordinator({ clock.value })
+        c.play("tv", listOf("a", "b"))
+        c.beginAttempt(c.currentSession!!.sessionId, "b")
+        frame(c)
+        clock.advance(60_000)
+        stable(c)
+        fail(c)
+        fail(c)
+        assertEquals("a", (fail(c) as PlaybackAction.SwitchLine).lineId)
+    }
+
+    @Test
+    fun rollingSwitchLimitAllowsSameLineRetriesButNoFurtherSwitch() {
+        val clock = TestClock()
+        val c = PlaybackCoordinator({ clock.value })
+        c.play("tv", listOf("a", "b", "c"))
+        frame(c)
+        repeat(2) {
+            fail(c)
+            fail(c)
+            assertTrue(fail(c) is PlaybackAction.SwitchLine)
+            frame(c)
+            clock.advance(60_000)
+            stable(c)
+        }
+        assertEquals(2, c.currentSession!!.recoverySwitches)
+        assertTrue(fail(c) is PlaybackAction.RetrySameLine)
+        assertTrue(fail(c) is PlaybackAction.RetrySameLine)
+        assertTrue(fail(c) is PlaybackAction.ShowError)
+    }
+
+    @Test
+    fun offlineMinuteDoesNotConsumeReconnectedStartupBudget() {
+        val clock = TestClock()
+        val c = PlaybackCoordinator({ clock.value })
+        c.play("tv", listOf("a", "b"))
+        c.onNetworkChanged(false)
+        clock.advance(60_000)
+        c.onNetworkChanged(true)
+        assertTrue(fail(c) is PlaybackAction.RetrySameLine)
+    }
+
+    @Test
+    fun explicitAttemptAfterTimeoutGetsFreshBudgetAndRejectsOldFrames() {
+        val clock = TestClock()
+        val c = PlaybackCoordinator({ clock.value })
+        val old = c.play("tv", listOf("a", "b")) as PlaybackAction.Prepare
+        clock.advance(20_001)
+        fail(c)
+        c.beginAttempt(old.sessionId, "b")
+        assertFalse(c.accepts(old.sessionId, old.attemptId, 0))
+        assertTrue(fail(c) is PlaybackAction.RetrySameLine)
+        assertEquals(setOf("b"), c.currentSession!!.attemptedLineIds)
+    }
+
+    @Test
+    fun bufferedPlaybackSurvivesRouteLossWithoutNewPrepare() {
+        val clock = TestClock()
+        val c = PlaybackCoordinator({ clock.value })
+        val initial = c.play("tv", listOf("a")) as PlaybackAction.Prepare
+        frame(c)
+        assertTrue(c.onNetworkChanged(false, preservePlayback = true) is PlaybackAction.WaitForNetwork)
+        clock.advance(1_000)
+        assertEquals(PlaybackAction.None, c.onNetworkChanged(true, preservePlayback = true))
+        assertEquals(initial.attemptId, c.currentSession!!.attemptId)
+        assertEquals(PlaybackState.PLAYING, c.currentSession!!.state)
+        assertFalse(c.accepts(initial.sessionId, initial.attemptId, 0))
+        assertTrue(c.accepts(initial.sessionId, initial.attemptId, 2))
+    }
+
+    @Test
+    fun longBackgroundPauseGetsFreshBudgetAndNetworkCannotResumeIt() {
+        val clock = TestClock()
+        val c = PlaybackCoordinator({ clock.value })
+        c.play("tv", listOf("a"))
+        c.suspend()
+        clock.advance(60_000)
+        assertEquals(PlaybackAction.None, c.onNetworkChanged(true, preservePlayback = true))
+        assertEquals(PlaybackState.SUSPENDED, c.currentSession!!.state)
+        assertTrue(c.resume() is PlaybackAction.Prepare)
+        assertTrue(fail(c) is PlaybackAction.RetrySameLine)
+    }
+
     private class TestClock(var value: Long = 0L) {
         fun advance(ms: Long) {
             value += ms

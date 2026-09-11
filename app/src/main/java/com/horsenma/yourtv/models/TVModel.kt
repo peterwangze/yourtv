@@ -135,7 +135,7 @@ class TVModel(var tv: TV) : ViewModel() {
     private var _mediaItem: MediaItem? = null
 
     @OptIn(UnstableApi::class)
-    fun getMediaItem(): MediaItem? {
+    fun getMediaItem(mediaId: String = MediaItem.DEFAULT_MEDIA_ID): MediaItem? {
         _mediaItem = getVideoUrl()?.let {
             val uri = Uri.parse(it) ?: return@let null
             val path = uri.path ?: return@let null
@@ -169,7 +169,7 @@ class TVModel(var tv: TV) : ViewModel() {
                 listOf(SourceType.HLS, SourceType.PROGRESSIVE)
             }
 
-            MediaItem.fromUri(it)
+            MediaItem.Builder().setUri(it).setMediaId(mediaId).build()
         }
         return _mediaItem
     }

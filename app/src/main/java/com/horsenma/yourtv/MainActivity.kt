@@ -1640,11 +1640,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         isSafeToPerformFragmentTransactions = true
         showTimeFragment()
-        // 从后台恢复时继续播放（onStop 只暂停不释放）
-        if (playerFragment.isAdded && playerFragment.player != null) {
-            viewModel.setPlaybackActive(true)
-            playerFragment.player?.play()
-        }
     }
 
     // 在 onPause 中暂停播放并释放资源
@@ -1662,8 +1657,7 @@ class MainActivity : AppCompatActivity() {
                 return
             }
             // 暂停播放而不是释放：保留播放器，回来秒恢复，避免黑屏
-            playerFragment.player?.pause()
-            viewModel.setPlaybackActive(false)
+            playerFragment.suspendPlayback()
         }
     }
 

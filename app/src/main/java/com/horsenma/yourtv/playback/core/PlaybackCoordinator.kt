@@ -81,11 +81,18 @@ class PlaybackCoordinator(
     fun beginAttempt(sessionId: Long, lineId: String): PlaybackAction {
         val current = session ?: return PlaybackAction.None
         if (current.sessionId != sessionId || lineId.isBlank()) return PlaybackAction.None
+        // A refreshed channel catalogue may expose a newly selected endpoint.
+        if (lineId !in lines) lines = lines + lineId
+        lineCursor = lines.indexOf(lineId)
         val attemptId = nextAttemptId++
         val updated = current.copy(
             attemptId = attemptId,
             selectedLineId = lineId,
-            attemptedLineIds = current.attemptedLineIds + lineId,
+            attemptedLineIds = setOf(lineId),
+            startedAtElapsedMs = nowElapsedMs(),
+            recoveryStartedAtElapsedMs = null,
+            hasFirstFrame = false,
+            intent = PlaybackIntent.PLAY,
             sameLineRetries = 0,
             state = PlaybackState.PREPARING,
         )
@@ -110,9 +117,12 @@ class PlaybackCoordinator(
         val resumed = current.copy(
             attemptId = attemptId,
             selectedLineId = lineId,
-            attemptedLineIds = current.attemptedLineIds + lineId,
+            attemptedLineIds = setOf(lineId),
             intent = PlaybackIntent.PLAY,
             state = PlaybackState.PREPARING,
+            startedAtElapsedMs = nowElapsedMs(),
+            recoveryStartedAtElapsedMs = if (current.hasFirstFrame) nowElapsedMs() else null,
+            sameLineRetries = 0,
         )
         session = resumed
         return PlaybackAction.Prepare(resumed.sessionId, attemptId, lineId)
@@ -180,24 +190,20 @@ class PlaybackCoordinator(
             return PlaybackAction.WaitForNetwork(current.sessionId)
         }
 
-        // With automatic switching disabled, a user still gets bounded same-line
-        // reconnects, but a cross-line move must stop at an actionable error.
-        if (!autoSwitchEnabled) {
-            if (current.sameLineRetries < budget.sameLineRetries) {
-                return retrySameLine(current, recoveryStart = current.recoveryStartedAtElapsedMs)
-            }
-            session = current.copy(state = PlaybackState.RECOVERABLE_ERROR)
-            return PlaybackAction.ShowError(current.sessionId, current.channelId, failure)
-        }
-
         val now = nowElapsedMs()
         val elapsed = (now - current.startedAtElapsedMs).coerceAtLeast(0L)
         val inStartup = !current.hasFirstFrame
         if (inStartup && elapsed < budget.startupDeadlineMs) {
+            // A complete prepare can consume eight seconds. Preserve a chance
+            // for an untried endpoint instead of spending every slot on one URL.
+            if (autoSwitchEnabled && elapsed >= budget.attemptTimeoutMs &&
+                current.attemptedLineIds.size < budget.startupMaxAttempts &&
+                lines.any { it !in current.attemptedLineIds }
+            ) return switchToNext(current, recovery = false)
             if (current.sameLineRetries < budget.sameLineRetries) {
                 return retrySameLine(current)
             }
-            if (current.attemptedLineIds.size < budget.startupMaxAttempts) {
+            if (autoSwitchEnabled && current.attemptedLineIds.size < budget.startupMaxAttempts) {
                 return switchToNext(current, recovery = false)
             }
         } else if (!inStartup) {
@@ -211,11 +217,15 @@ class PlaybackCoordinator(
             } else {
                 0
             }
-            if (recoveryElapsed < budget.recoveryDeadlineMs && switchesInWindow < budget.recoveryMaxSwitches) {
-                if (current.sameLineRetries < budget.sameLineRetries) {
+            if (recoveryElapsed < budget.recoveryDeadlineMs) {
+                val canSwitch = autoSwitchEnabled && switchesInWindow < budget.recoveryMaxSwitches &&
+                    lines.any { it !in current.attemptedLineIds }
+                if (current.sameLineRetries < budget.sameLineRetries &&
+                    !(canSwitch && recoveryElapsed >= budget.recoveryDeadlineMs - budget.attemptTimeoutMs)
+                ) {
                     return retrySameLine(current, recoveryStart)
                 }
-                if (current.attemptedLineIds.size < lines.size) {
+                if (canSwitch) {
                     return switchToNext(
                         current = current,
                         recovery = true,
@@ -231,7 +241,7 @@ class PlaybackCoordinator(
         return PlaybackAction.ShowError(current.sessionId, current.channelId, failure)
     }
 
-    fun onNetworkChanged(available: Boolean): PlaybackAction {
+    fun onNetworkChanged(available: Boolean, preservePlayback: Boolean = false): PlaybackAction {
         networkGeneration += 1
         val current = session ?: return PlaybackAction.None
         if (current.intent == PlaybackIntent.PAUSE || current.state == PlaybackState.RECOVERABLE_ERROR) {
@@ -242,6 +252,15 @@ class PlaybackCoordinator(
             session = current.copy(networkGeneration = networkGeneration, state = PlaybackState.WAITING_FOR_NETWORK)
             return PlaybackAction.WaitForNetwork(current.sessionId)
         }
+        if (preservePlayback) {
+            session = current.copy(
+                networkGeneration = networkGeneration,
+                startedAtElapsedMs = nowElapsedMs(),
+                recoveryStartedAtElapsedMs = null,
+                state = if (current.hasFirstFrame) PlaybackState.PLAYING else PlaybackState.PREPARING,
+            )
+            return PlaybackAction.None
+        }
         val lineId = current.selectedLineId ?: run {
             session = current.copy(
                 networkGeneration = networkGeneration,
@@ -251,14 +270,16 @@ class PlaybackCoordinator(
         }
         val attemptId = nextAttemptId++
         val recoveryStart = if (current.hasFirstFrame) {
-            current.recoveryStartedAtElapsedMs ?: nowElapsedMs()
+            nowElapsedMs()
         } else {
             current.recoveryStartedAtElapsedMs
         }
         val resumed = current.copy(
             networkGeneration = networkGeneration,
             attemptId = attemptId,
-            attemptedLineIds = current.attemptedLineIds + lineId,
+            startedAtElapsedMs = nowElapsedMs(),
+            sameLineRetries = 0,
+            attemptedLineIds = setOf(lineId),
             recoveryStartedAtElapsedMs = recoveryStart,
             state = PlaybackState.PREPARING,
         )

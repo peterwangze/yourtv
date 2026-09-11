@@ -30,6 +30,9 @@ import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.REPEAT_MODE_ALL
 import androidx.media3.common.VideoSize
+import androidx.media3.common.C
+import androidx.media3.common.Timeline
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.DefaultLoadControl
@@ -58,6 +61,7 @@ import com.horsenma.mytv1.WebFragmentCallback
 import com.horsenma.yourtv.playback.core.PlaybackAction
 import com.horsenma.yourtv.playback.core.PlaybackCoordinator
 import com.horsenma.yourtv.playback.core.PlaybackFailure
+import com.horsenma.yourtv.playback.core.PlaybackEvidence
 import com.horsenma.yourtv.playback.core.PlaybackState
 import com.horsenma.yourtv.playback.core.RecoveryBudget
 import android.view.Gravity
@@ -130,9 +134,10 @@ class PlayerFragment : Fragment() {
     private var activeAttemptId: Long? = null
     private var activeNetworkGeneration = 0L
     private var playerListener: Player.Listener? = null
+    private var frameListener: AnalyticsListener? = null
     private var stableEpisodeResetAttemptId: Long? = null
     private var connectivityManager: ConnectivityManager? = null
-    private val availableNetworks = mutableSetOf<Network>()
+    private var defaultNetwork: Network? = null
     private var lastNetworkAvailable: Boolean? = null
 
     private data class PlaybackEventToken(
@@ -198,6 +203,7 @@ class PlayerFragment : Fragment() {
     private val checkPlaybackInterval = 2_000L
 
     private fun startPlaybackSession(model: TVModel): Boolean {
+        model.setErrInfo("")
         val currentLine = model.getVideoUrl()
         val orderedLines = listOfNotNull(currentLine) + model.tv.uris.filter { it != currentLine }
         val action = playbackCoordinator.play(
@@ -226,6 +232,7 @@ class PlayerFragment : Fragment() {
     }
 
     private fun beginPlaybackAttempt(model: TVModel): Boolean {
+        model.setErrInfo("")
         val lineId = model.getVideoUrl() ?: return false
         val current = playbackCoordinator.currentSession
         if (current == null || current.channelId != model.tv.id.toString()) {
@@ -256,10 +263,29 @@ class PlayerFragment : Fragment() {
             playbackCoordinator.accepts(token.sessionId, token.attemptId, token.networkGeneration)
     }
 
+    private fun attemptMediaId(): String = "${activeSessionId}:${activeAttemptId}"
+
+    @OptIn(UnstableApi::class)
     private fun bindPlayerListener(exo: ExoPlayer): Boolean {
         val token = currentPlaybackEventToken() ?: return false
         playerListener?.let(exo::removeListener)
         playerListener = createMainPlayerListener(exo, token).also(exo::addListener)
+        frameListener?.let(exo::removeAnalyticsListener)
+        val expectedMediaId = attemptMediaId()
+        frameListener = object : AnalyticsListener {
+            override fun onRenderedFirstFrame(
+                eventTime: AnalyticsListener.EventTime, output: Any, renderTimeMs: Long,
+            ) {
+                if (exo !== player || !acceptsPlaybackCallback(token)) return
+                val timeline = eventTime.timeline
+                if (eventTime.windowIndex !in 0 until timeline.windowCount) return
+                val mediaId = timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem.mediaId
+                // Renderer notifications can already be queued when a new
+                // listener is installed. Validate media identity AND render time.
+                if (!PlaybackEvidence.acceptsFrame(expectedMediaId, mediaId, playRequestTime, renderTimeMs)) return
+                tvModel?.let { recordFirstFrame(it, token) }
+            }
+        }.also(exo::addAnalyticsListener)
         return true
     }
 
@@ -267,19 +293,17 @@ class PlayerFragment : Fragment() {
         val context = context ?: return
         val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return
         connectivityManager = manager
-        manager.activeNetwork?.let { network ->
-            if (manager.getNetworkCapabilities(network)
-                    ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
-            ) {
-                availableNetworks.add(network)
-            }
-        }
-        lastNetworkAvailable = availableNetworks.isNotEmpty()
+        defaultNetwork = manager.activeNetwork
+        lastNetworkAvailable = defaultNetwork != null
         val request = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
         try {
-            manager.registerNetworkCallback(request, connectivityCallback)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                manager.registerDefaultNetworkCallback(connectivityCallback)
+            } else {
+                manager.registerNetworkCallback(request, connectivityCallback)
+            }
         } catch (e: Exception) {
             Log.w(TAG, "Network callback registration failed: ${e.message}")
         }
@@ -294,32 +318,51 @@ class PlayerFragment : Fragment() {
             }
         }
         connectivityManager = null
-        availableNetworks.clear()
+        defaultNetwork = null
         lastNetworkAvailable = null
     }
 
-    private fun handleNetworkAvailability(available: Boolean) {
-        if (lastNetworkAvailable == available) return
+    private fun handleNetworkAvailability(network: Network?) {
+        val available = network != null
+        if (defaultNetwork == network && lastNetworkAvailable == available) return
+        defaultNetwork = network
         lastNetworkAvailable = available
-        val action = playbackCoordinator.onNetworkChanged(available)
+        val action = playbackCoordinator.onNetworkChanged(
+            available, preservePlayback = player?.playerError == null && player?.isPlaying == true,
+        )
+        activeNetworkGeneration = playbackCoordinator.currentNetworkGeneration
+        if (available && action is PlaybackAction.None && !attemptPlayed) {
+            playRequestTime = SystemClock.elapsedRealtime()
+        }
+        player?.let(::bindPlayerListener)
         val model = tvModel ?: return
         if (action !is PlaybackAction.None) applyRecoveryAction(action, model)
     }
 
     private val connectivityCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onLost(network: Network) {
-            if (!isAdded) return
-            requireActivity().runOnUiThread {
-                availableNetworks.remove(network)
-                handleNetworkAvailability(availableNetworks.isNotEmpty())
+            handler.post {
+                val manager = connectivityManager ?: return@post
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                    handleNetworkAvailability(manager.activeNetwork)
+                } else if (defaultNetwork == network) {
+                    handleNetworkAvailability(null)
+                }
             }
         }
 
         override fun onAvailable(network: Network) {
-            if (!isAdded) return
-            requireActivity().runOnUiThread {
-                availableNetworks.add(network)
-                handleNetworkAvailability(available = true)
+            handler.post {
+                val manager = connectivityManager ?: return@post
+                handleNetworkAvailability(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) network else manager.activeNetwork)
+            }
+        }
+
+        override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+            // API 23 callbacks cover all matching networks; always resolve the
+            // actual active route, including changes between existing networks.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) handler.post {
+                connectivityManager?.let { handleNetworkAvailability(it.activeNetwork) }
             }
         }
     }
@@ -370,12 +413,15 @@ class PlayerFragment : Fragment() {
     @OptIn(UnstableApi::class)
     private fun prepareRecoveryLine(model: TVModel, action: PlaybackAction): Boolean {
         val playerInstance = player ?: return false
-        val mediaItem = model.getMediaItem() ?: return false
-        val mediaSource = model.getMediaSource()
         activeSessionId = actionSessionId(action)
         activeAttemptId = actionAttemptId(action)
         activeNetworkGeneration = playbackCoordinator.currentSession?.networkGeneration ?: activeNetworkGeneration
         stableEpisodeResetAttemptId = null
+        val mediaItem = model.getMediaItem(attemptMediaId()) ?: return false
+        val mediaSource = model.getMediaSource()
+        model.setErrInfo("")
+        playRequestTime = SystemClock.elapsedRealtime()
+        attemptPlayed = false
         return try {
             playerInstance.stop()
             playerInstance.clearMediaItems()
@@ -383,8 +429,6 @@ class PlayerFragment : Fragment() {
             if (mediaSource != null) playerInstance.setMediaSource(mediaSource) else playerInstance.setMediaItem(mediaItem)
             playerInstance.prepare()
             playerInstance.playWhenReady = true
-            playRequestTime = SystemClock.elapsedRealtime()
-            attemptPlayed = false
             true
         } catch (e: Exception) {
             Log.e(TAG, "Recovery prepare failed for ${model.tv.title}: ${e.message}", e)
@@ -423,7 +467,7 @@ class PlayerFragment : Fragment() {
             }
             is PlaybackAction.Prepare -> return prepareRecoveryLine(model, action)
             is PlaybackAction.WaitForNetwork -> {
-                player?.pause()
+                // Let downloaded media play out during a short route outage.
                 activeNetworkGeneration = playbackCoordinator.currentSession?.networkGeneration ?: activeNetworkGeneration
                 return true
             }
@@ -463,8 +507,8 @@ class PlayerFragment : Fragment() {
         return handled
     }
 
-    /** 首帧看门狗：播放请求发出后该时长内未出画（持续 BUFFERING 且无错误事件）即换下一条线路 */
-    private val firstFrameTimeoutMs = 8_000L
+    /** 视频源无首帧时的尝试上限；READY 或音频时钟前进不能代替出画。 */
+    private val firstFrameTimeoutMs = recoveryBudget.attemptTimeoutMs
     // 定义保存间隔（例如 5 分钟，防止频繁保存）
     private var lastPauseTime = 0L
     /** 稳定源保存节流：健康轮询 2s 一查后，同一频道 30s 内只保存一次 */
@@ -549,8 +593,7 @@ class PlayerFragment : Fragment() {
                     Log.d(TAG, "Player was null, reinitialized for ${tvModel!!.tv.title}")
                 }
                 if (player?.isPlaying == false && tvModel != null) {
-                    player?.prepare()
-                    player?.playWhenReady = true
+                    resumePlayback()
                     Log.d(TAG, "enterPictureInPictureMode: Playback resumed for ${tvModel!!.tv.title}")
                 }
             }
@@ -714,7 +757,7 @@ class PlayerFragment : Fragment() {
         // Restore the same media item before allowing normal recovery to run.
         if (model != null && currentUrl != null && model.tv.playerType == PlayerType.IPTV) {
             player?.let { rebuilt ->
-                val mediaItem = model.getMediaItem()
+                val mediaItem = model.getMediaItem(attemptMediaId())
                 val mediaSource = model.getMediaSource()
                 if (mediaItem != null) {
                     if (mediaSource != null) rebuilt.setMediaSource(mediaSource) else rebuilt.setMediaItem(mediaItem)
@@ -896,13 +939,6 @@ class PlayerFragment : Fragment() {
                 }
             }
 
-            override fun onRenderedFirstFrame() {
-                if (self !== player) return
-                val tv = tvModel ?: return
-                if (!acceptsPlaybackCallback(token)) return
-                recordFirstFrame(tv, token)
-            }
-
             override fun onPlayerError(error: PlaybackException) {
                 if (self !== player) return
                 if (!acceptsPlaybackCallback(token)) return
@@ -1024,12 +1060,17 @@ class PlayerFragment : Fragment() {
         @OptIn(UnstableApi::class)
         override fun run() {
             val currentTime = SystemClock.elapsedRealtime()
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                connectivityManager?.let { handleNetworkAvailability(it.activeNetwork) }
+            }
             if (tvModel == null || !isResumed) {
                 Log.d(TAG, "Playback check skipped: tvModel=$tvModel, isResumed=$isResumed, isInPip=$isInPictureInPictureMode")
                 handler.postDelayed(this, checkPlaybackInterval)
                 return
             }
-            if (!tvModel!!.errInfo.value.isNullOrBlank()) {
+            if (playbackCoordinator.currentSession?.state in setOf(
+                    PlaybackState.RECOVERABLE_ERROR, PlaybackState.SUSPENDED,
+                )) {
                 handler.postDelayed(this, checkPlaybackInterval)
                 return
             }
@@ -1072,11 +1113,16 @@ class PlayerFragment : Fragment() {
                     "isResumed=$isResumed, isInPip=$isInPictureInPictureMode, playerType=${tvModel!!.tv.playerType}, " +
                     "bufferingCount=$bufferingCount, retryTimes=${tvModel!!.retryTimes}, " +
                     "playbackDuration=${if (playbackStartTime > 0) currentTime - playbackStartTime else 0L}")
-            // 首帧看门狗（IPTV）：播放请求后持续 BUFFERING 超过阈值且无错误事件
-            // （ExoPlayer 不会为"永远缓冲"发 onPlayerError），直接标记坏线换下一条，
-            // 避免黑屏/转圈干等。换线节奏由 switchSourceDebounce(2s) 与
-            // nextVideo 的"全部线路试完才停止"语义兜底，不会在坏线间死循环。
+            // No-video and endlessly-buffering attempts share one bounded
+            // watchdog. Audio-only media instead confirms an advancing clock.
             val session = playbackCoordinator.currentSession
+            val exo = player
+            if (!attemptPlayed && exo?.isPlaying == true &&
+                exo.currentTracks.groups.none { it.type == C.TRACK_TYPE_VIDEO } &&
+                exo.currentTracks.isTypeSelected(C.TRACK_TYPE_AUDIO)
+            ) {
+                currentPlaybackEventToken()?.let { recordFirstFrame(tvModel!!, it) }
+            }
             val totalBudgetExpired = when {
                 session == null -> false
                 !session.hasFirstFrame ->
@@ -1085,13 +1131,12 @@ class PlayerFragment : Fragment() {
                     currentTime - session.recoveryStartedAtElapsedMs >= recoveryBudget.recoveryDeadlineMs
                 else -> false
             }
-            if (!isPlaying &&
-                tvModel!!.tv.playerType == PlayerType.IPTV &&
-                player?.playbackState == Player.STATE_BUFFERING &&
-                !attemptPlayed &&
-                (currentTime - playRequestTime >= firstFrameTimeoutMs || totalBudgetExpired)
+            if (tvModel!!.tv.playerType == PlayerType.IPTV && PlaybackEvidence.firstFrameExpired(
+                    attemptPlayed, lastNetworkAvailable != false, player?.playWhenReady == true,
+                    currentTime - playRequestTime, firstFrameTimeoutMs, totalBudgetExpired,
+                )
             ) {
-                Log.w(TAG, "${tvModel!!.tv.title} buffering ${(currentTime - playRequestTime) / 1000}s without first frame, switching line")
+                Log.w(TAG, "${tvModel!!.tv.title} no first frame after ${(currentTime - playRequestTime) / 1000}s, requesting recovery")
                 currentPlaybackEventToken()?.let { token ->
                     handleCoordinatorError(token, PlaybackFailure.TIMEOUT)
                 }
@@ -1217,13 +1262,7 @@ class PlayerFragment : Fragment() {
 
     @OptIn(UnstableApi::class)
     fun ensurePlaying() {
-        player?.run {
-            if (!isPlaying && tvModel != null) {
-                if (::viewModel.isInitialized) viewModel.setPlaybackActive(true)
-                prepare()
-                playWhenReady = true
-            }
-        }
+        if (isResumed || isInPictureInPictureMode) resumePlayback()
     }
 
     @OptIn(UnstableApi::class)
@@ -1317,7 +1356,7 @@ class PlayerFragment : Fragment() {
         player?.let(::bindPlayerListener)
         Log.d(TAG, "Switching source: ${tvModel.tv.title}, url: $videoUrl, videoIndex=${tvModel.videoIndexValue}")
         player?.run {
-            val mediaItem = tvModel.getMediaItem()
+            val mediaItem = tvModel.getMediaItem(attemptMediaId())
             if (mediaItem == null) {
                 Log.w(TAG, "No valid mediaItem for ${tvModel.tv.title}")
                 tvModel.setErrInfo(R.string.play_error.getString())
@@ -1354,7 +1393,7 @@ class PlayerFragment : Fragment() {
     fun play(tvModel: TVModel) {
         val currentTime = SystemClock.elapsedRealtime()
         // 防抖只拦截"同一线路的重复播放"，连续切不同频道不拦截
-        if (currentTime - lastSwitchSourceTime < switchSourceDebounce &&
+        if (tvModel.errInfo.value.isNullOrBlank() && currentTime - lastSwitchSourceTime < switchSourceDebounce &&
             this.tvModel != null && this.tvModel?.getVideoUrl() == tvModel.getVideoUrl()
         ) {
             Log.d(TAG, "Debounced play for ${tvModel.tv.title}")
@@ -1560,7 +1599,7 @@ class PlayerFragment : Fragment() {
                     tvModel.setErrInfo(R.string.play_error.getString())
                     return
                 }
-                val mediaItem = tvModel.getMediaItem()
+                val mediaItem = tvModel.getMediaItem(attemptMediaId())
                 if (mediaItem == null) {
                     Log.w(TAG, "No valid mediaItem for ${tvModel.tv.title}")
                     tvModel.setErrInfo(R.string.play_error.getString())
@@ -1609,6 +1648,8 @@ class PlayerFragment : Fragment() {
         player?.let { exo ->
             playerListener?.let(exo::removeListener)
             playerListener = null
+            frameListener?.let(exo::removeAnalyticsListener)
+            frameListener = null
             exo.release()
         }
         player = null
@@ -1728,17 +1769,24 @@ class PlayerFragment : Fragment() {
         binding.volume.visibility = View.GONE
     }
 
+    fun suspendPlayback() {
+        playbackCoordinator.suspend()
+        player?.pause()
+        if (::viewModel.isInitialized) viewModel.setPlaybackActive(false)
+    }
+
+    private fun resumePlayback() {
+        val model = tvModel ?: return
+        val action = playbackCoordinator.resume()
+        if (action !is PlaybackAction.None) {
+            if (::viewModel.isInitialized) viewModel.setPlaybackActive(true)
+            applyRecoveryAction(action, model)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
-        if (player?.isPlaying == false) {
-            if (::viewModel.isInitialized) viewModel.setPlaybackActive(true)
-            val model = tvModel
-            val action = playbackCoordinator.resume()
-            if (model == null || action is PlaybackAction.None || !applyRecoveryAction(action, model)) {
-                player?.prepare()
-                player?.play()
-            }
-        }
+        resumePlayback()
         // 确保定时器运行
         handler.removeCallbacks(checkPlaybackRunnable)
         handler.removeCallbacks(stableSourceCheckRunnable)
@@ -1755,9 +1803,7 @@ class PlayerFragment : Fragment() {
             return
         }
         if (!isInPictureInPictureMode && !SP.enableScreenOffAudio && player != null) {
-            playbackCoordinator.suspend()
-            player?.pause()
-            if (::viewModel.isInitialized) viewModel.setPlaybackActive(false)
+            suspendPlayback()
             Log.d(TAG, "Paused player due to SP.enableScreenOffAudio=false")
         }
         lastPauseTime = SystemClock.elapsedRealtime()
@@ -1768,19 +1814,12 @@ class PlayerFragment : Fragment() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_SCREEN_OFF) {
                 if (!SP.enableScreenOffAudio && player != null) {
-                    playbackCoordinator.suspend()
-                    player?.pause()
-                    if (::viewModel.isInitialized) viewModel.setPlaybackActive(false)
+                    suspendPlayback()
                     Log.d(TAG, "Paused player on SCREEN_OFF in ${if (isInPictureInPictureMode) "PiP" else "Full-Screen"} mode")
                 }
             } else if (intent.action == Intent.ACTION_SCREEN_ON) {
-                if (!SP.enableScreenOffAudio && player != null) {
-                    if (::viewModel.isInitialized) viewModel.setPlaybackActive(true)
-                    val model = tvModel
-                    val action = playbackCoordinator.resume()
-                    if (model == null || action is PlaybackAction.None || !applyRecoveryAction(action, model)) {
-                        player?.playWhenReady = true
-                    }
+                if (!SP.enableScreenOffAudio && player != null && (isResumed || isInPictureInPictureMode)) {
+                    resumePlayback()
                     Log.d(TAG, "Resumed player on SCREEN_ON in ${if (isInPictureInPictureMode) "PiP" else "Full-Screen"} mode")
                 }
             }
