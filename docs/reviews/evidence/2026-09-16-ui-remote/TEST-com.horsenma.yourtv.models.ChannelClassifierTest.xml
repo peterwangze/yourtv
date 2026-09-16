@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.horsenma.yourtv.models.ChannelClassifierTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-09-16T01:43:09" hostname="PETER" time="0.124">
+  <properties/>
+  <testcase name="其他 分类" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.057"/>
+  <testcase name="分组名本地化增强" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.006"/>
+  <testcase name="繁体与英文台名归类" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.005"/>
+  <testcase name="频道后缀归一合并" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.01"/>
+  <testcase name="卫视 分类" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.001"/>
+  <testcase name="名称规范化" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.0"/>
+  <testcase name="新源跨源合并" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.006"/>
+  <testcase name="新源频道分类" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.002"/>
+  <testcase name="咪咕体育每日轮换分组归位 v330" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.0"/>
+  <testcase name="地方 分类" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.004"/>
+  <testcase name="跨源合并键" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.002"/>
+  <testcase name="短英文关键词词边界匹配 v330" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.005"/>
+  <testcase name="县市区补充映射 v330" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.001"/>
+  <testcase name="央视 分类" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.001"/>
+  <testcase name="无分组专题频道归类 v330" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.009"/>
+  <testcase name="海外 分类" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.008"/>
+  <testcase name="卫视分组提示纠偏 v330" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.001"/>
+  <testcase name="displayGroup 与一级分类" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.002"/>
+  <testcase name="繁体频道名归类与合并" classname="com.horsenma.yourtv.models.ChannelClassifierTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

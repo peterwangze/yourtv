@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.horsenma.yourtv.models.ChannelMetadataParserTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-16T01:43:09" hostname="PETER" time="0.075">
+  <properties/>
+  <testcase name="rejectsMetadataOnlyAndAdvertisementLabels" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.064"/>
+  <testcase name="detectsObviousCrossWiredCctvLine" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.001"/>
+  <testcase name="rejectsStaleSportsAndUndefinedTitles" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.001"/>
+  <testcase name="readsUnquotedAndQuotedAttributes" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.004"/>
+  <testcase name="parsesChinaIptvAttributesBeforeCommaFormat" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.0"/>
+  <testcase name="rejectsYearPrefixedChunwanTitles" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.0"/>
+  <testcase name="prefersTvgNameWhenLabelContainsAttributes" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.0"/>
+  <testcase name="acceptsAttributesAfterDurationComma" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.0"/>
+  <testcase name="rejectsVodAndLoopStreamUris" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.0"/>
+  <testcase name="parsesVbskycnStandardFormat" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.0"/>
+  <testcase name="parsesVicjlTvgIdOnlyFormat" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.0"/>
+  <testcase name="mergesAttributesSplitAcrossBothSidesOfComma" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.0"/>
+  <testcase name="rejectsAdNetworkRadioAndVirtualLiveUris" classname="com.horsenma.yourtv.models.ChannelMetadataParserTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.horsenma.yourtv.SourceNetworkPolicyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-16T01:43:09" hostname="PETER" time="0.035">
+  <properties/>
+  <testcase name="过滤私网组播和非播放器地址" classname="com.horsenma.yourtv.SourceNetworkPolicyTest" time="0.026"/>
+  <testcase name="候选线路限制主机并保留三网兜底" classname="com.horsenma.yourtv.SourceNetworkPolicyTest" time="0.007"/>
+  <testcase name="识别三网与公网线路" classname="com.horsenma.yourtv.SourceNetworkPolicyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

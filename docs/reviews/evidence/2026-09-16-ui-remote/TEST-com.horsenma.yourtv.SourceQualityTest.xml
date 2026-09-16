@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.horsenma.yourtv.SourceQualityTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-16T01:43:09" hostname="PETER" time="0.003">
+  <properties/>
+  <testcase name="实测分辨率优先" classname="com.horsenma.yourtv.SourceQualityTest" time="0.001"/>
+  <testcase name="URL 关键词评分" classname="com.horsenma.yourtv.SourceQualityTest" time="0.002"/>
+  <testcase name="标题关键词辅助评分" classname="com.horsenma.yourtv.SourceQualityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

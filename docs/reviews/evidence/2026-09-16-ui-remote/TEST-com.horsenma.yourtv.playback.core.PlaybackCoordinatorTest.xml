@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-16T01:43:09" hostname="PETER" time="0.042">
+  <properties/>
+  <testcase name="disablingAutoSwitchKeepsRecoveryOnTheCurrentLine" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.012"/>
+  <testcase name="bufferedPlaybackSurvivesRouteLossWithoutNewPrepare" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="networkChangeDuringPrepareCreatesFreshAttempt" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="rollingSwitchLimitAllowsSameLineRetriesButNoFurtherSwitch" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.003"/>
+  <testcase name="recoveryBudgetEndsWithActionableError" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.0"/>
+  <testcase name="readyBeforeFirstFrameDoesNotClaimPlayback" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="offlineMinuteDoesNotConsumeReconnectedStartupBudget" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="manualSelectionCanReturnToPreviousLineAfterStablePlayback" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="noLinesProducesErrorWithoutTryingAChannel" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.003"/>
+  <testcase name="stablePlaybackStartsANewEpisodeButKeepsRollingSwitchCount" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.0"/>
+  <testcase name="explicitAttemptAfterTimeoutGetsFreshBudgetAndRejectsOldFrames" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="startupRetriesSameLineThenMovesToTwoOtherLines" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.007"/>
+  <testcase name="startupBudgetEndsWithActionableError" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="networkChangeCannotReviveSuspendedOrTerminalSession" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="missingNextLineTransitionsToRecoverableError" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.0"/>
+  <testcase name="slowRecoveryReservesRemainingTimeForBackup" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="disablingAutoSwitchStopsAfterBoundedSameLineRetries" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="resumeCreatesFreshAttemptAndRejectsSuspendedCallbacks" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="slowStartupTriesBackupBeforeTotalDeadline" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="longBackgroundPauseGetsFreshBudgetAndNetworkCannotResumeIt" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.0"/>
+  <testcase name="networkGenerationInvalidatesOldCallbacksAndCanResume" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="disabledAutoSwitchStillHonorsStartupAndRecoveryDeadlines" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <testcase name="staleFirstFrameCannotRevivePreviousSession" classname="com.horsenma.yourtv.playback.core.PlaybackCoordinatorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
