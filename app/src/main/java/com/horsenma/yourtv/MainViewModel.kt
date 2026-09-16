@@ -188,10 +188,13 @@ class MainViewModel : ViewModel() {
         return getDateFormat(timeFormat)
     }
 
+    enum class EpgRefreshStatus { IDLE, LOADING, SUCCEEDED, FAILED, NOT_CONFIGURED }
+    val epgRefreshStatus = MutableLiveData(EpgRefreshStatus.IDLE)
+    fun hasEpgSource(): Boolean = !epgUrl.isNullOrBlank() || !SP.epg.isNullOrBlank()
+
     fun updateEPG(force: Boolean = false) {
-        if (force) forceEpgRefreshWhenIdle = true
-        if (playbackActive) {
-            if (force) R.string.epg_refresh_deferred.showToast()
+        if (epgMaintenanceJob?.isActive == true) return
+        if (playbackActive && !force) {
             Log.d(TAG, "updateEPG: deferred while playback is active")
             return
         }
@@ -201,9 +204,14 @@ class MainViewModel : ViewModel() {
             return
         }
         epgMaintenanceJob?.cancel()
-        epgMaintenanceJob = viewModelScope.launch(Dispatchers.IO) {
-            delay(BACKGROUND_SOURCE_REFRESH_DELAY_MS)
-            if (playbackActive) return@launch
+        epgMaintenanceJob = viewModelScope.launch {
+            if (!force) delay(BACKGROUND_SOURCE_REFRESH_DELAY_MS)
+            if (playbackActive && !force) return@launch
+            if (!hasEpgSource()) {
+                epgRefreshStatus.value = EpgRefreshStatus.NOT_CONFIGURED
+                return@launch
+            }
+            epgRefreshStatus.value = EpgRefreshStatus.LOADING
             lastEpgAttempt = System.currentTimeMillis()
             try {
                 var success = false
@@ -213,6 +221,7 @@ class MainViewModel : ViewModel() {
                 if (!success && !SP.epg.isNullOrEmpty()) {
                     success = updateEPG(SP.epg!!)
                 }
+                epgRefreshStatus.value = if (success) EpgRefreshStatus.SUCCEEDED else EpgRefreshStatus.FAILED
                 if (force) {
                     if (success) {
                         R.string.epg_update_success.showToast()
@@ -223,7 +232,8 @@ class MainViewModel : ViewModel() {
                     }
                 }
             } finally {
-                if (force && !playbackActive) forceEpgRefreshWhenIdle = false
+                if (force) forceEpgRefreshWhenIdle = false
+                if (epgRefreshStatus.value == EpgRefreshStatus.LOADING) epgRefreshStatus.value = EpgRefreshStatus.IDLE
             }
         }
     }
@@ -752,6 +762,7 @@ class MainViewModel : ViewModel() {
                 try {
                     val request = okhttp3.Request.Builder().url(a).build()
                     val call = HttpClient.okHttpClient.newCall(request)
+                    call.timeout().timeout(12, java.util.concurrent.TimeUnit.SECONDS)
                     epgCall = call
                     val response = call.execute()
 
@@ -1770,6 +1781,8 @@ class MainViewModel : ViewModel() {
                 { it.listIndex }
             )
         ).toMutableList()
+        val numbers = com.horsenma.yourtv.models.ChannelNavigation.numbers(listModelNew.map { it.tv.number })
+        listModelNew.forEachIndexed { index, model -> model.displayNumber = numbers[index] }
         val groupMap = mutableMapOf<String, MutableList<TVModel>>()
         listModelNew.forEach { tvModel ->
             val group = com.horsenma.yourtv.models.ChannelClassifier

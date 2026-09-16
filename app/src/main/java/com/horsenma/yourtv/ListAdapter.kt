@@ -107,21 +107,8 @@ class TVListAdapter(
                 if (event?.action == KeyEvent.ACTION_DOWN) {
                     when (keyCode) {
                         KeyEvent.KEYCODE_DPAD_UP -> if (adapterPosition == 0) {
-                            val p = itemCount - 1
-                            (recyclerView.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(p, 0)
-                            recyclerView.postDelayed({
-                                val v = recyclerView.findViewHolderForAdapterPosition(p)
-                                v?.itemView?.isSelected = true
-                                v?.itemView?.requestFocus()
-                                if (v != null) {
-                                    Log.d(TAG, "ListAdapter: Focused on position $p")
-                                } else {
-                                    Log.w(TAG, "ListAdapter: ViewHolder not found for position $p")
-                                    // 回退到 toPosition 确保焦点
-                                    this@TVListAdapter.toPosition(p)
-                                }
-                            }, 0)
-                            true
+                            // Let Android move to the menu toolbar or search input.
+                            false
                         } else false
                         KeyEvent.KEYCODE_DPAD_DOWN -> if (adapterPosition == itemCount - 1) {
                             val p = 0
@@ -169,7 +156,7 @@ class TVListAdapter(
             val tv = tvModel.tv
             val width = 300
             val height = 180
-            val channelNum = if (tv.number == -1) tv.id.plus(1) else tv.number
+            val channelNum = tvModel.displayNumber
 
             // View holders are reused across rows. Rebuild the fallback number image
             // whenever the bound channel changes so old channel numbers do not leak
@@ -187,7 +174,11 @@ class TVListAdapter(
                 }
                 val x = width / 2f
                 val y = height / 2f - (paint.descent() + paint.ascent()) / 2
-                canvas.drawText(channelNum.toString(), x, y, paint)
+                val label = channelNum.takeIf { it > 0 }?.toString().orEmpty()
+                if (paint.measureText(label) > width - 20) {
+                    paint.textSize *= (width - 20) / paint.measureText(label)
+                }
+                canvas.drawText(label, x, y, paint)
                 cachedChannelNumber = channelNum
             }
 

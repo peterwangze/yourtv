@@ -28,6 +28,7 @@ import kotlin.math.min
 import android.util.Log
 
 class TVModel(var tv: TV) : ViewModel() {
+    var displayNumber: Int = tv.number.takeIf { it in 1..9999 } ?: 0
     var retryTimes = 0
     var retryMaxTimes = 10
     var programUpdateTime = 0L

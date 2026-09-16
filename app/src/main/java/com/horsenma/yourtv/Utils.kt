@@ -49,7 +49,6 @@ data class Location(
 object Utils {
     const val TAG = "Utils"
 
-    private var between: Long = 0
 
     private val _isp = MutableLiveData<ISP>()
     val isp: LiveData<ISP>
@@ -57,7 +56,7 @@ object Utils {
 
     fun getDateFormat(format: String): String {
         return SimpleDateFormat(format, Locale.getDefault())
-            .format(Date(System.currentTimeMillis() - between))
+            .format(Date(System.currentTimeMillis()))
     }
 
     fun getDateFormat(format: String, seconds: Int): String {
@@ -66,48 +65,11 @@ object Utils {
     }
 
     fun getDateTimestamp(): Long {
-        return (System.currentTimeMillis() - between) / 1000
+        return System.currentTimeMillis() / 1000
     }
 
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val currentTimeMillis = getTimestampFromServer()
-                Log.i(TAG, "currentTimeMillis $currentTimeMillis")
-                if (currentTimeMillis > 0) {
-                    between = System.currentTimeMillis() - currentTimeMillis
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "init", e)
-            }
-
-//            try {
-//                withContext(Dispatchers.Main) {
-//                    _isp.value = getISP()
-//                }
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
-        }
-    }
-
-    private suspend fun getTimestampFromServer(): Long {
-        return withContext(Dispatchers.IO) {
-            try {
-                val request = okhttp3.Request.Builder()
-                    .url("https://ip.ddnspod.com/timestamp")
-                    .build()
-
-                HttpClient.okHttpClient.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) return@withContext 0
-                    response.bodyAlias()?.string()?.toLong() ?: 0
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "getTimestampFromServer", e)
-                0
-            }
-        }
-    }
+    // Clock and EPG share the device clock. Android owns time synchronization;
+    // an unvalidated, process-long HTTP offset must not shift programme times.
 
     private suspend fun getISP(): ISP {
         return withContext(Dispatchers.IO) {

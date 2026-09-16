@@ -13,6 +13,7 @@ class ErrorFragment : Fragment() {
     private var _binding: ErrorBinding? = null
     private val binding get() = _binding!!
     private var retryListener: (() -> Unit)? = null
+    private var message: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,6 +41,7 @@ class ErrorFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.msg.text = message
         binding.retryButton.setOnClickListener {
             retryListener?.invoke()
         }
@@ -57,6 +59,7 @@ class ErrorFragment : Fragment() {
     }
 
     fun setMsg(msg: String) {
+        message = msg
         if (_binding != null) {
             binding.msg.text = msg
         }

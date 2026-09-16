@@ -69,35 +69,13 @@ class ProgramAdapter(
                 }
                 // If it is already the first item and you continue to move up...
                 if (keyCode == KeyEvent.KEYCODE_DPAD_UP && position == 0) {
-                    val p = getItemCount() - 1
-
-                    (recyclerView.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(
-                        p,
-                        0
-                    )
-
-                    recyclerView.postDelayed({
-                        val v = recyclerView.findViewHolderForAdapterPosition(p)
-                        v?.itemView?.isSelected = true
-                        v?.itemView?.requestFocus()
-                    }, 0)
+                    return@setOnKeyListener false
                 }
 
 
                 // If it is the last item and you continue to move down...
                 if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && position == getItemCount() - 1) {
-                    val p = 0
-
-                    (recyclerView.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(
-                        p,
-                        0
-                    )
-
-                    recyclerView.postDelayed({
-                        val v = recyclerView.findViewHolderForAdapterPosition(p)
-                        v?.itemView?.isSelected = true
-                        v?.itemView?.requestFocus()
-                    }, 0)
+                    return@setOnKeyListener false
                 }
 
                 return@setOnKeyListener listener?.onKey(keyCode) == true
@@ -173,7 +151,7 @@ class ProgramAdapter(
                 val viewHolder = recyclerView.findViewHolderForAdapterPosition(position)
                 viewHolder?.itemView?.apply {
                     isSelected = true
-                    requestFocus()
+                    if (recyclerView.hasFocus()) requestFocus()
                 }
             }, 0)
         }

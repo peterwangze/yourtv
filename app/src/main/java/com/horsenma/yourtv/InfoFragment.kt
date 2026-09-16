@@ -103,7 +103,8 @@ class InfoFragment : Fragment() {
                 // 清空上一频道的数字残留
                 canvas.drawColor(android.graphics.Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
 
-                val channelNum = if (tv.number == -1) tv.id.plus(1) else tv.number
+                val channelNum = (activity as MainActivity).getViewModel().listModel
+                    .firstOrNull { it.tv.id == tv.id }?.displayNumber ?: tvModel.displayNumber
                 var size = 150f
                 if (channelNum > 99) {
                     size = 100f
@@ -118,7 +119,11 @@ class InfoFragment : Fragment() {
                 }
                 val x = width / 2f
                 val y = height / 2f - (logoPaint.descent() + logoPaint.ascent()) / 2
-                canvas.drawText(channelNum.toString(), x, y, logoPaint)
+                val label = channelNum.takeIf { it > 0 }?.toString().orEmpty()
+                if (logoPaint.measureText(label) > width - 20) {
+                    logoPaint.textSize *= (width - 20) / logoPaint.measureText(label)
+                }
+                canvas.drawText(label, x, y, logoPaint)
 
                 val name = if (tv.name.isNotEmpty()) { tv.name } else { tv.title }
                 imageHelper.loadImage(name, binding.logo, bitmap, tv.logo)

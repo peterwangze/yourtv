@@ -222,4 +222,14 @@
     <string name="catchup_hint">该频道回看需源支持，当前版本暂不支持直接回看</string>
     <string name="gesture_guide_title">触摸手势说明</string>
     <string name="gesture_guide_content">触摸手势说明\n\n左侧上下滑动：亮度\n右侧上下滑动：音量\n中间上下滑动：切台\n单击：信息卡　双击：频道菜单　长按：节目单</string>
+    <string name="program_guide">节目单</string>
+    <string name="program_for_channel">%1$s · 节目单</string>
+    <string name="search_input_hint">输入频道名称</string>
+    <string name="search_remote_hint">确定键打开键盘，下键选择结果，返回关闭</string>
+    <string name="epg_refresh_now">刷新节目单</string>
+    <string name="epg_loading">正在加载节目单…</string>
+    <string name="epg_not_configured">尚未配置节目单来源\n请在设置中打开远程配置，添加节目单地址</string>
+    <string name="epg_load_failed">节目单加载失败\n可重试刷新，或在设置中检查节目单地址</string>
+    <string name="epg_not_loaded">还没有节目单数据\n选择下方“刷新节目单”加载，播放会继续</string>
+    <string name="epg_no_programs_day">这一天暂无节目安排\n可切换日期或刷新节目单</string>
 </resources>

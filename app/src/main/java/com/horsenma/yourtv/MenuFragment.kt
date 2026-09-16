@@ -88,6 +88,13 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
 
         listAdapter = TVListAdapter(context, binding.list, this)
         listAdapter.setItemListener(this)
+        binding.programButton.setOnClickListener { (activity as? MainActivity)?.showProgram() }
+        binding.programButton.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                binding.group.requestFocus()
+                true
+            } else false
+        }
         binding.list.adapter = listAdapter
         binding.list.layoutManager = LinearLayoutManager(context)
         listWidth = application.px2Px(binding.list.layoutParams.width)
@@ -97,6 +104,7 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
             listWidth
         }
 
+        updatePanelWidth()
         var lastClickTime = 0L
         binding.menu.setOnClickListener {
             val currentTime = System.currentTimeMillis()
@@ -246,7 +254,14 @@ class MenuFragment : Fragment(), GroupAdapter.ItemListener, TVListAdapter.ItemLi
             } else {
                 listWidth
             }
+            updatePanelWidth()
         }
+    }
+
+    private fun updatePanelWidth() {
+        val gap = (requireActivity().application as YourTVApplication).dp2Px(1)
+        binding.menu.layoutParams.width = binding.group.layoutParams.width + binding.list.layoutParams.width + gap
+        binding.menu.requestLayout()
     }
 
     fun updateList(position: Int) {

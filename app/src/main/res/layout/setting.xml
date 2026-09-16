@@ -4,7 +4,7 @@
     android:id="@+id/setting"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#4D000000"
+    android:background="@android:color/transparent"
     android:clickable="true"
     android:focusable="false"
     android:focusableInTouchMode="false"
@@ -27,7 +27,7 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:paddingBottom="24dp"
-            android:background="#4D000000"
+            android:background="#F218242A"
             android:focusable="false"
             android:focusableInTouchMode="false">
 

@@ -20,6 +20,7 @@ import android.view.KeyEvent
 import android.view.KeyEvent.*
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import android.view.WindowManager
 import android.widget.PopupWindow
@@ -150,6 +151,32 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         updateFullScreenMode(SP.fullScreenMode)
         setContentView(R.layout.activity_main)
+        // Fragment overlays can also hide themselves. Reconcile chrome at drawing time
+        // so those paths cannot leave the watching clock above a control panel.
+        window.decorView.viewTreeObserver.addOnPreDrawListener {
+            val panel = listOf(sourceSelectFragment, searchFragment, settingFragment,
+                programFragment, menuFragment).firstOrNull {
+                it.isAdded && !it.isHidden && it.view?.visibility == View.VISIBLE
+            }?.view
+            // A later playback error must not cover or steal navigation from a panel.
+            errorFragment.view?.let { error ->
+                val visibility = if (!errorFragment.isHidden && panel == null) View.VISIBLE else View.GONE
+                if (error.visibility != visibility) error.visibility = visibility
+            }
+            panel?.let {
+                val parent = it.parent as? ViewGroup
+                if (parent != null && parent.indexOfChild(it) != parent.childCount - 1) it.bringToFront()
+            }
+            val controlsVisible = panel != null || listOf(loadingFragment, errorFragment).any {
+                it.isAdded && !it.isHidden && it.view?.visibility == View.VISIBLE
+            }
+            timeFragment.view?.let { clock ->
+                val visibility = if (SP.time && !controlsVisible) View.VISIBLE else View.GONE
+                if (clock.visibility != visibility) clock.visibility = visibility
+            }
+            if (controlsVisible) infoFragment.view?.visibility = View.GONE
+            true
+        }
 
         UserInfoManager.initialize(applicationContext)
         userVerificationHandler = UserVerificationHandler(this, UserInfoManager, viewModel)
@@ -854,11 +881,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun play(position: Int): Boolean {
-        return if (position > -1 && position < viewModel.groupModel.getAllList()!!.size()) {
+        return if (position in viewModel.listModel.indices) {
             val prevGroup = viewModel.groupModel.positionValue
-            val tvModel = viewModel.groupModel.getPosition(position)
-
-            tvModel?.setReady()
+            val tvModel = viewModel.listModel.getOrNull(position) ?: return false
+            viewModel.groupModel.setCurrent(tvModel)
+            tvModel.setReady()
             viewModel.groupModel.setPositionPlaying()
             viewModel.groupModel.getCurrentList()?.setPositionPlaying()
 
@@ -948,7 +975,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun sourceUp(showToast: Boolean = true) {
+    fun sourceUp(showToast: Boolean = true) = changeLine(1, showToast)
+
+    private fun changeLine(direction: Int, showToast: Boolean = true) {
         val currentTime = SystemClock.elapsedRealtime()
         if (currentTime - lastSourceUpTime < sourceUpDebounce) {
             Log.d(TAG, "Debounced sourceUp for ${playerFragment.tvModel?.tv?.title}")
@@ -984,8 +1013,11 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // switchSource 内部统一切换下一条健康线路
-        playerFragment.switchSource(tvModel, showToast)
+        val indices = tvModel.tv.uris.indices.filter { tvModel.tv.uris[it].isNotBlank() }
+        val current = indices.indexOf(tvModel.videoIndexValue).coerceAtLeast(0)
+        val adjacent = com.horsenma.yourtv.models.ChannelNavigation.adjacentLine(current, indices.size, direction)
+            ?: return
+        playerFragment.selectSource(tvModel, indices[adjacent], showToast)
         Log.d(TAG, "sourceUp: switched to source ${tvModel.videoIndexValue + 1}, uris: ${tvModel.tv.uris.size}")
     }
 
@@ -1233,21 +1265,11 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "retryCurrentPlayback: ${tvModel.tv.title}")
     }
 
-    private fun showProgram() {
-        if (menuFragment.isAdded && !menuFragment.isHidden) {
-            return
-        }
-
-        if (settingFragment.isAdded && !settingFragment.isHidden) {
-            return
-        }
-
-        val playing = playerFragment.tvModel ?: return
-        if (playing.epgValue.isEmpty()) {
-            R.string.epg_is_empty.showToast()
-            return
-        }
-
+    fun showProgram() {
+        if (playerFragment.tvModel == null) return
+        hideFragment(menuFragment)
+        hideFragment(settingFragment)
+        hideFragment(searchFragment)
         showFragment(programFragment)
     }
 
@@ -1306,8 +1328,7 @@ class MainActivity : AppCompatActivity() {
                 KEYCODE_P, KEYCODE_Q, KEYCODE_R, KEYCODE_S, KEYCODE_T,
                 KEYCODE_U, KEYCODE_V, KEYCODE_W, KEYCODE_X, KEYCODE_Y,
                 KEYCODE_Z, KEYCODE_DEL -> {
-                    searchFragment.handleSearchKey(keyCode)
-                    return true
+                    return searchFragment.handleSearchKey(keyCode)
                 }
                 KEYCODE_MENU, KEYCODE_SETTINGS -> {
                     hideFragment(searchFragment)
@@ -1424,6 +1445,7 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
             KEYCODE_DPAD_UP, KEYCODE_CHANNEL_UP -> {
+                if (programFragment.isAdded && !programFragment.isHidden) return false
                 if (searchFragment.isAdded && !searchFragment.isHidden) {
                     return false
                 }
@@ -1443,6 +1465,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             KEYCODE_DPAD_DOWN, KEYCODE_CHANNEL_DOWN -> {
+                if (programFragment.isAdded && !programFragment.isHidden) return false
                 if (searchFragment.isAdded && !searchFragment.isHidden) {
                     return false
                 }
@@ -1491,10 +1514,9 @@ class MainActivity : AppCompatActivity() {
                     channelFragment.playNow()
                     return true
                 }
-                // EPG 打开时 OK = 关闭节目单（不再弹出频道菜单）
+                // 节目单上的 OK 留给日期、刷新和节目条目。
                 if (programFragment.isAdded && !programFragment.isHidden) {
-                    hideFragment(programFragment)
-                    return true
+                    return false
                 }
                 if (menuFragment.isAdded && !menuFragment.isHidden) {
                     return false
@@ -1526,10 +1548,12 @@ class MainActivity : AppCompatActivity() {
                         return true
                     }
                 }
-                if (settingFragment.isAdded && !settingFragment.isHidden) {
+                if (menuFragment.isAdded && !menuFragment.isHidden ||
+                    settingFragment.isAdded && !settingFragment.isHidden ||
+                    programFragment.isAdded && !programFragment.isHidden) {
                     return false
                 }
-                showProgram()
+                changeLine(-1)
                 return true
             }
 
@@ -1556,8 +1580,7 @@ class MainActivity : AppCompatActivity() {
                     programFragment.isAdded && !programFragment.isHidden) {
                     return false
                 }
-                // 单按右键 = 切换线路（sourceUp 内部自带 2s 防抖）
-                sourceUp()
+                changeLine(1)
                 return true
             }
         }
@@ -1685,14 +1708,10 @@ class MainActivity : AppCompatActivity() {
 
     /** True while a user-facing overlay owns focus and speculative work must stop. */
     fun hasBlockingOverlay(): Boolean {
-        return (sourceSelectFragment.isAdded && !sourceSelectFragment.isHidden) ||
-            (menuFragment.isAdded && !menuFragment.isHidden) ||
-            (settingFragment.isAdded && !settingFragment.isHidden) ||
-            (searchFragment.isAdded && !searchFragment.isHidden) ||
-            (programFragment.isAdded && !programFragment.isHidden) ||
-            (channelFragment.isAdded && !channelFragment.isHidden) ||
-            (loadingFragment.isAdded && !loadingFragment.isHidden) ||
-            (errorFragment.isAdded && !errorFragment.isHidden)
+        return listOf(sourceSelectFragment, menuFragment, settingFragment, searchFragment,
+            programFragment, loadingFragment, errorFragment, channelFragment).any {
+            it.isAdded && !it.isHidden && it.view?.visibility == View.VISIBLE
+        }
     }
 
     fun handleWebviewTypeSwitch(enable: Boolean) {

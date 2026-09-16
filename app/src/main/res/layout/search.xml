@@ -1,90 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/search"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#CC000000"
-    android:clickable="true"
-    android:focusable="false">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="#66000000">
-
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="12dp"
-            android:text="@string/search_channels"
-            android:textColor="@color/focus"
-            android:textSize="19sp"
-            android:textStyle="bold" />
-
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/query"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:text="" />
-
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/hint"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:paddingStart="8dp"
-            android:paddingEnd="16dp"
-            android:text="@string/search_hint"
-            android:textColor="@color/title_blur"
-            android:textSize="14sp"
-            android:maxLines="1" />
-    </LinearLayout>
-
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/section_title"
-        android:layout_width="match_parent"
-        android:layout_height="34dp"
-        android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:text="@string/recent_watch"
-        android:textColor="@color/focus"
-        android:textSize="15sp"
-        android:textStyle="bold" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/list"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:clipToPadding="false"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="12dp" />
-
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/empty"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:text="@string/no_recent"
-        android:textColor="@color/title_blur"
-        android:textSize="17sp"
-        android:visibility="gone" />
+    android:id="@+id/search" android:layout_width="480dp" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="16dp" android:background="#F218242A">
+    <TextView android:id="@+id/title"
+        android:layout_width="match_parent" android:layout_height="44dp"
+        android:text="@string/search_channels" android:textSize="20sp"
+        android:textColor="@color/focus" android:textStyle="bold" />
+    <EditText android:id="@+id/query"
+        android:layout_width="match_parent" android:layout_height="52dp"
+        android:hint="@string/search_input_hint" android:inputType="text"
+        android:singleLine="true" android:imeOptions="actionSearch|flagNoExtractUi"
+        android:textSize="18sp" android:textColor="@color/white"
+        android:textColorHint="@color/description_blur"
+        android:paddingStart="12dp" android:paddingEnd="12dp" android:background="@drawable/focus_item_background"
+        android:focusable="true" android:focusableInTouchMode="true" android:nextFocusDown="@id/list" />
+    <TextView android:id="@+id/hint"
+        android:layout_width="match_parent" android:layout_height="48dp"
+        android:text="@string/search_remote_hint" android:textSize="14sp"
+        android:gravity="center_vertical" android:textColor="@color/description_blur" />
+    <TextView android:id="@+id/section_title"
+        android:layout_width="match_parent" android:layout_height="36dp"
+        android:text="@string/recent_watch" android:textSize="16sp" android:textColor="@color/focus" />
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/list"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:focusable="true" android:nextFocusUp="@id/query" />
+    <TextView android:id="@+id/empty"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:gravity="center" android:text="@string/no_recent" android:textSize="17sp"
+        android:textColor="@color/description_blur" android:visibility="gone" />
 </LinearLayout>

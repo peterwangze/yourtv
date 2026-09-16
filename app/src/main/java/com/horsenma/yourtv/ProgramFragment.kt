@@ -1,7 +1,6 @@
 package com.horsenma.yourtv
 
 import android.os.Bundle
-import android.os.Handler
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -20,10 +19,8 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
     private var _binding: ProgramBinding? = null
     private val binding get() = _binding!!
 
-    private val handler = Handler()
-    private val delay: Long = 5000
 
-    private lateinit var programAdapter: ProgramAdapter
+    private var programAdapter: ProgramAdapter? = null
 
     /** 分日视图（G8）：0=今天，1=明天 */
     private var dayIndex = 0
@@ -39,6 +36,12 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val context = requireActivity()
+        val main = context as MainActivity
+        binding.refreshEpg.setOnClickListener { main.getViewModel().updateEPG(force = true) }
+        binding.configureEpg.setOnClickListener { main.showSetting() }
+        main.getViewModel().epgRefreshStatus.observe(viewLifecycleOwner) {
+            if (!isHidden) onVisible()
+        }
         binding.program.setOnClickListener {
             hideSelf()
         }
@@ -88,6 +91,9 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
         }
 
         onVisible()
+        binding.tabToday.post {
+            if (_binding != null && !isHidden) binding.tabToday.requestFocus()
+        }
     }
 
     private fun hideSelf() {
@@ -96,13 +102,17 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
             .commitAllowingStateLoss()
     }
 
-    private val hideRunnable = Runnable {
-        hideSelf()
-    }
 
     fun onVisible() {
         val context = requireActivity()
-        val tvModel = (context as MainActivity).playerFragment.tvModel ?: return
+        val main = context as MainActivity
+        val playing = main.playerFragment.tvModel ?: return
+        val vm = main.getViewModel()
+        val tvModel = vm.listModel.firstOrNull { it.tv.id == playing.tv.id } ?: playing
+        binding.programTitle.text = getString(R.string.program_for_channel, tvModel.tv.title)
+        val status = vm.epgRefreshStatus.value
+        binding.refreshEpg.text = getString(if (status == MainViewModel.EpgRefreshStatus.LOADING)
+            R.string.epg_loading else R.string.epg_refresh_now)
         val epgList = tvModel.epgValue
         val now = Utils.getDateTimestamp()
         updateTabs()
@@ -123,7 +133,7 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
         }
 
         // adapter/layoutManager 懒初始化一次，避免每次显示重建导致闪烁/滚动丢失
-        if (!this::programAdapter.isInitialized) {
+        if (programAdapter == null) {
             programAdapter = ProgramAdapter(
                 context,
                 binding.list,
@@ -132,25 +142,29 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
             )
             binding.list.adapter = programAdapter
             binding.list.layoutManager = LinearLayoutManager(context)
-            programAdapter.setItemListener(this)
+            programAdapter?.setItemListener(this)
         } else {
-            programAdapter.updateData(dayList, index)
+            programAdapter?.updateData(dayList, index)
         }
 
         if (dayList.isEmpty()) {
             binding.list.visibility = View.GONE
             binding.empty.visibility = View.VISIBLE
-            binding.empty.text = getString(R.string.epg_is_empty)
+            binding.empty.text = getString(when {
+                status == MainViewModel.EpgRefreshStatus.LOADING -> R.string.epg_loading
+                !vm.hasEpgSource() -> R.string.epg_not_configured
+                status == MainViewModel.EpgRefreshStatus.FAILED -> R.string.epg_load_failed
+                epgList.isNotEmpty() || status == MainViewModel.EpgRefreshStatus.SUCCEEDED -> R.string.epg_no_programs_day
+                else -> R.string.epg_not_loaded
+            })
         } else {
             binding.list.visibility = View.VISIBLE
             binding.empty.visibility = View.GONE
             if (index > -1) {
-                programAdapter.scrollToPositionAndSelect(index)
+                programAdapter?.scrollToPositionAndSelect(index)
             }
         }
 
-        handler.removeCallbacks(hideRunnable)
-        handler.postDelayed(hideRunnable, delay)
     }
 
     private fun updateTabs() {
@@ -168,13 +182,13 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
     }
 
     fun onHidden() {
-        handler.removeCallbacks(hideRunnable)
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) {
             onVisible()
+            binding.tabToday.requestFocus()
         } else {
             onHidden()
         }
@@ -182,17 +196,15 @@ class ProgramFragment : Fragment(), ProgramAdapter.ItemListener {
 
     override fun onPause() {
         super.onPause()
-        handler.removeCallbacks(hideRunnable)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        programAdapter = null
         _binding = null
     }
 
     override fun onItemFocusChange(epg: EPG, hasFocus: Boolean) {
-        handler.removeCallbacks(hideRunnable)
-        handler.postDelayed(hideRunnable, delay)
     }
 
     override fun onKey(keyCode: Int): Boolean {

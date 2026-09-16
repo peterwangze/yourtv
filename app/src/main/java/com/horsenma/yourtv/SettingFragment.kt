@@ -388,13 +388,13 @@ class SettingFragment : Fragment() {
             binding.btnAspectRatio,
             binding.btnSleepTimer,
         )) {
-            i.layoutParams.width = btnWidth
+            if (i.layoutParams.width > 0) i.layoutParams.width = btnWidth
             i.textSize = txtTextSize
             i.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
                     i.setTextColor(ContextCompat.getColor(context,R.color.white))
                 } else {
-                    i.setTextColor(ContextCompat.getColor(context,R.color.blur))
+                    i.setTextColor(ContextCompat.getColor(context,R.color.title_blur))
                 }
             }
         }
@@ -587,11 +587,7 @@ class SettingFragment : Fragment() {
         }
 
         view.post {
-            binding.remoteSettings.isFocusable = true
-            binding.remoteSettings.isFocusableInTouchMode = true
-            binding.remoteSettings.requestFocus()
-            binding.remoteSettings.onFocusChangeListener?.onFocusChange(binding.remoteSettings, true)
-            Log.d(TAG, "Focus requested on remoteSettings")
+            focusFirstSetting()
         }
 
         // 添加触摸监听，重置计时器
@@ -645,11 +641,7 @@ class SettingFragment : Fragment() {
         super.onHiddenChanged(hidden)
         if (!hidden) {
             view?.post {
-                binding.remoteSettings.isFocusable = true
-                binding.remoteSettings.isFocusableInTouchMode = true
-                binding.remoteSettings.requestFocus()
-                binding.remoteSettings.onFocusChangeListener?.onFocusChange(binding.remoteSettings, true)
-                Log.d(TAG, "onHiddenChanged: Focus requested on remoteSettings")
+                focusFirstSetting()
             }
         }
     }
@@ -741,6 +733,12 @@ class SettingFragment : Fragment() {
         } else {
             getString(R.string.sleep_timer) + "：" + getString(R.string.sleep_timer_off)
         }
+    }
+
+    private fun focusFirstSetting() {
+        if (_binding == null || isHidden) return
+        binding.switchSoftDecode.requestFocus()
+        binding.container.scrollTo(0, 0)
     }
 
     override fun onDestroyView() {

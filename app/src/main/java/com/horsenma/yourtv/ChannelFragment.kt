@@ -65,7 +65,8 @@ class ChannelFragment : Fragment() {
         handler.removeCallbacks(playRunnable)
         if (_binding != null) {
             binding.content.text =
-                if (tv.number == -1) (tv.id.plus(1)).toString() else tv.number.toString()
+                (viewModel.listModel.firstOrNull { it.tv.id == tv.id }?.displayNumber
+                    ?: tvModel.displayNumber).takeIf { it > 0 }?.toString().orEmpty()
         }
         view?.visibility = View.VISIBLE
         channel = 0
@@ -84,11 +85,7 @@ class ChannelFragment : Fragment() {
             return
         }
         val tv = current.tv
-        if (tv.id > 10 && tv.id == this.channel - 1) {
-            this.channel = 0
-            channelCount = 0
-        }
-        if (channelCount > 2) {
+        if (channelCount > 3) {
             return
         }
         channelCount++
@@ -98,7 +95,7 @@ class ChannelFragment : Fragment() {
         Log.d(TAG, "channelCount $channelCount")
         binding.content.text = "${this.channel}"
         view?.visibility = View.VISIBLE
-        if (channelCount < 3) {
+        if (channelCount < 4) {
             handler.postDelayed(playRunnable, delay)
         } else {
             playNow()
@@ -137,11 +134,8 @@ class ChannelFragment : Fragment() {
     }
 
     private val playRunnable = Runnable {
-        var c = channel - 1
-        viewModel.listModel.find { it.tv.number == channel }?.let {
-            c = it.tv.id
-        }
-        if ((activity as MainActivity).play(c)) {
+        val position = viewModel.listModel.indexOfFirst { it.displayNumber == channel }
+        if ((activity as MainActivity).play(position)) {
             channel = 0
             channelCount = 0
             handler.postDelayed(hideRunnable, delay)

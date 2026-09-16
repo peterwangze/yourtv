@@ -1,6 +1,10 @@
 package com.horsenma.yourtv
 
 import android.os.Bundle
+import android.content.Context
+import android.view.inputmethod.InputMethodManager
+import android.view.inputmethod.EditorInfo
+import androidx.core.widget.doAfterTextChanged
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -17,15 +21,14 @@ import com.horsenma.yourtv.models.TVModel
  * 频道搜索 + 最近观看 浮层（对齐电视家"搜索频道"S40 / OTT Navigator"搜索过滤"、
  * 电视家"历史记录"S41 / OTT Navigator"继续观看"）：
  * - 输入为空：展示「最近观看」（最近播放的频道，按时间倒序）
- * - 输入频道名（遥控器字母/数字键）：实时按名称过滤全部频道
- * - OK 播放选中频道；返回键删除字符（空查询时返回=关闭）；MENU 关闭
+ * - 输入框按 OK 打开输入法，也支持遥控器字母/数字键，实时过滤频道
+ * - 结果按 OK 播放；返回键或 MENU 关闭搜索
  */
 class SearchFragment : Fragment() {
     private var _binding: SearchBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var viewModel: MainViewModel
-    private val query = StringBuilder()
     private var adapter: TVListAdapter? = null
     private var listModel = TVListModel("search", 0)
     private var shown = false
@@ -69,6 +72,26 @@ class SearchFragment : Fragment() {
             }
         })
         binding.list.adapter = adapter
+        binding.query.doAfterTextChanged { refresh() }
+        binding.query.setOnClickListener { showKeyboard() }
+        binding.query.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                hideKeyboard()
+                focusResults()
+                true
+            } else if (event.action == KeyEvent.ACTION_DOWN &&
+                (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER)) {
+                showKeyboard()
+                true
+            } else false
+        }
+        binding.query.setOnEditorActionListener { _, action, _ ->
+            if (action == EditorInfo.IME_ACTION_SEARCH || action == EditorInfo.IME_ACTION_DONE) {
+                hideKeyboard()
+                focusResults()
+                true
+            } else false
+        }
 
         binding.root.setOnKeyListener { _, keyCode, event ->
             if (event?.action == KeyEvent.ACTION_DOWN) {
@@ -85,25 +108,21 @@ class SearchFragment : Fragment() {
         if (_binding == null) return
         shown = true
         refresh()
+        binding.query.requestFocus()
     }
 
     fun handleSearchKey(keyCode: Int): Boolean {
+        if (_binding == null) return false
+        if (binding.query.hasFocus() && keyCode != KeyEvent.KEYCODE_BACK &&
+            keyCode != KeyEvent.KEYCODE_ESCAPE && keyCode != KeyEvent.KEYCODE_MENU &&
+            keyCode != KeyEvent.KEYCODE_SETTINGS) return false
         return when (keyCode) {
             KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
-                if (query.isNotEmpty()) {
-                    query.deleteCharAt(query.length - 1)
-                    refresh()
-                    true
-                } else {
-                    hideSelf()
-                    true
-                }
+                hideSelf()
+                true
             }
             KeyEvent.KEYCODE_DEL -> {
-                if (query.isNotEmpty()) {
-                    query.deleteCharAt(query.length - 1)
-                    refresh()
-                }
+                binding.query.text?.let { if (it.isNotEmpty()) it.delete(it.length - 1, it.length) }
                 true
             }
             KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_SETTINGS -> {
@@ -111,13 +130,11 @@ class SearchFragment : Fragment() {
                 true
             }
             in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9 -> {
-                query.append(('0' + (keyCode - KeyEvent.KEYCODE_0)))
-                refresh()
+                binding.query.append(('0' + (keyCode - KeyEvent.KEYCODE_0)).toString())
                 true
             }
             in KeyEvent.KEYCODE_A..KeyEvent.KEYCODE_Z -> {
-                query.append(('A' + (keyCode - KeyEvent.KEYCODE_A)))
-                refresh()
+                binding.query.append(('A' + (keyCode - KeyEvent.KEYCODE_A)).toString())
                 true
             }
             else -> false
@@ -126,7 +143,7 @@ class SearchFragment : Fragment() {
 
     private fun refresh() {
         val all = viewModel.listModel
-        val q = query.toString().trim()
+        val q = binding.query.text.toString().trim()
         val items: List<TVModel> = if (q.isEmpty()) {
             recentModels(all)
         } else {
@@ -139,7 +156,6 @@ class SearchFragment : Fragment() {
         listModel.setPositionPlaying(if (playingIdx >= 0) playingIdx else 0)
 
         adapter?.submitList(items)
-        binding.query.text = q
         binding.sectionTitle.text = if (q.isEmpty()) {
             getString(R.string.recent_watch)
         } else {
@@ -154,12 +170,24 @@ class SearchFragment : Fragment() {
         } else {
             binding.list.visibility = View.VISIBLE
             binding.empty.visibility = View.GONE
-            binding.list.requestFocus()
-            binding.list.post {
-                if (items.isNotEmpty()) {
-                    binding.list.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus()
-                }
-            }
+        }
+    }
+
+    private fun showKeyboard() {
+        binding.query.requestFocus()
+        (requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
+            .showSoftInput(binding.query, 0)
+    }
+
+    private fun hideKeyboard() {
+        (requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
+            .hideSoftInputFromWindow(binding.query.windowToken, 0)
+    }
+
+    private fun focusResults() {
+        if (binding.list.visibility == View.VISIBLE) {
+            binding.list.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus()
+                ?: binding.list.requestFocus()
         }
     }
 
@@ -171,6 +199,7 @@ class SearchFragment : Fragment() {
 
     private fun hideSelf() {
         shown = false
+        hideKeyboard()
         try {
             requireActivity().supportFragmentManager.beginTransaction()
                 .hide(this)
@@ -182,7 +211,7 @@ class SearchFragment : Fragment() {
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (!hidden) onShow()
+        if (!hidden) onShow() else if (_binding != null) hideKeyboard()
     }
 
     override fun onDestroyView() {

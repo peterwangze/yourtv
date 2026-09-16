@@ -570,7 +570,7 @@ class PlayerFragment : Fragment() {
                 binding.webView.visibility = View.VISIBLE
                 binding.playerView.visibility = View.GONE
                 binding.webView.requestLayout()
-                binding.webView.requestFocus()
+                requestPlaybackFocus(binding.webView)
 
                 childFragmentManager.findFragmentById(R.id.web_view)?.let { fragment ->
                     if (fragment is com.horsenma.mytv1.WebFragment) {
@@ -587,7 +587,7 @@ class PlayerFragment : Fragment() {
                     gravity = Gravity.CENTER
                 }
                 binding.playerView.requestLayout()
-                binding.playerView.requestFocus()
+                requestPlaybackFocus(binding.playerView)
                 if (player == null && tvModel != null) {
                     updatePlayer()
                     Log.d(TAG, "Player was null, reinitialized for ${tvModel!!.tv.title}")
@@ -620,6 +620,10 @@ class PlayerFragment : Fragment() {
         }
     }
 
+    private fun requestPlaybackFocus(view: View) {
+        if ((activity as? MainActivity)?.hasBlockingOverlay() != true) view.requestFocus()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -635,7 +639,7 @@ class PlayerFragment : Fragment() {
             updatePlayer()
             binding.playerView.isFocusable = true
             binding.playerView.isFocusableInTouchMode = true
-            binding.playerView.requestFocus()
+            requestPlaybackFocus(binding.playerView)
             Log.d(TAG, "PlayerView focus requested: isFocusable=${binding.playerView.isFocusable}")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize PlayerFragment view: ${e.message}", e)
@@ -1037,20 +1041,20 @@ class PlayerFragment : Fragment() {
                     fragment.updateWebViewLayout()
                 }
             }
-            binding.webView.requestFocus()
+            requestPlaybackFocus(binding.webView)
             binding.webView.isFocusable = true
             binding.webView.isFocusableInTouchMode = true
         } else {
         updatePlayerViewLayout()
             binding.playerView.visibility = View.VISIBLE
             binding.webView.visibility = View.GONE
-            binding.playerView.requestFocus()
+            requestPlaybackFocus(binding.playerView)
             binding.playerView.isFocusable = true
             binding.playerView.isFocusableInTouchMode = true
         }
         // 强制刷新整个布局
         binding.root.requestLayout()
-        binding.root.requestFocus()
+        requestPlaybackFocus(binding.root)
         // 验证窗口尺寸
         val displayMetrics = resources.displayMetrics
         Log.d(TAG, "onFullScreenModeChanged: fullScreen=$isFullScreen, videoWidthPx=${app.videoWidthPx()}, videoHeightPx=${app.videoHeightPx()}, screenWidth=${displayMetrics.widthPixels}, screenHeight=${displayMetrics.heightPixels}")
@@ -1272,10 +1276,10 @@ class PlayerFragment : Fragment() {
 
     /** Play the exact line chosen in the line panel. */
     @OptIn(UnstableApi::class)
-    fun selectSource(tvModel: TVModel, index: Int) {
+    fun selectSource(tvModel: TVModel, index: Int, showToast: Boolean = false) {
         tvModel.setVideoIndex(index)
         tvModel.confirmVideoIndex()
-        switchSourceInternal(tvModel, showToast = false, advance = false, force = true)
+        switchSourceInternal(tvModel, showToast = showToast, advance = false, force = true)
     }
 
     @OptIn(UnstableApi::class)
@@ -1491,7 +1495,7 @@ class PlayerFragment : Fragment() {
                     binding.playerView.visibility = View.VISIBLE
                     binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
                     binding.playerView.bringToFront()
-                    binding.playerView.requestFocus()
+                    requestPlaybackFocus(binding.playerView)
                     binding.playerView.requestLayout()
                     updatePlayer()
                     return
@@ -1554,11 +1558,11 @@ class PlayerFragment : Fragment() {
                 binding.playerView.visibility = View.VISIBLE
                 binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
                 binding.playerView.bringToFront()
-                binding.playerView.requestFocus()
+                requestPlaybackFocus(binding.playerView)
                 binding.playerView.requestLayout()
                 updatePlayer()
             }
-            binding.webView.requestFocus()
+            requestPlaybackFocus(binding.webView)
             binding.playerView.isFocusable = false
             binding.playerView.setOnTouchListener(null)
         } else {
@@ -1584,7 +1588,7 @@ class PlayerFragment : Fragment() {
             binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
             binding.playerView.bringToFront()
             updatePlayerViewLayout()
-            binding.playerView.requestFocus()
+            requestPlaybackFocus(binding.playerView)
             binding.playerView.requestLayout()
 
             Log.d(TAG, "Playing IPTV: ${tvModel.tv.title}, uris: ${tvModel.tv.uris.size}")
@@ -1622,7 +1626,7 @@ class PlayerFragment : Fragment() {
                     tvModel.setErrInfo(R.string.play_error.getString())
                 }
             } ?: Log.w(TAG, "Player is null, cannot play ${tvModel.tv.title}")
-            binding.playerView.requestFocus()
+            requestPlaybackFocus(binding.playerView)
             binding.webView.isFocusable = false
         }
     }
