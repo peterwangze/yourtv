@@ -1,7 +1,7 @@
 {
-  "version_code": 320,
-  "version_name": "3.2.0",
-  "apk_url": "https://github.com/peterwangze/yourtv/releases/download/v3.2.0/juyuan_tv_v3.2.0.apk",
-  "apk_name": "juyuan_tv_v3.2.0.apk",
-  "description": "播放覆盖与比例修复（备用画面不再盖主画面）、快速失败/首帧看门狗/并行首源秒出、频道搜索与最近观看、定时关机、画面比例选项、EPG 分日与回看标识、手势引导与清理"
+  "version_code": 341,
+  "version_name": "3.4.1",
+  "apk_url": "https://github.com/peterwangze/yourtv/releases/download/v3.4.1/juyuan_tv_v3.4.1.apk",
+  "apk_name": "juyuan_tv_v3.4.1.apk",
+  "description": "优先实测1080P线路，修复旧低清稳定源锁定首选；高清失败后允许兼容线路并明确提示。内置离线质量数据，结合本机播放表现选线并保留三网候选。左右切换线路、上下切换频道，修复台号、时钟、搜索与菜单显示。成都三网晚高峰长稳与低端真机尚未完整验收，详见发布说明。"
 }

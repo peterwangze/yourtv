@@ -1,7 +1,7 @@
 {
-  "version_code": 340,
-  "version_name": "3.4.0",
-  "apk_url": "https://github.com/peterwangze/yourtv/releases/download/v3.4.0/juyuan_tv_v3.4.0.apk",
-  "apk_name": "juyuan_tv_v3.4.0.apk",
-  "description": "播放会话与恢复预算统一、坏线切换与重试修复、前后台/熄屏恢复、首帧身份校验、国内网络源排序与缓存治理。已知问题：历史稳定线路冷启动失败时可能黑屏且缺少重试入口；手动导入私网源可能被过滤。尚未完成大陆三网实测，详见 Release 说明。"
+  "version_code": 341,
+  "version_name": "3.4.1",
+  "apk_url": "https://github.com/peterwangze/yourtv/releases/download/v3.4.1/juyuan_tv_v3.4.1.apk",
+  "apk_name": "juyuan_tv_v3.4.1.apk",
+  "description": "优先实测1080P线路，修复旧低清稳定源锁定首选；高清失败后允许兼容线路并明确提示。内置离线质量数据，结合本机播放表现选线并保留三网候选。左右切换线路、上下切换频道，修复台号、时钟、搜索与菜单显示。成都三网晚高峰长稳与低端真机尚未完整验收，详见发布说明。"
 }
