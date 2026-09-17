@@ -1,6 +1,7 @@
 """Sample one completed HLS segment per verified HD channel, on this host only.
 
-No app background traffic. At most 4 MiB / 15 seconds per sample. This is a
+No app background traffic. At most 4 MiB, a 15-second read-loop budget and an
+8-second socket timeout (a pending read can outlast that loop budget). This is a
 short network sample, not a guarantee of sustained playback or carrier coverage.
 """
 import argparse

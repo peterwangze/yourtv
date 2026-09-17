@@ -1,0 +1,2 @@
+09-17 08:27:25.504  5609  5663 D CCodecConfig: c2 config diff is   c2::u32 raw.crop.height = 1080
+09-17 08:27:25.504  5609  5663 D CCodecConfig:   c2::u32 raw.crop.width = 1920

@@ -1,0 +1,914 @@
+{
+  "measuredAt": "2026-09-17T03:52:55.298061+00:00",
+  "note": "Current host network only; inspection time is not first-frame time or throughput.",
+  "lines": [
+    {
+      "title": "CCTV10",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/11/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 8847
+    },
+    {
+      "title": "CCTV10",
+      "url": "http://1.24.39.180:9003/hls/10/index.m3u8",
+      "host": "1.24.39.180",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 797
+    },
+    {
+      "title": "CCTV10",
+      "url": "http://222.169.85.8:9901/tsfile/live/0010_1.m3u8",
+      "host": "222.169.85.8",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 883
+    },
+    {
+      "title": "CCTV11",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/12/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 9448
+    },
+    {
+      "title": "CCTV11",
+      "url": "http://112.123.243.37:50085/tsfile/live/0012_1.m3u8?key=txiptv&playlive=0&authid=0",
+      "host": "112.123.243.37",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1092
+    },
+    {
+      "title": "CCTV11",
+      "url": "http://1.24.39.180:9003/hls/11/index.m3u8",
+      "host": "1.24.39.180",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 726
+    },
+    {
+      "title": "CCTV12",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/13/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 13252
+    },
+    {
+      "title": "CCTV12",
+      "url": "http://221.7.175.154:8445/tsfile/live/1010_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "221.7.175.154",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1620
+    },
+    {
+      "title": "CCTV12",
+      "url": "http://153.0.171.163:9901/tsfile/live/1011_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "153.0.171.163",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 741
+    },
+    {
+      "title": "CCTV13",
+      "url": "http://ali-m-l.cztv.com/channels/lantian/channel21/1080p.m3u8",
+      "host": "ali-m-l.cztv.com",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 549
+    },
+    {
+      "title": "CCTV13",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/14/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 13500
+    },
+    {
+      "title": "CCTV13",
+      "url": "http://221.7.175.154:8445/tsfile/live/1011_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "221.7.175.154",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1990
+    },
+    {
+      "title": "CCTV14",
+      "url": "http://124.116.183.146:9901/tsfile/live/0014_1.m3u8",
+      "host": "124.116.183.146",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 558
+    },
+    {
+      "title": "CCTV14",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/15/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 6786
+    },
+    {
+      "title": "CCTV14",
+      "url": "https://event.pull.hebtv.com/jishi/cp2.m3u8",
+      "host": "event.pull.hebtv.com",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 975
+    },
+    {
+      "title": "CCTV15",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/16/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 3065
+    },
+    {
+      "title": "CCTV15",
+      "url": "http://1.24.39.180:9003/hls/15/index.m3u8",
+      "host": "1.24.39.180",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 791
+    },
+    {
+      "title": "CCTV15",
+      "url": "http://58.56.162.102:4466/newlive/live/hls/16/live.m3u8",
+      "host": "58.56.162.102",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 2484
+    },
+    {
+      "title": "CCTV16",
+      "url": "http://74.91.26.218:82/live/cctv16hd.m3u8",
+      "host": "74.91.26.218",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 778
+    },
+    {
+      "title": "CCTV16",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/17/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 7365
+    },
+    {
+      "title": "CCTV16",
+      "url": "http://1.24.39.180:9003/hls/60/index.m3u8",
+      "host": "1.24.39.180",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 865
+    },
+    {
+      "title": "CCTV17",
+      "url": "http://183.11.239.36:808/hls/35/index.m3u8",
+      "host": "183.11.239.36",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 9484
+    },
+    {
+      "title": "CCTV17",
+      "url": "http://1.24.39.180:9003/hls/61/index.m3u8",
+      "host": "1.24.39.180",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 754
+    },
+    {
+      "title": "CCTV17",
+      "url": "http://221.7.175.154:8445/tsfile/live/1009_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "221.7.175.154",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1151
+    },
+    {
+      "title": "CCTV3",
+      "url": "http://219.147.245.238:25480/newlive/live/hls/3/live.m3u8",
+      "host": "219.147.245.238",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1964
+    },
+    {
+      "title": "CCTV3",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/3/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 11144
+    },
+    {
+      "title": "CCTV3",
+      "url": "http://221.7.175.154:8445/tsfile/live/1002_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "221.7.175.154",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1420
+    },
+    {
+      "title": "CCTV4",
+      "url": "http://219.147.245.238:25480/newlive/live/hls/4/live.m3u8",
+      "host": "219.147.245.238",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1280,
+        "height": 720,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 1506
+    },
+    {
+      "title": "CCTV4",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/4/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1673
+    },
+    {
+      "title": "CCTV4",
+      "url": "http://153.0.171.163:9901/tsfile/live/0004_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "153.0.171.163",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 669
+    },
+    {
+      "title": "CCTV5",
+      "url": "http://112.46.85.60:8009/hls/503/index.m3u8",
+      "host": "112.46.85.60",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 6766
+    },
+    {
+      "title": "CCTV5",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/5/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 10724
+    },
+    {
+      "title": "CCTV5",
+      "url": "http://112.123.243.37:50085/tsfile/live/0005_1.m3u8?key=txiptv&playlive=0&authid=0",
+      "host": "112.123.243.37",
+      "status": "timeout_or_invalid",
+      "verified1080": false,
+      "inspectionMs": 164570
+    },
+    {
+      "title": "CCTV5+",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/6/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 4085
+    },
+    {
+      "title": "CCTV5+",
+      "url": "http://219.147.245.238:25480/newlive/live/hls/6/live.m3u8",
+      "host": "219.147.245.238",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 7357
+    },
+    {
+      "title": "CCTV5+",
+      "url": "http://120.40.39.246:352/newlive/live/hls/6/live.m3u8",
+      "host": "120.40.39.246",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 810
+    },
+    {
+      "title": "CCTV6",
+      "url": "http://153.0.171.163:9901/tsfile/live/0006_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "153.0.171.163",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 660
+    },
+    {
+      "title": "CCTV6",
+      "url": "http://221.7.175.154:8445/tsfile/live/1004_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "221.7.175.154",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 2245
+    },
+    {
+      "title": "CCTV6",
+      "url": "http://112.123.243.37:50085/tsfile/live/0007_1.m3u8?key=txiptv&playlive=0&authid=0",
+      "host": "112.123.243.37",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 7265
+    },
+    {
+      "title": "CCTV7",
+      "url": "http://112.46.85.60:8009/hls/504/index.m3u8",
+      "host": "112.46.85.60",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 4545
+    },
+    {
+      "title": "CCTV7",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/8/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 16959
+    },
+    {
+      "title": "CCTV7",
+      "url": "http://221.7.175.154:8445/tsfile/live/1005_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "221.7.175.154",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 864
+    },
+    {
+      "title": "CCTV8",
+      "url": "http://124.116.183.146:9901/tsfile/live/0008_1.m3u8",
+      "host": "124.116.183.146",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 439
+    },
+    {
+      "title": "CCTV8",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/9/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 12978
+    },
+    {
+      "title": "CCTV8",
+      "url": "http://221.7.175.154:8445/tsfile/live/1006_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "221.7.175.154",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1411
+    },
+    {
+      "title": "CCTV9",
+      "url": "https://v4-702cae17a28d6e4f0c0002bba021d934.livehwc4.com/play.kankanlive.com/live/1698423397390920.m3u8?sub_m3u8=true&edge_slice=true&user_session_id=498a9719f635cf09cbd4112ec600c9d5",
+      "host": "v4-702cae17a28d6e4f0c0002bba021d934.livehwc4.com",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 2389
+    },
+    {
+      "title": "CCTV9",
+      "url": "http://play.kankanlive.com/live/1698423397390920.m3u8",
+      "host": "play.kankanlive.com",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 1050
+    },
+    {
+      "title": "CCTV9",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/10/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 11239
+    },
+    {
+      "title": "东方卫视",
+      "url": "https://bp-resource-dfl.bestv.cn/148/3/video.m3u8",
+      "host": "bp-resource-dfl.bestv.cn",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1119
+    },
+    {
+      "title": "东方卫视",
+      "url": "https://txmov2.a.kwimgs.com/bs3/video-hls/5219953535631090825_hlsb.m3u8",
+      "host": "txmov2.a.kwimgs.com",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1280,
+        "height": 720,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 688
+    },
+    {
+      "title": "东方卫视",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/29/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 13539
+    },
+    {
+      "title": "北京卫视",
+      "url": "http://182.150.23.74:808/hls/17/index.m3u8",
+      "host": "182.150.23.74",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1350
+    },
+    {
+      "title": "北京卫视",
+      "url": "http://153.0.171.163:9901/tsfile/live/0122_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "153.0.171.163",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 1224
+    },
+    {
+      "title": "北京卫视",
+      "url": "http://222.134.245.16:9901/tsfile/live/0122_1.m3u8",
+      "host": "222.134.245.16",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 11804
+    },
+    {
+      "title": "广东卫视",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/34/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 12108
+    },
+    {
+      "title": "广东卫视",
+      "url": "http://112.123.243.37:50085/tsfile/live/0135_1.m3u8?key=txiptv&playlive=0&authid=0",
+      "host": "112.123.243.37",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 7305
+    },
+    {
+      "title": "广东卫视",
+      "url": "http://120.238.94.82:9901/tsfile/live/1009_1.m3u8",
+      "host": "120.238.94.82",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 2531
+    },
+    {
+      "title": "江苏卫视",
+      "url": "http://112.46.85.60:8009/hls/33/index.m3u8",
+      "host": "112.46.85.60",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1905
+    },
+    {
+      "title": "江苏卫视",
+      "url": "http://112.123.243.37:50085/tsfile/live/0017_1.m3u8?key=txiptv&playlive=0&authid=0",
+      "host": "112.123.243.37",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 7299
+    },
+    {
+      "title": "江苏卫视",
+      "url": "http://58.56.162.102:4466/newlive/live/hls/31/live.m3u8",
+      "host": "58.56.162.102",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 682
+    },
+    {
+      "title": "深圳卫视",
+      "url": "http://36.136.38.87:9901/tsfile/live/0126_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "36.136.38.87",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 678
+    },
+    {
+      "title": "深圳卫视",
+      "url": "http://61.136.172.236:9901/tsfile/live/0126_1.m3u8",
+      "host": "61.136.172.236",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 11335
+    },
+    {
+      "title": "深圳卫视",
+      "url": "http://112.123.243.37:50085/tsfile/live/1000_1.m3u8?key=txiptv&playlive=0&authid=0",
+      "host": "112.123.243.37",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 7246
+    }
+  ]
+}

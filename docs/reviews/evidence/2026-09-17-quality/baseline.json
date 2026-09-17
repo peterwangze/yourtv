@@ -1,0 +1,482 @@
+{
+  "measuredAt": "2026-09-17T03:44:16.121261+00:00",
+  "note": "Current host network only; inspection time is not first-frame time or throughput.",
+  "lines": [
+    {
+      "title": "CCTV1",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/1/live.m3u8",
+      "host": "113.57.140.161",
+      "status": "timeout_or_invalid",
+      "verified1080": false,
+      "inspectionMs": 19420
+    },
+    {
+      "title": "CCTV1",
+      "url": "http://222.240.44.42:12810/newlive/live/hls/1/live.m3u8",
+      "host": "222.240.44.42",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 665
+    },
+    {
+      "title": "CCTV1",
+      "url": "http://221.7.175.154:8445/tsfile/live/1000_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "221.7.175.154",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1795
+    },
+    {
+      "title": "CCTV1",
+      "url": "http://223.78.65.165:9901/tsfile/live/0001_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "223.78.65.165",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 7270
+    },
+    {
+      "title": "CCTV1",
+      "url": "http://hlsztemgsplive.miguvideo.com:8080/wd_r2/cctv/cctv1hd/1200/index.m3u8?msisdn=f863b466d46e2ff46401579155d4a125&mdspid=&spid=699004&netType=4&sid=2201057821&pid=2028597139&timestamp=20260509112609&Channel_ID=0116_2600037000-99000-200300220103500&ProgramID=608807420&ParentNodeID=-99&assertID=2201057821&client_ip=220.196.48.223&SecurityKey=20260509112609&promotionId=&mvid=2201057821&mcid=500020&playurlVersion=ZQ-A1-9.4.2-RELEASE&userid=1834153345&jmhm=f863b466d46e2ff46401579155d4a125&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=84c2f0c5e585c30ac46bc7a2d2bac450",
+      "host": "hlsztemgsplive.miguvideo.com",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 210
+    },
+    {
+      "title": "CCTV1",
+      "url": "http://219.147.245.238:25480/newlive/live/hls/1/live.m3u8",
+      "host": "219.147.245.238",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 2889
+    },
+    {
+      "title": "CCTV1",
+      "url": "http://153.0.171.163:9901/tsfile/live/0001_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "153.0.171.163",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 716
+    },
+    {
+      "title": "CCTV1",
+      "url": "http://112.30.73.119:9901/tsfile/live/0001_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "112.30.73.119",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "30/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 1167
+    },
+    {
+      "title": "CCTV2",
+      "url": "http://153.0.171.163:9901/tsfile/live/0002_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "153.0.171.163",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 701
+    },
+    {
+      "title": "CCTV2",
+      "url": "http://112.123.243.37:50085/tsfile/live/0002_1.m3u8?key=txiptv&playlive=0&authid=0",
+      "host": "112.123.243.37",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 6213
+    },
+    {
+      "title": "CCTV2",
+      "url": "http://183.11.239.36:808/hls/20/index.m3u8",
+      "host": "183.11.239.36",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 4626
+    },
+    {
+      "title": "CCTV2",
+      "url": "http://112.30.73.119:9901/tsfile/live/0002_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "112.30.73.119",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 576,
+        "avg_frame_rate": "30/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 593
+    },
+    {
+      "title": "CCTV2",
+      "url": "http://hlsztemgsplive.miguvideo.com:8080/wd_r2/cctv/cctv2hd/1500/index.m3u8?msisdn=f863b466d46e2ff46401579155d4a125&mdspid=&spid=699004&netType=4&sid=5500346945&pid=2028597139&timestamp=20260509110753&Channel_ID=0116_2600037000-99000-200300220103466&ProgramID=631780532&ParentNodeID=-99&assertID=5500346945&client_ip=36.134.32.115&SecurityKey=20260509110753&promotionId=&mvid=5101064231&mcid=500020&playurlVersion=ZQ-A1-9.4.2-RELEASE&userid=1834153345&jmhm=f863b466d46e2ff46401579155d4a125&videocodec=h264&appCode=miguvideo_android&bean=mgspad&tid=android&conFee=0&encrypt=cdb1995643d34e48ef67981a86880aea",
+      "host": "hlsztemgsplive.miguvideo.com",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 182
+    },
+    {
+      "title": "CCTV2",
+      "url": "https://cd-live-stream.news.cctvplus.com/live/smil:CHANNEL2.smil/playlist.m3u8",
+      "host": "cd-live-stream.news.cctvplus.com",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 426,
+        "height": 240,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 3046
+    },
+    {
+      "title": "CCTV2",
+      "url": "http://113.57.140.161:10081/newlive/live/hls/2/live.m3u8",
+      "host": "113.57.140.161",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 10294
+    },
+    {
+      "title": "CCTV2",
+      "url": "http://bztv.tvbus.cc:8081/cdnlive/cctv2.m3u8",
+      "host": "bztv.tvbus.cc",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 7296
+    },
+    {
+      "title": "四川卫视",
+      "url": "http://61.136.172.236:9901/tsfile/live/0123_1.m3u8",
+      "host": "61.136.172.236",
+      "status": "timeout_or_invalid",
+      "verified1080": false,
+      "inspectionMs": 79453
+    },
+    {
+      "title": "四川卫视",
+      "url": "http://221.7.175.154:8445/tsfile/live/0123_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "221.7.175.154",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1135
+    },
+    {
+      "title": "四川卫视",
+      "url": "http://107.150.60.122/live/scwshd.m3u8",
+      "host": "107.150.60.122",
+      "status": "timeout_or_invalid",
+      "verified1080": false,
+      "inspectionMs": 43911
+    },
+    {
+      "title": "四川卫视",
+      "url": "http://198.204.228.26/live/scwshd.m3u8",
+      "host": "198.204.228.26",
+      "status": "timeout_or_invalid",
+      "verified1080": false,
+      "inspectionMs": 26677
+    },
+    {
+      "title": "四川卫视",
+      "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226338/index.m3u8",
+      "host": "ottrrs.hl.chinamobile.com",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 5229
+    },
+    {
+      "title": "四川卫视",
+      "url": "http://204.12.221.218:8181/3m1080p/scws.m3u8",
+      "host": "204.12.221.218",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 3085
+    },
+    {
+      "title": "四川卫视",
+      "url": "http://63.141.230.178:82/gslb/zbdq5.m3u8?id=scwshd",
+      "host": "63.141.230.178",
+      "status": "timeout_or_invalid",
+      "verified1080": false,
+      "inspectionMs": 35060
+    },
+    {
+      "title": "四川卫视",
+      "url": "http://111.8.224.6:9999/tsfile/live/1056_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "111.8.224.6",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 779
+    },
+    {
+      "title": "浙江卫视",
+      "url": "http://ali-xwl.cztv.com/live/channel4k2160p.m3u8",
+      "host": "ali-xwl.cztv.com",
+      "video": {
+        "codec_name": "hevc",
+        "codec_type": "video",
+        "width": 3840,
+        "height": 2160,
+        "avg_frame_rate": "50/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 837
+    },
+    {
+      "title": "浙江卫视",
+      "url": "https://ali-m-l.cztv.com/channels/lantian/channel10/1080p.m3u8",
+      "host": "ali-m-l.cztv.com",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 1168
+    },
+    {
+      "title": "浙江卫视",
+      "url": "http://112.123.243.37:50085/tsfile/live/0019_1.m3u8?key=txiptv&playlive=0&authid=0",
+      "host": "112.123.243.37",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 7295
+    },
+    {
+      "title": "浙江卫视",
+      "url": "http://111.8.224.6:9999/tsfile/live/1064_1.m3u8?key=txiptv&playlive=1&authid=0",
+      "host": "111.8.224.6",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 896
+    },
+    {
+      "title": "浙江卫视",
+      "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226339/index.m3u8",
+      "host": "ottrrs.hl.chinamobile.com",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 5126
+    },
+    {
+      "title": "浙江卫视",
+      "url": "http://ali-xwl.cztv.com/live/channel011080Plxw.m3u8",
+      "host": "ali-xwl.cztv.com",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 585
+    },
+    {
+      "title": "浙江卫视",
+      "url": "http://ali-m-l.cztv.com:80/channels/lantian/channel001/1080p.m3u8",
+      "host": "ali-m-l.cztv.com",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 742
+    },
+    {
+      "title": "湖南卫视",
+      "url": "http://hlsal-ldvt.qing.mgtv.com/nn_live/nn_x64/Y2RuZXhfaWQ9YWxfaGxzX2xkdnQmZT02OTE0NjA0JnY9MSZpZD1ITldTWkdTVCZzPTcwN2RiYTc2YzJjNmJmMTQ4MmUyZGYzOWU2NWM3YWFi/HNWSZGST.m3u8",
+      "host": "hlsal-ldvt.qing.mgtv.com",
+      "video": {
+        "codec_name": "hevc",
+        "codec_type": "video",
+        "width": 3840,
+        "height": 2160,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 802
+    },
+    {
+      "title": "湖南卫视",
+      "url": "https://txmov2.a.kwimgs.com/bs3/video-hls/5199687338554291078_hlsb.m3u8",
+      "host": "txmov2.a.kwimgs.com",
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1280,
+        "height": 720,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": false,
+      "status": "video",
+      "inspectionMs": 1439
+    },
+    {
+      "title": "湖南卫视",
+      "url": "http://112.123.243.37:50085/tsfile/live/1002_1.m3u8?key=txiptv&playlive=0&authid=0",
+      "host": "112.123.243.37",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 7271
+    },
+    {
+      "title": "湖南卫视",
+      "url": "http://antvlive.ab5c6921.cdnviet.com/antv/playlist.m3u8",
+      "host": "antvlive.ab5c6921.cdnviet.com",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 7327
+    },
+    {
+      "title": "湖南卫视",
+      "url": "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226307/index.m3u8",
+      "host": "ottrrs.hl.chinamobile.com",
+      "video": null,
+      "verified1080": false,
+      "status": "unavailable",
+      "inspectionMs": 5133
+    },
+    {
+      "title": "湖南卫视",
+      "url": "http://hlsal-ldvt.qing.mgtv.com/nn_live/nn_x64/dWlwPTEyNy4wLjAuMSZ1aWQ9cWluZy1jbXMmbm5fdGltZXpvbmU9OCZjZG5leF9pZD1hbF9obHNfbGR2dCZ1dWlkPTliODY4NmU5ZTM2YzYwMmMmZT02OTE0NjA0JnY9MSZpZD1ITldTWkdTVCZzPTcwN2RiYTc2YzJjNmJmMTQ4MmUyZGYzOWU2NWM3YWFi/HNWSZGST.m3u8",
+      "host": "hlsal-ldvt.qing.mgtv.com",
+      "video": {
+        "codec_name": "hevc",
+        "codec_type": "video",
+        "width": 3840,
+        "height": 2160,
+        "avg_frame_rate": "25/1"
+      },
+      "verified1080": true,
+      "status": "video",
+      "inspectionMs": 484
+    },
+    {
+      "title": "湖南卫视",
+      "url": "http://38.75.136.137:98/gslb/dsdqpub/hnwshd.m3u8?auth=testpub",
+      "host": "38.75.136.137",
+      "status": "timeout_or_invalid",
+      "verified1080": false,
+      "inspectionMs": 27549
+    },
+    {
+      "title": "湖南卫视",
+      "url": "http://198.204.228.26/live/hnwshd.m3u8",
+      "host": "198.204.228.26",
+      "status": "timeout_or_invalid",
+      "verified1080": false,
+      "inspectionMs": 32925
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "title": "CCTV1",
+    "url": "http://222.240.44.42:12810/newlive/live/hls/1/live.m3u8",
+    "bytes": 4194304,
+    "downloadMs": 5533,
+    "downloadMbps": 6.06,
+    "segmentSeconds": 8.0,
+    "complete": false,
+    "mediaMbps": null
+  },
+  {
+    "title": "CCTV2",
+    "url": "http://112.123.243.37:50085/tsfile/live/0002_1.m3u8?key=txiptv&playlive=0&authid=0",
+    "bytes": 4194304,
+    "downloadMs": 991,
+    "downloadMbps": 33.87,
+    "segmentSeconds": 10.0,
+    "complete": false,
+    "mediaMbps": null
+  },
+  {
+    "title": "四川卫视",
+    "url": "http://221.7.175.154:8445/tsfile/live/0123_1.m3u8?key=txiptv&playlive=1&authid=0",
+    "bytes": 4194304,
+    "downloadMs": 1540,
+    "downloadMbps": 21.79,
+    "segmentSeconds": 5.0,
+    "complete": false,
+    "mediaMbps": null
+  },
+  {
+    "title": "浙江卫视",
+    "url": "http://ali-xwl.cztv.com/live/channel4k2160p.m3u8",
+    "bytes": 4194304,
+    "downloadMs": 599,
+    "downloadMbps": 56.06,
+    "segmentSeconds": 6.0,
+    "complete": false,
+    "mediaMbps": null
+  },
+  {
+    "title": "湖南卫视",
+    "url": "http://hlsal-ldvt.qing.mgtv.com/nn_live/nn_x64/Y2RuZXhfaWQ9YWxfaGxzX2xkdnQmZT02OTE0NjA0JnY9MSZpZD1ITldTWkdTVCZzPTcwN2RiYTc2YzJjNmJmMTQ4MmUyZGYzOWU2NWM3YWFi/HNWSZGST.m3u8",
+    "bytes": 1110328,
+    "downloadMs": 273,
+    "downloadMbps": 32.5,
+    "segmentSeconds": 6.0,
+    "complete": true,
+    "mediaMbps": 1.48
+  }
+]
