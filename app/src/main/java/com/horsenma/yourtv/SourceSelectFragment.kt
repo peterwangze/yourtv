@@ -214,7 +214,7 @@ class SourceSelectFragment : Fragment() {
                 displayIndex + 1,
                 source.index,
                 url,
-                SP.getResolutionCache(url)?.let(::formatResolution) ?: getString(R.string.unknown),
+                SourceSelection.resolution(url)?.let(::formatResolution) ?: getString(R.string.unknown),
                 LineHealth.latency(url)?.coerceAtMost(Int.MAX_VALUE.toLong())?.toInt() ?: PING_PENDING,
                 SP.getStableSources().any { it.uris.contains(url) },
                 source.index == tvModel.videoIndexValue,

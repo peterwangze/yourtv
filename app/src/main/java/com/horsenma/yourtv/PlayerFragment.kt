@@ -170,6 +170,7 @@ class PlayerFragment : Fragment() {
     private val bufferingDurationThreshold = 10_000L
     /** 本次播放尝试是否已出画（用于区分"起播缓冲中"与"播放中卡停"，v3.3.0） */
     private var attemptPlayed = false
+    private var qualityNoticeUrl: String? = null
     private val switchCooldown = 8_000L
     private val stablePlaybackThreshold = 10_000L
     private var bufferingStartTime = 0L
@@ -209,6 +210,12 @@ class PlayerFragment : Fragment() {
         val action = playbackCoordinator.play(
             channelId = model.tv.id.toString(),
             lineIds = orderedLines,
+            fallbackLineId = orderedLines.firstOrNull { url ->
+                !LineHealth.isDead(url) && SourceQuality.resolution(SourceSelection.resolution(url))?.fullHd == false
+            },
+            preferredLineIds = orderedLines.filter { url ->
+                !LineHealth.isDead(url) && SourceQuality.resolution(SourceSelection.resolution(url))?.fullHd == true
+            }.toSet(),
         )
         val current = playbackCoordinator.currentSession ?: return false
         activeSessionId = current.sessionId
@@ -327,6 +334,7 @@ class PlayerFragment : Fragment() {
         if (defaultNetwork == network && lastNetworkAvailable == available) return
         defaultNetwork = network
         lastNetworkAvailable = available
+        if (available) LineHealth.updateNetworkScope(requireContext())
         val action = playbackCoordinator.onNetworkChanged(
             available, preservePlayback = player?.playerError == null && player?.isPlaying == true,
         )
@@ -392,6 +400,20 @@ class PlayerFragment : Fragment() {
         playbackCallback?.onPlaybackStarted()
         lastStopTime = 0L
         Log.d(TAG, "${model.tv.title} rendered first frame")
+        notifyVideoQuality()
+    }
+
+    private fun notifyVideoQuality() {
+        if (!attemptPlayed) return
+        val model = tvModel ?: return
+        val url = model.getVideoUrl() ?: return
+        val format = player?.videoFormat ?: return
+        val resolution = SourceQuality.resolution("${format.width}x${format.height}") ?: return
+        if (!resolution.fullHd && qualityNoticeUrl != url) {
+            qualityNoticeUrl = url
+            Toast.makeText(requireContext(), getString(R.string.quality_fallback,
+                "${resolution.width}×${resolution.height}"), Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun classifyPlaybackFailure(error: PlaybackException): PlaybackFailure {
@@ -802,6 +824,12 @@ class PlayerFragment : Fragment() {
             .setLoadControl(createFastLoadControl())
             .build()
         exo.repeatMode = REPEAT_MODE_ALL
+        // Target 1080 without forcing 4K bandwidth or unsupported decoders.
+        // Media3 can still fall back when the manifest has no suitable track.
+        exo.trackSelectionParameters = exo.trackSelectionParameters.buildUpon()
+            .setMinVideoSize(1920, 1080)
+            .setMaxVideoSize(1920, 1080)
+            .build()
         return exo
     }
 
@@ -823,6 +851,7 @@ class PlayerFragment : Fragment() {
                     tvModel?.getVideoUrl()?.let { url ->
                         SP.cacheResolution(url, "${videoSize.width}x${videoSize.height}")
                     }
+                    notifyVideoQuality()
                 }
             }
 
@@ -1130,7 +1159,8 @@ class PlayerFragment : Fragment() {
             val totalBudgetExpired = when {
                 session == null -> false
                 !session.hasFirstFrame ->
-                    currentTime - session.startedAtElapsedMs >= recoveryBudget.startupDeadlineMs
+                    !playbackCoordinator.usesQualityStartupBudget &&
+                        currentTime - session.startedAtElapsedMs >= recoveryBudget.startupDeadlineMs
                 session.recoveryStartedAtElapsedMs != null ->
                     currentTime - session.recoveryStartedAtElapsedMs >= recoveryBudget.recoveryDeadlineMs
                 else -> false
@@ -1184,6 +1214,7 @@ class PlayerFragment : Fragment() {
                     currentTime - playbackStartTime >= stablePlaybackDuration && // 播放持续 30 秒
                     bufferingCount == 0 && tvModel!!.retryTimes == 0) {
                     isStable = true
+                    tvModel?.getVideoUrl()?.let(LineHealth::markStable)
                     saveStableSource(tvModel!!)
                     lastStableSaveTime = currentTime
                     Log.d(TAG, "Stable source saved: ${tvModel!!.tv.title}, playerType=${tvModel!!.tv.playerType}, isPlaying=$isPlaying")
@@ -1395,6 +1426,7 @@ class PlayerFragment : Fragment() {
 
     @OptIn(UnstableApi::class)
     fun play(tvModel: TVModel) {
+        qualityNoticeUrl = null
         val currentTime = SystemClock.elapsedRealtime()
         // 防抖只拦截"同一线路的重复播放"，连续切不同频道不拦截
         if (tvModel.errInfo.value.isNullOrBlank() && currentTime - lastSwitchSourceTime < switchSourceDebounce &&
@@ -1414,47 +1446,19 @@ class PlayerFragment : Fragment() {
         // 线路健康主要来自真实播放；备用线路只在稳定缓冲且用户空闲时单条探测。
         val stableSource = stableSourceFor(tvModel)
         val rememberedUrl = stableUrl(stableSource)
-        if (stableSource != null && rememberedUrl != null) {
-            val mergedUris = SourceNetworkPolicy.diversify(
-                listOf(rememberedUrl) + tvModel.tv.uris,
-                limit = 8,
-            )
-            val rememberedIndex = mergedUris.indexOf(rememberedUrl).coerceAtLeast(0)
+        if (stableSource != null && rememberedUrl != null && stableSource.playerType == tvModel.tv.playerType) {
             tvModel.tv = tvModel.tv.copy(
-                uris = mergedUris,
-                playerType = stableSource.playerType,
-                videoIndex = rememberedIndex,
-                uriHeaders = tvModel.tv.uriHeaders + mapOf(rememberedUrl to stableSource.headers.orEmpty()),
+                uris = (tvModel.tv.uris + rememberedUrl).distinct(),
+                uriHeaders = mapOf(rememberedUrl to stableSource.headers.orEmpty()) + tvModel.tv.uriHeaders,
             )
-            tvModel.setVideoIndex(rememberedIndex)
-            Log.d(TAG, "Applied stable source: ${tvModel.tv.title}, playerType=${tvModel.tv.playerType}, url=${tvModel.getVideoUrl()}, videoIndex=${tvModel.videoIndexValue}")
-        } else {
-            Log.d(TAG, "No stable source found for ${tvModel.tv.title}, using default uris=${tvModel.tv.uris}, videoIndex=${tvModel.videoIndexValue}")
         }
-        Log.d(TAG, "Playing tvModel: ${tvModel.tv.title}, playerType: ${tvModel.tv.playerType}, uris: ${tvModel.tv.uris.size}")
-
-        // 选择可用线路：跳过已探测失败的线路（稳定源线路优先保留）
-        if (tvModel.tv.playerType != PlayerType.WEBVIEW && tvModel.tv.uris.size > 1) {
-            val currentIdx = tvModel.videoIndexValue
-            val stableUrl = rememberedUrl
-            // Device health dominates heuristics. Unknown lines can no longer
-            // outrank a confirmed working (but slightly slower) line.
-            val betterIdx = tvModel.tv.uris.withIndex()
-                .filter { !LineHealth.isDead(it.value) }
-                .maxByOrNull { (index, url) ->
-                    LineHealth.healthRank(url) * 1_000_000_000L +
-                        (if (url == stableUrl) 100_000_000L else 0L) +
-                        SourceNetworkPolicy.compatibilityScore(url) * 1_000_000L +
-                        SourceQuality.scoreWithResolution(url, SP.getResolutionCache(url), tvModel.tv.title) * 10_000L -
-                        (LineHealth.latency(url) ?: 30_000L).coerceAtMost(60_000L) -
-                        index
-                }?.index ?: currentIdx
-            if (betterIdx != currentIdx) {
-                tvModel.setVideoIndex(betterIdx)
-                Log.d(TAG, "Selected healthy line ${betterIdx + 1}/${tvModel.tv.uris.size} for ${tvModel.tv.title}")
-            }
+        if (tvModel.tv.playerType != PlayerType.WEBVIEW) {
+            val ranked = SourceSelection.rank(tvModel.tv.uris, setOfNotNull(rememberedUrl))
+            val pool = SourceNetworkPolicy.diversify(ranked, 8).toSet()
+            tvModel.tv = tvModel.tv.copy(uris = ranked.filter { it in pool })
+            tvModel.setVideoIndex(0)
+            tvModel.confirmVideoIndex()
         }
-
         // Establish the session after line ranking so its first attempt is the
         // exact URL that will be prepared below. A new channel supersedes every
         // callback from the previous channel.

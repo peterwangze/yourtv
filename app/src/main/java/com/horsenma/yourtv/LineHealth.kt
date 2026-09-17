@@ -24,6 +24,8 @@ object LineHealth {
         var lastFailureMs: Long = 0L,
         var failureStreak: Int = 0,
         var retryAfterMs: Long = 0L,
+        var startupMs: Long = -1L,
+        var stableAtMs: Long = 0L,
     )
 
     private val records = ConcurrentHashMap<String, Record>()
@@ -66,7 +68,10 @@ object LineHealth {
             record.latencyMs = mergeLatency(record.latencyMs, latencyMs)
             record.lastCheckMs = now
             record.lastSuccessMs = now
-            if (playback) record.lastPlaybackSuccessMs = now
+            if (playback) {
+                record.lastPlaybackSuccessMs = now
+                record.startupMs = mergeLatency(record.startupMs, latencyMs)
+            }
             record.failureStreak = 0
             record.retryAfterMs = 0L
         }
@@ -131,6 +136,36 @@ object LineHealth {
 
     fun latency(url: String): Long? = records[url]?.latencyMs?.takeIf { it >= 0L }
 
+    fun playbackLatency(url: String): Long? = records[url]?.startupMs?.takeIf { it >= 0L }
+
+    fun isStable(url: String): Boolean = records[url]?.let {
+        it.stableAtMs > it.lastFailureMs && System.currentTimeMillis() - it.stableAtMs < FRESH_SUCCESS_MS
+    } == true
+
+    fun markStable(url: String) {
+        val record = records[url] ?: return
+        synchronized(record) { record.stableAtMs = System.currentTimeMillis() }
+        persist()
+    }
+
+    /** No carrier lookup service: invalidate route evidence when the local route changes. */
+    fun updateNetworkScope(context: android.content.Context) {
+        val manager = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        val network = manager.activeNetwork ?: return
+        val properties = manager.getLinkProperties(network) ?: return
+        val route = listOf(properties.interfaceName.orEmpty(),
+            properties.dnsServers.map { it.hostAddress.orEmpty() }.sorted().joinToString(","),
+            properties.routes.map { it.gateway?.hostAddress.orEmpty() }.sorted().joinToString(","),
+            properties.linkAddresses.map { it.toString() }.sorted().joinToString(",")).joinToString("|")
+        val fingerprint = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(route.toByteArray()).joinToString("") { "%02x".format(it) }
+        val preferences = context.getSharedPreferences("SourceNetworkScope", android.content.Context.MODE_PRIVATE)
+        if (preferences.getString("route", null) != fingerprint) {
+            reset()
+            preferences.edit().putString("route", fingerprint).apply()
+        }
+    }
+
     fun reset() {
         persistGeneration.incrementAndGet()
         records.clear()
@@ -170,6 +205,8 @@ object LineHealth {
                             record.lastFailureMs,
                             record.failureStreak,
                             record.retryAfterMs,
+                            record.startupMs,
+                            record.stableAtMs,
                         ).joinToString("|")
                         url to value
                     }
@@ -188,7 +225,7 @@ object LineHealth {
 
     private fun parse(value: String): Record? {
         val parts = value.split('|')
-        if (parts.firstOrNull() == FORMAT_VERSION && parts.size >= 8) {
+        if (parts.firstOrNull() in listOf(FORMAT_VERSION, "3") && parts.size >= 8) {
             return Record(
                 latencyMs = parts[1].toLongOrNull() ?: -1L,
                 lastCheckMs = parts[2].toLongOrNull() ?: return null,
@@ -197,6 +234,8 @@ object LineHealth {
                 lastFailureMs = parts[5].toLongOrNull() ?: 0L,
                 failureStreak = parts[6].toIntOrNull() ?: 0,
                 retryAfterMs = parts[7].toLongOrNull() ?: 0L,
+                startupMs = parts.getOrNull(8)?.toLongOrNull() ?: -1L,
+                stableAtMs = parts.getOrNull(9)?.toLongOrNull() ?: 0L,
             )
         }
 
@@ -243,7 +282,7 @@ object LineHealth {
     }
 
     private const val TAG = "LineHealth"
-    private const val FORMAT_VERSION = "3"
+    private const val FORMAT_VERSION = "4"
     private const val MAX_ENTRIES = 3_000
     private const val PERSIST_THROTTLE_MS = 10_000L
     private const val PROBE_FRESH_MS = 30 * 60_000L

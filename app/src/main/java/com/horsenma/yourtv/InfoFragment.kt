@@ -88,7 +88,8 @@ class InfoFragment : Fragment() {
         val application = context.applicationContext as YourTVApplication
         val imageHelper = application.imageHelper
 
-        binding.title.text = tv.title
+        val resolution = tvModel.getVideoUrl()?.let(SourceSelection::resolution)
+        binding.title.text = if (resolution != null) "${tv.title} · $resolution" else tv.title
 
         when (tv.title) {
             else -> {

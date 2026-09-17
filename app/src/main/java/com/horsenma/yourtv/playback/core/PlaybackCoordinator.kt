@@ -17,6 +17,9 @@ class PlaybackCoordinator(
     private var lines: List<String> = emptyList()
     private var lineCursor = 0
     private var session: PlaybackSession? = null
+    private var compatibleFallback: String? = null
+    private var inFinalFallback = false
+    private var preferredLines: Set<String> = emptySet()
 
     val currentSession: PlaybackSession?
         get() = session
@@ -24,8 +27,16 @@ class PlaybackCoordinator(
     val currentNetworkGeneration: Long
         get() = networkGeneration
 
-    fun play(channelId: String, lineIds: List<String>): PlaybackAction {
+    /** HD candidates each get the normal attempt timeout, including the last one. */
+    val usesQualityStartupBudget: Boolean
+        get() = preferredLines.isNotEmpty()
+
+    fun play(channelId: String, lineIds: List<String>, fallbackLineId: String? = null,
+             preferredLineIds: Set<String> = emptySet()): PlaybackAction {
         val candidates = lineIds.filter(String::isNotBlank).distinct()
+        preferredLines = preferredLineIds.intersect(candidates.toSet())
+        compatibleFallback = fallbackLineId?.takeIf { it in candidates }
+        inFinalFallback = false
         if (candidates.isEmpty()) {
             nextSessionId += 1
             session = PlaybackSession(
@@ -81,6 +92,9 @@ class PlaybackCoordinator(
     fun beginAttempt(sessionId: Long, lineId: String): PlaybackAction {
         val current = session ?: return PlaybackAction.None
         if (current.sessionId != sessionId || lineId.isBlank()) return PlaybackAction.None
+        compatibleFallback = null
+        inFinalFallback = false
+        preferredLines = emptySet()
         // A refreshed channel catalogue may expose a newly selected endpoint.
         if (lineId !in lines) lines = lines + lineId
         lineCursor = lines.indexOf(lineId)
@@ -193,7 +207,14 @@ class PlaybackCoordinator(
         val now = nowElapsedMs()
         val elapsed = (now - current.startedAtElapsedMs).coerceAtLeast(0L)
         val inStartup = !current.hasFirstFrame
-        if (inStartup && elapsed < budget.startupDeadlineMs) {
+        // Give every shortlisted, measured HD endpoint one attempt before SD.
+        // Each prepare is bounded by the adapter's attempt timeout; do not spend
+        // that budget retrying one dead host while other HD endpoints remain.
+        if (inStartup && autoSwitchEnabled && !inFinalFallback &&
+            preferredLines.any { it !in current.attemptedLineIds }) {
+            return switchToNext(current, recovery = false, eligibleLines = preferredLines)
+        }
+        if (inStartup && elapsed < budget.startupDeadlineMs && !inFinalFallback) {
             // A complete prepare can consume eight seconds. Preserve a chance
             // for an untried endpoint instead of spending every slot on one URL.
             if (autoSwitchEnabled && elapsed >= budget.attemptTimeoutMs &&
@@ -237,6 +258,21 @@ class PlaybackCoordinator(
             }
         }
 
+        // One bounded compatibility attempt after the preferred startup budget.
+        // Never loop back through failed HD lines, or override manual selection.
+        val fallback = compatibleFallback
+        if (autoSwitchEnabled && !inFinalFallback && fallback != null &&
+            fallback !in current.attemptedLineIds) {
+            inFinalFallback = true
+            lines = listOf(fallback)
+            lineCursor = 0
+            val attemptId = nextAttemptId++
+            session = current.copy(attemptId = attemptId, selectedLineId = fallback,
+                attemptedLineIds = current.attemptedLineIds + fallback,
+                startedAtElapsedMs = now, recoveryStartedAtElapsedMs = null,
+                sameLineRetries = 0, hasFirstFrame = false, state = PlaybackState.PREPARING)
+            return PlaybackAction.SwitchLine(current.sessionId, attemptId, fallback)
+        }
         session = current.copy(state = PlaybackState.RECOVERABLE_ERROR)
         return PlaybackAction.ShowError(current.sessionId, current.channelId, failure)
     }
@@ -301,8 +337,10 @@ class PlaybackCoordinator(
         recoveryStart: Long? = null,
         recoveryWindowStart: Long? = current.recoveryWindowStartedAtElapsedMs,
         recoverySwitches: Int = current.recoverySwitches,
+        eligibleLines: Set<String>? = null,
     ): PlaybackAction {
-        val nextIndex = lines.indices.firstOrNull { it != lineCursor && lines[it] !in current.attemptedLineIds }
+        val nextIndex = lines.indices.firstOrNull { it != lineCursor && lines[it] !in current.attemptedLineIds &&
+            (eligibleLines == null || lines[it] in eligibleLines) }
             ?: run {
                 session = current.copy(state = PlaybackState.RECOVERABLE_ERROR)
                 return PlaybackAction.ShowError(current.sessionId, current.channelId, PlaybackFailure.UNKNOWN)

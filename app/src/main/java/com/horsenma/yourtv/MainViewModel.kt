@@ -523,6 +523,8 @@ class MainViewModel : ViewModel() {
         this.context = context
         // v3.3.0：恢复跨会话线路健康（死线/延迟），切台/选线跳过已知坏线
         LineHealth.loadPersisted()
+        LineHealth.updateNetworkScope(context)
+        SourceSelection.loadMeasurements(context)
 
         if (groupModel.getAllList() == null || groupModel.getAllList()!!.tvList.value.isNullOrEmpty()) {
             groupModel.addTVListModel(TVListModel(context.getString(R.string.my_favorites), 0))
@@ -539,53 +541,7 @@ class MainViewModel : ViewModel() {
             Log.e(TAG, "Failed to create cache file: ${e.message}", e)
         }
 
-        // Step 1: Immediately play the latest stable source
-        viewModelScope.launch(Dispatchers.Main) {
-            // 播放稳定源
-            val stableSources = SP.getStableSources()
-            var defaultChannel: TVModel? = null
-            if (stableSources.isNotEmpty()) {
-                val selectedSource = stableSources.maxByOrNull { it.timestamp }
-                if (selectedSource != null) {
-                    val tv = TV(
-                        id = selectedSource.id,
-                        name = selectedSource.name,
-                        title = selectedSource.title,
-                        description = selectedSource.description,
-                        logo = selectedSource.logo,
-                        image = selectedSource.image,
-                        uris = selectedSource.uris,
-                        videoIndex = selectedSource.videoIndex,
-                        headers = selectedSource.headers,
-                        group = selectedSource.group,
-                        sourceType = SourceType.valueOf(selectedSource.sourceType),
-                        number = selectedSource.number,
-                        child = selectedSource.child
-                    )
-                    defaultChannel = TVModel(tv).apply {
-                        setLike(SP.getLike(tv.id))
-                        setGroupIndex(2)
-                        listIndex = 0
-                    }
-
-                    // 打印 TV 数据为 JSON
-                    val tvJson = Global.gson.toJson(defaultChannel.tv)
-                    Log.d(TAG, "Stable source TV JSON: $tvJson")
-
-                    groupModel.setCurrent(defaultChannel)
-                    triggerPlay(defaultChannel)
-                    Log.i(TAG, "Playing latest stable channel immediately: ${defaultChannel.tv.title}, url: ${defaultChannel.getVideoUrl()}")
-                } else {
-                    Log.w(TAG, "Selected stable source is null")
-                }
-            } else {
-                // Do not start a random, release-time URL. The bundled list is
-                // loaded below and MainActivity deterministically starts CCTV1.
-                Log.i(TAG, "No stable playback history; waiting for bundled channel list")
-            }
-
-        }
-
+        // Restore the channel only after its complete local candidate list is ready.
         // Step 2: 1 秒后后台加载频道列表（缓存/激活源/内置源）。
         // 解析在 IO 线程，应用切主线程；channelsOk 在列表真正应用完成后才置位，
         // MainActivity 据此触发首频道起播，避免首屏卡顿与自动起播竞态。
@@ -1519,19 +1475,10 @@ class MainViewModel : ViewModel() {
             .filter { ChannelClassifier.mergeKey(it.title, it.group) == ChannelClassifier.mergeKey(tv.title, tv.group) }
             .flatMap { it.uris }
             .toSet()
-        val ranked = tv.uris.distinct().sortedWith(
-            // Device-local evidence dominates every URL/source heuristic.
-            compareByDescending<String> { LineHealth.healthRank(it) }
-                .thenByDescending { if (it in stableUrls) 1 else 0 }
-                // Public/official CDNs are normally reachable across Telecom,
-                // Unicom and Mobile; carrier-bound lines remain as fallbacks.
-                .thenByDescending { SourceNetworkPolicy.compatibilityScore(it) }
-                .thenByDescending { sourceWeightOf(tv, it) }
-                .thenByDescending { SourceQuality.scoreWithResolution(it, SP.getResolutionCache(it), tv.title) }
-                .thenBy { LineHealth.latency(it) ?: Long.MAX_VALUE }
-                .thenBy { it }
-        )
-        return SourceNetworkPolicy.diversify(ranked, MAX_URIS_PER_CHANNEL)
+        val ranked = SourceSelection.rank(tv.uris, stableUrls) { sourceWeightOf(tv, it) }
+        // Diversity picks the pool; restore quality order after carrier reservations.
+        val pool = SourceNetworkPolicy.diversify(ranked, MAX_URIS_PER_CHANNEL).toSet()
+        return ranked.filter { it in pool }
     }
 
     /** 源质量分层分（按 uriSources 中的源名/域名判定；无标注时给中性分） */
@@ -1694,7 +1641,10 @@ class MainViewModel : ViewModel() {
             val target = when {
                 anchored != null -> anchored
                 restoreTitle != null -> listModelNew.firstOrNull { it.tv.title == restoreTitle }
-                else -> null
+                else -> SP.getStableSources().maxByOrNull { it.timestamp }?.let { saved ->
+                    val key = ChannelClassifier.mergeKey(saved.title, saved.group)
+                    listModelNew.firstOrNull { ChannelClassifier.mergeKey(it.tv.title, it.tv.group) == key }
+                }
             }
             if (target != null) {
                 if (target.tv.id != current?.tv?.id) {

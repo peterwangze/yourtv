@@ -316,23 +316,6 @@ class MainActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                var attempts = 0
-                var currentTvModel: TVModel? = null
-                while (attempts < 10 && currentTvModel == null && SP.getStableSources().isNotEmpty()) {
-                    currentTvModel = viewModel.groupModel.getCurrent()
-                    delay(100)
-                    attempts++
-                    Log.d(TAG, "Waiting for stable source, attempt $attempts, currentTvModel: ${currentTvModel?.tv?.title}")
-                }
-
-                if (currentTvModel != null && SP.getStableSources().isNotEmpty()) {
-                    menuFragment.update()
-                    menuFragment.updateList(viewModel.groupModel.positionValue)
-                    Log.d(TAG, "Stable source already playing: ${currentTvModel.tv.title}...")
-                    hideFragment(loadingFragment)
-                    return@launch
-                }
-
                 // 兜底超时：channelsOk 30 秒内没就绪就进入菜单，避免无限黑屏
                 val channelsLoaded = withTimeoutOrNull(30_000) {
                     viewModel.channelsOk.asFlow().takeWhile { !it }.collect()
@@ -351,16 +334,15 @@ class MainActivity : AppCompatActivity() {
                 menuFragment.update()
                 menuFragment.updateList(viewModel.groupModel.positionValue)
 
-                // 起播兜底：
-                // - init Step1 已通过 playTrigger 触发播放（稳定源或内置稳定频道），这里不打断；
-                // - 没有任何频道被触发播放时，主动起播当前/首个频道，避免黑屏。
+                // Start the restored channel with its complete, quality-ranked local catalogue.
                 if (playerFragment.tvModel == null) {
                     val target = viewModel.groupModel.current.value ?: viewModel.listModel.firstOrNull()
                     if (target != null) {
                         viewModel.groupModel.setCurrent(target)
                         viewModel.groupModel.setPositionPlaying()
                         viewModel.groupModel.getCurrentList()?.let {
-                            it.setPosition(0)
+                            val index = it.tvList.value?.indexOfFirst { model -> model.tv.id == target.tv.id } ?: -1
+                            if (index >= 0) it.setPosition(index)
                             it.setPositionPlaying()
                             it.getCurrent()?.setReady()
                         }

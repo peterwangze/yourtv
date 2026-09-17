@@ -11,7 +11,7 @@
 策略：
   1. 过滤噪音条目（与 App 解析管线一致：noise=true 丢弃）
   2. 按 mergeKey 合并频道，线路去重
-  3. 线路排序：存活优先 > 源质量分层 > 清晰度分 > 延迟
+  3. 线路排序：存活优先 > 实测清晰度 > 源质量分层 > 标称清晰度 > 延迟
   4. 每频道线路数上限 10（全部死线时保留 6 条给其他网络兜底）
   5. 频道排序：央视 > 卫视 > 地方(省份序) > 海外(国家序) > 其他
 
@@ -22,11 +22,13 @@ import ipaddress
 import os
 import re
 import sys
+import time
 from urllib.parse import urlparse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESEARCH = os.path.join(ROOT, "tools", "research")
 OUT = os.path.join(ROOT, "app", "src", "main", "assets", "bundled_channels.json")
+QUALITY = os.path.join(ROOT, "app", "src", "main", "assets", "bundled_quality.json")
 
 CAT_RANK = {"央视": 0, "卫视": 1, "地方": 2, "海外": 3, "其他": 4}
 PROVINCES = ["北京", "天津", "上海", "重庆", "河北", "山西", "辽宁", "吉林", "黑龙江",
@@ -160,6 +162,17 @@ def main() -> int:
     channels = json.load(open(os.path.join(RESEARCH, "channels.json"), encoding="utf-8"))
     classified = json.load(open(os.path.join(RESEARCH, "classified.json"), encoding="utf-8"))
     probe = json.load(open(os.path.join(RESEARCH, "probe_lines_results.json"), encoding="utf-8"))
+    measured = {}
+    if os.path.exists(QUALITY):
+        snapshot = json.load(open(QUALITY, encoding="utf-8"))
+        if 0 <= time.time() * 1000 - snapshot.get("measuredAtMs", 0) <= 30 * 86400 * 1000:
+            measured = snapshot.get("resolutions", {})
+
+    def quality_tier(url):
+        dimensions = measured.get(url, "").split("x")
+        if len(dimensions) == 2 and all(d.isdigit() for d in dimensions):
+            return 3 if int(dimensions[0]) >= 1920 and int(dimensions[1]) >= 1080 else 0
+        return 1
 
     probe_map = {line["url"]: line for line in probe.get("lines", [])}
     cls_map = {(c["title"], c["group"]): c for c in classified}
@@ -197,6 +210,7 @@ def main() -> int:
     for key, ch in merged.items():
         lines = sorted(ch["lines"].values(), key=lambda l: (
             not l["alive"],
+            -quality_tier(l["url"]),
             -source_weight(l["url"], l["source"]),
             -l["quality"],
             l["latency"] if l["latency"] is not None else 10 ** 9,
@@ -206,7 +220,8 @@ def main() -> int:
         if not selected:
             dropped_no_alive += 1
             continue
-        lines = selected
+        selected_urls = {line["url"] for line in selected}
+        lines = [line for line in lines if line["url"] in selected_urls]
         out.append({
             "name": ch["title"],
             "title": ch["title"],

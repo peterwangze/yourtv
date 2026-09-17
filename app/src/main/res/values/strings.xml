@@ -1,4 +1,5 @@
 <resources>
+    <string name="quality_fallback">当前使用 %1$s 兼容线路，未达到 1080P</string>
     <string name="channel_name">频道名称</string>
     <string name="source_info">线路%1$d · %2$s · %3$s</string>
     <string name="line_status_pending">待检测</string>

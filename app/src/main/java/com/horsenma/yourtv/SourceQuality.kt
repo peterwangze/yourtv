@@ -5,6 +5,25 @@ package com.horsenma.yourtv
  * 实际测量分辨率缓存 > URL 关键词识别。
  */
 object SourceQuality {
+    data class Resolution(val width: Int, val height: Int) {
+        val fullHd: Boolean get() = width >= 1920 && height >= 1080
+    }
+
+    fun resolution(value: String?): Resolution? {
+        val parts = value?.lowercase()?.split('x') ?: return null
+        if (parts.size != 2) return null
+        val width = parts[0].trim().toIntOrNull() ?: return null
+        val height = parts[1].trim().toIntOrNull() ?: return null
+        return if (width > 0 && height > 0) Resolution(width, height) else null
+    }
+
+    /** Measured 1080 beats every name/domain heuristic; 1920x540 is not 1080. */
+    fun preferenceTier(url: String, measured: String?): Int {
+        resolution(measured)?.let { return if (it.fullHd) 3 else 0 }
+        val path = url.substringBefore('?').lowercase()
+        return if (Regex("(^|[^0-9])(1080|2160)(p|[^0-9]|$)").containsMatchIn(path) ||
+            RE_4K.containsMatchIn(path) || RE_8K.containsMatchIn(path)) 2 else 1
+    }
 
     // 词边界匹配，避免误伤：jiangsuhd（高清）、64k.m3u8（音频流）等子串
     private val RE_8K = Regex("(^|[^a-z0-9])8k([^a-z0-9]|$)")
@@ -39,18 +58,15 @@ object SourceQuality {
 
     /** 根据实际测量分辨率（如 "1920x1080"）打分，优先级高于 URL 关键词 */
     fun scoreWithResolution(url: String, measured: String?, title: String? = null): Int {
-        if (measured != null) {
-            val width = measured.substringBefore("x").trim().toIntOrNull()
-            if (width != null && width > 0) {
+        resolution(measured)?.let { size ->
                 return when {
-                    width >= 2560 -> 100
-                    width >= 1920 -> 90
-                    width >= 1280 -> 75
-                    width >= 960 -> 60
-                    width >= 640 -> 45
+                    size.width >= 3840 && size.height >= 2160 -> 100
+                    size.fullHd -> 90
+                    size.width >= 1280 && size.height >= 720 -> 75
+                    size.width >= 960 && size.height >= 540 -> 60
+                    size.width >= 640 && size.height >= 360 -> 45
                     else -> 30
                 }
-            }
         }
         val urlScore = score(url)
         if (title != null) {
